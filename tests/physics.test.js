@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {pockets,facings,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
 import {ball,rack,step,canPlace,findPlacement,applyCueSpin} from '../src/physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
@@ -36,7 +37,7 @@ test('premature eight loses',()=>{
 });
 test('legal final eight wins',()=>{
  const balls=[ball(0,100,100),ball(8,300,100)];balls[1].pocketed=true;
- const result=adjudicate({balls,shooter:0,groups:['solids','stripes'],deployed:{solids:true,stripes:true},pocketed:[8],firstContact:8,breakShot:false,preShotReadyForEight:true});
+ const result=adjudicate({balls,shooter:0,groups:['solids','stripes'],deployed:{solids:true,stripes:true},pocketed:[8],firstContact:8,breakShot:false,preShotReadyForEight:true,calledBall:8,calledPocket:'TL',pocketEvents:[{id:8,pocketId:'TL'}]});
  assert.equal(result.winner,0);
 });
 test('scratch passes turn and allows ball in hand',()=>{
@@ -123,4 +124,74 @@ test('Tailuge rack fully settles without NaNs at normal break speed', () => {
  assert.ok(contacts>=8,'break must hit and spread rack');
  assert.equal(ended,true,'rack should settle before 20 seconds');
  assert.ok(balls.every(b=>b.pocketed||[b.x,b.y,b.vx,b.vy,b.wx,b.wy,b.wz].every(Number.isFinite)));
+});
+
+test('WPA corner and side mouth measurements match 4.56 and 5.06 inches',()=>{
+ const corner=pockets.find(p=>p.id==='TL'),side=pockets.find(p=>p.id==='TM');
+ assert.ok(Math.abs(mouthWidth(corner)/PX_PER_IN-CORNER_MOUTH_IN)<1e-8);
+ assert.ok(Math.abs(mouthWidth(side)/PX_PER_IN-SIDE_MOUTH_IN)<1e-8);
+ assert.ok(mouthWidth(side)>mouthWidth(corner));
+ assert.ok(mouthWidth(side)<52,'side mouth is not a huge capture circle');
+});
+test('each of six pocket throats records its stable called-pocket ID',()=>{
+ for(const p of pockets){
+  const b=ball(1,p.kind==='side'?p.x:p.x+p.sx*65,p.kind==='side'?p.y+p.sy*80:p.y+p.sy*65);
+  if(p.kind==='side'){b.vy=-p.sy*450;}else{b.vx=-p.sx*320;b.vy=-p.sy*320;}
+  const balls=[b],events=[];
+  for(let i=0;i<120&&!b.pocketed;i++)events.push(...step(balls).pocketEvents);
+  assert.equal(b.pocketed,true,'should pocket at '+p.id);
+  assert.deepEqual(events,[{id:1,pocketId:p.id}]);
+ }
+});
+test('side pocket rejects an outside-mouth shot instead of swallowing slop',()=>{
+ for(const x of [456,466,534,544]){
+  const b=ball(1,x,80),balls=[b];b.vy=-480;
+  for(let i=0;i<110;i++)step(balls);
+  assert.equal(b.pocketed,false,'outside mouth: '+x);
+ }
+});
+test('called object ball must enter precisely its declared pocket to earn turn',()=>{
+ const balls=[ball(0,100,200),ball(1,250,200),ball(8,300,250)];
+ balls[1].pocketed=true;
+ const base={balls,shooter:0,groups:['solids','stripes'],deployed:{solids:false,stripes:false},
+  pocketed:[1],firstContact:1,breakShot:false,calledBall:1,calledPocket:'TR'};
+ const wrong=adjudicate({...base,pocketEvents:[{id:1,pocketId:'TL'}]});
+ assert.equal(wrong.keepTurn,false);
+ assert.equal(wrong.newGroup,null);
+ assert.equal(wrong.foul,false);
+ const right=adjudicate({...base,pocketEvents:[{id:1,pocketId:'TR'}]});
+ assert.equal(right.keepTurn,true);
+});
+test('slopped group balls stay pocketed but do not earn a repeat shot',()=>{
+ const balls=[ball(0,100,200),ball(2,250,200),ball(8,300,250)];
+ balls[1].pocketed=true;
+ const result=adjudicate({balls,shooter:0,groups:['solids','stripes'],deployed:{solids:false,stripes:false},
+  pocketed:[2],firstContact:2,breakShot:false,calledBall:1,calledPocket:'TM',pocketEvents:[{id:2,pocketId:'TM'}]});
+ assert.equal(result.keepTurn,false);
+ assert.equal(result.foul,false);
+ assert.match(result.reason,/Slop/);
+});
+test('8 in wrong called pocket loses despite otherwise legal first hit',()=>{
+ const balls=[ball(0,100,200),ball(8,250,200)];balls[1].pocketed=true;
+ const result=adjudicate({balls,shooter:0,groups:['solids','stripes'],deployed:{solids:true,stripes:true},
+  pocketed:[8],firstContact:8,breakShot:false,preShotReadyForEight:true,
+  calledBall:8,calledPocket:'TR',pocketEvents:[{id:8,pocketId:'TL'}]});
+ assert.equal(result.winner,1);
+});
+test('break is exempt from called pockets, with open groups after pocket',()=>{
+ const balls=[ball(0,100,200),ball(2,250,200)];balls[1].pocketed=true;
+ const result=adjudicate({balls,shooter:0,groups:[null,null],deployed:{solids:false,stripes:false},
+  pocketed:[2],firstContact:2,breakShot:true,pocketEvents:[{id:2,pocketId:'TL'}]});
+ assert.equal(result.keepTurn,true);
+ assert.equal(result.newGroup,null);
+});
+
+test('angled rubber pocket facings reflect WPA corner and side cuts',()=>{
+ // Facings are paired per pocket in order, with horizontal edges pointing
+ // toward the mouth. 142° corner corresponds to a 38° bevel turn;
+ // 104° side corresponds to a 76° bevel turn.
+ const angle=(f)=>Math.atan2(Math.abs(f.y2-f.y1),Math.abs(f.x2-f.x1))*180/Math.PI;
+ assert.ok(Math.abs(180-angle(facings[0])-142)<2);
+ assert.ok(Math.abs(180-angle(facings[2])-104)<2);
+ assert.equal(facings.length,12);
 });

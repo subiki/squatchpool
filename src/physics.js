@@ -7,28 +7,9 @@
 import { ballCollision, cushionBounce, advanceFriction, applyCueSpin as setCueSpin }
   from './vendor/tailuge-physics.js';
 export { setCueSpin as applyCueSpin };
-export const TABLE = { width:1000, height:500, radius:11, pocketRadius:23 };
-const R=TABLE.radius, W=TABLE.width, H=TABLE.height, STOP=5;
-export const cushions=[
- {x1:34,y1:R,x2:W/2-26,y2:R},
- {x1:W/2+26,y1:R,x2:W-34,y2:R},
- {x1:34,y1:H-R,x2:W/2-26,y2:H-R},
- {x1:W/2+26,y1:H-R,x2:W-34,y2:H-R},
- {x1:R,y1:34,x2:R,y2:H-34},
- {x1:W-R,y1:34,x2:W-R,y2:H-34},
-];
-export const pockets=[
- {x:0,y:0,radius:22},{x:W/2,y:0,radius:26},
- {x:W,y:0,radius:22},{x:0,y:H,radius:22},
- {x:W/2,y:H,radius:26},{x:W,y:H,radius:22},
-];
-// Tailuge Knuckle: pocket cushion tips are circular obstacles, unlike the
-// previous Planck open-edge segments that let glancing balls escape the table.
-const jaws=[...new Map(cushions.flatMap(c=>[
- [c.x1+','+c.y1,{x:c.x1,y:c.y1}],
- [c.x2+','+c.y2,{x:c.x2,y:c.y2}],
-])).values()];
-const JAW_RADIUS=3;
+import {TABLE,cushions,pockets,jaws,facings,pocketCaptureTime} from './table-geometry.js';
+export {TABLE,cushions,pockets} from './table-geometry.js';
+const R=TABLE.radius,W=TABLE.width,H=TABLE.height,STOP=5;
 export const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const ball=(id,x,y)=>({id,x,y,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary',pocketed:false});
@@ -36,7 +17,9 @@ export const stationary=balls=>balls.every(b=>b.pocketed||Math.hypot(b.vx,b.vy)<
 export function canPlace(balls,x,y,ignoreId=null){
  const inset=2*R+1;
  if(x<inset||x>W-inset||y<inset||y>H-inset)return false;
- if(pockets.some(p=>Math.hypot(x-p.x,y-p.y)<p.radius+R+3))return false;
+ if(pockets.some(p=>p.kind==='side'?
+  Math.abs(x-p.x)<p.half+R&&p.sy*(y-p.y)<2.3*R:
+  p.sx*(x-p.x)+p.sy*(y-p.y)<p.lip+2*R&&p.sx*(x-p.x)>0&&p.sy*(y-p.y)>0))return false;
  return balls.every(b=>b.pocketed||b.id===ignoreId||Math.hypot(b.x-x,b.y-y)>=2*R+2);
 }
 export function findPlacement(balls,preferred={x:260,y:250}){
@@ -67,14 +50,32 @@ function circleTime(dx,dy,vx,vy,r,maxT){
  const t=(-dot-Math.sqrt(disc))/speed2;
  return t>=-1e-8&&t<=maxT+1e-8?Math.max(0,t):null;
 }
+function facingTime(b,f,maxT){
+ const dx=f.x2-f.x1,dy=f.y2-f.y1,len=Math.hypot(dx,dy);
+ const nx=-dy/len,ny=dx/len;
+ const dist=(b.x-f.x1)*nx+(b.y-f.y1)*ny,vn=b.vx*nx+b.vy*ny;
+ if(Math.abs(vn)<1e-8)return null;
+ let best=null;
+ for(const sign of [-1,1]){
+  // Only resolve a collision from the approaching, occupied side.
+  if(vn*sign>=-1e-8)continue;
+  const t=(sign*(R+f.radius)-dist)/vn;
+  if(t<0||t>maxT)continue;
+  const x=b.x+b.vx*t,y=b.y+b.vy*t;
+  const projection=((x-f.x1)*dx+(y-f.y1)*dy)/len;
+  if(projection>=0&&projection<=len&&(!best||t<best.time))
+   best={time:t,nx:nx*sign,ny:ny*sign};
+ }
+ return best;
+}
 function advance(balls,time){
  if(time<=0)return;
  for(const b of balls)if(!b.pocketed){b.x+=b.vx*time;b.y+=b.vy*time;}
 }
 const valid=b=>!b.pocketed&&Number.isFinite(b.x+b.y+b.vx+b.vy);
 export function step(balls,dt=1/120){
- const pocketed=[],contacts=[];
- if(!(dt>0))return{pocketed,contacts};
+ const pocketed=[],contacts=[],pocketEvents=[];
+ if(!(dt>0))return{pocketed,contacts,pocketEvents};
  let remaining=Math.min(dt,1/30),events=0;
  while(remaining>1e-8&&events++<120){
   let best=null;
@@ -89,10 +90,9 @@ export function step(balls,dt=1/120){
     const t=circleTime(b.x-a.x,b.y-a.y,b.vx-a.vx,b.vy-a.vy,2*R,remaining);
     offer(t,'ball',a,b);
    }
-   // Six real pocket mouths.
+   // A ball must cross the physical pocket throat, not enter a magic circle.
    for(const p of pockets){
-    if(Math.hypot(a.x-p.x,a.y-p.y)<p.radius-1e-6){offer(0,'pocket',a,p);continue;}
-    offer(circleTime(a.x-p.x,a.y-p.y,a.vx,a.vy,p.radius,remaining),'pocket',a,p);
+    offer(pocketCaptureTime(a,p,remaining),'pocket',a,p);
    }
    // Cushion noses: centers collide at ball radius inward of visible rail.
    for(const c of cushions){
@@ -118,8 +118,9 @@ export function step(balls,dt=1/120){
    }
    // Tailuge knuckle principle: rounded protrusions at each pocket mouth.
    for(const k of jaws){
-    offer(circleTime(a.x-k.x,a.y-k.y,a.vx,a.vy,R+JAW_RADIUS,remaining),'jaw',a,k);
+    offer(circleTime(a.x-k.x,a.y-k.y,a.vx,a.vy,R+k.radius,remaining),'jaw',a,k);
    }
+   for(const f of facings){const hit=facingTime(a,f,remaining);if(hit)offer(hit.time,'facing',a,f,hit.nx,hit.ny);}
   }
   if(!best){advance(balls,remaining);remaining=0;break;}
   advance(balls,best.time);
@@ -127,7 +128,7 @@ export function step(balls,dt=1/120){
   const {a,b,type,nx,ny}=best;
   if(type==='pocket'){
    a.pocketed=true;a.vx=0;a.vy=0;a.wx=0;a.wy=0;a.wz=0;a.motion='stationary';
-   pocketed.push(a.id);
+   pocketed.push(a.id);pocketEvents.push({id:a.id,pocketId:b.id});
   }else if(type==='ball'){
    const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
    const overlap=2*R-d,ux=dx/d,uy=dy/d;
@@ -139,11 +140,14 @@ export function step(balls,dt=1/120){
    // Post-collision project onto the same rail nose used for rendering.
    if(nx)a.x=nx>0?Math.max(a.x,2*R):Math.min(a.x,W-2*R);
    if(ny)a.y=ny>0?Math.max(a.y,2*R):Math.min(a.y,H-2*R);
+  }else if(type==='facing'){
+   cushionBounce(a,nx,ny);
+   a.x+=nx*1e-3;a.y+=ny*1e-3;
   }else if(type==='jaw'){
    const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy)||1;
    const ux=dx/d,uy=dy/d;
-   a.x=b.x+ux*(R+JAW_RADIUS+1e-4);
-   a.y=b.y+uy*(R+JAW_RADIUS+1e-4);
+   a.x=b.x+ux*(R+b.radius+1e-4);
+   a.y=b.y+uy*(R+b.radius+1e-4);
    cushionBounce(a,ux,uy);
   }
  }
@@ -159,7 +163,7 @@ export function step(balls,dt=1/120){
    b.vx=0;b.vy=0;b.wx=0;b.wy=0;b.wz=0;
   }
  }
- return{pocketed,contacts};
+ return{pocketed,contacts,pocketEvents};
 }
 export function clearShot(balls,from,to,excluded=[]){
  const dx=to.x-from.x,dy=to.y-from.y,len2=dx*dx+dy*dy;if(!len2)return false;
