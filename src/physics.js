@@ -7,7 +7,7 @@
 import { ballCollision, cushionBounce, advanceFriction, applyCueSpin as setCueSpin }
   from './vendor/tailuge-physics.js';
 export { setCueSpin as applyCueSpin };
-import {TABLE,cushions,pockets,jaws,pocketCaptureTime} from './table-geometry.js';
+import {TABLE,cushions,pockets,jaws,facings,pocketCaptureTime} from './table-geometry.js';
 export {TABLE,cushions,pockets} from './table-geometry.js';
 const R=TABLE.radius,W=TABLE.width,H=TABLE.height,STOP=5;
 export const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
@@ -49,6 +49,24 @@ function circleTime(dx,dy,vx,vy,r,maxT){
  if(disc<0)return null;
  const t=(-dot-Math.sqrt(disc))/speed2;
  return t>=-1e-8&&t<=maxT+1e-8?Math.max(0,t):null;
+}
+function facingTime(b,f,maxT){
+ const dx=f.x2-f.x1,dy=f.y2-f.y1,len=Math.hypot(dx,dy);
+ const nx=-dy/len,ny=dx/len;
+ const dist=(b.x-f.x1)*nx+(b.y-f.y1)*ny,vn=b.vx*nx+b.vy*ny;
+ if(Math.abs(vn)<1e-8)return null;
+ let best=null;
+ for(const sign of [-1,1]){
+  // Only resolve a collision from the approaching, occupied side.
+  if(vn*sign>=-1e-8)continue;
+  const t=(sign*(R+f.radius)-dist)/vn;
+  if(t<0||t>maxT)continue;
+  const x=b.x+b.vx*t,y=b.y+b.vy*t;
+  const projection=((x-f.x1)*dx+(y-f.y1)*dy)/len;
+  if(projection>=0&&projection<=len&&(!best||t<best.time))
+   best={time:t,nx:nx*sign,ny:ny*sign};
+ }
+ return best;
 }
 function advance(balls,time){
  if(time<=0)return;
@@ -102,6 +120,7 @@ export function step(balls,dt=1/120){
    for(const k of jaws){
     offer(circleTime(a.x-k.x,a.y-k.y,a.vx,a.vy,R+k.radius,remaining),'jaw',a,k);
    }
+   for(const f of facings){const hit=facingTime(a,f,remaining);if(hit)offer(hit.time,'facing',a,f,hit.nx,hit.ny);}
   }
   if(!best){advance(balls,remaining);remaining=0;break;}
   advance(balls,best.time);
@@ -121,6 +140,9 @@ export function step(balls,dt=1/120){
    // Post-collision project onto the same rail nose used for rendering.
    if(nx)a.x=nx>0?Math.max(a.x,2*R):Math.min(a.x,W-2*R);
    if(ny)a.y=ny>0?Math.max(a.y,2*R):Math.min(a.y,H-2*R);
+  }else if(type==='facing'){
+   cushionBounce(a,nx,ny);
+   a.x+=nx*1e-3;a.y+=ny*1e-3;
   }else if(type==='jaw'){
    const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy)||1;
    const ux=dx/d,uy=dy/d;
