@@ -22,7 +22,7 @@
     <div>
      <div class="eyebrow highlight">THE FIRST GAME</div>
      <h2>But Wait, <em>There's More.</em></h2>
-     <p>Classic 8-ball, with a Squatch-sized surprise: one solid and one stripe wait off-table. When you clear your balls, your opponent chooses either remaining ball and where it goes.</p>
+     <p>Classic 8-ball, with a Squatch-sized surprise: each player has one ball hidden until the opponent brings it back.</p>
     </div>
     <div class="mode-controls">
      <label for="mode">Who's at the table?</label>
@@ -30,7 +30,6 @@
      <button id="new-game" class="secondary">↻ New rack</button>
     </div>
    </div>
-   <section class="quickstart" aria-label="How to play"><strong>NEW HERE? START IN 3 STEPS</strong><span><b>1</b> Aim on the table</span><span><b>2</b> Choose power</span><span><b>3</b> Tap SHOOT</span><small>Clear your group. Your opponent chooses a hidden ball to place before your 8.</small></section>
    <section class="match" aria-label="Pool game">
     <div class="scoreboard">
      <div class="player active" id="player-0"><span class="portrait" aria-hidden="true">🎱</span><div><strong id="player-name-0">You</strong><small id="player-group-0">Open table</small></div><span class="player-count" id="player-count-0">—</span></div>
@@ -51,8 +50,8 @@
    </section>
    <section class="below">
     <article class="rules-card">
-     <p class="eyebrow highlight">QUICK RULES</p><h3>What's the catch?</h3>
-     <p>Play 8-ball, except the <strong>7-ball and 15-ball</strong> start off the table. When you clear your visible group, your opponent chooses <strong>either remaining hidden ball</strong>—even their own—and places it in a legal spot. They can block your route to the 8 or force a difficult shot. If it’s your ball, you must sink it before the 8.</p>
+     <p class="eyebrow highlight">THE HOUSE EXPLAINS</p><h3>What's the catch?</h3>
+     <p>Play 8-ball, except the <strong>7-ball and 15-ball</strong> start off the table. After you clear your visible group, your opponent places your missing ball back onto the felt. Sink that too, then pocket the 8 to win.</p>
      <p class="note">In this first prototype: no called pockets or push-out rules; fouls award ball-in-hand. Groups are assigned after a legal post-break pocket. These simplifications are documented in the repo.</p>
     </article>
     <article class="rules-card log-card"><p class="eyebrow highlight">TABLE TALK</p><h3>Shot history</h3><ol id="shot-log" aria-label="Shot history"><li>Fresh rack. Everyone still has a chance.</li></ol></article>

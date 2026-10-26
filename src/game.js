@@ -16,7 +16,7 @@ function newGame(){
  state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'aim',angle:0,power:68,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
  accumulator=0;$('#power').value='68';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
- say("First time? Aim on the felt, set power, then tap SHOOT. Clear your balls and the surprise ball before the 8.");update();
+ say("Welcome to The 4T's. Break 'em like you mean it.");update();
 }
 function update(){
  for(let i=0;i<2;i++){
@@ -31,7 +31,7 @@ function update(){
  $('#power-value').textContent=state.power+'%';
  const actor=state.phase==='placeStash'?otherPlayer(state.turn):state.turn;
  const title={aim:person(state.turn)+(state.shotNumber===0?' breaks':' shoots'),moving:'Balls rolling…',placeCue:'Ball in hand',placeStash:"But wait… THERE'S MORE!",done:'Rack finished!'};
- const hint={aim:human(actor)?'1. Tap or drag to aim  ·  2. Set power  ·  3. Press SHOOT':'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
+ const hint={aim:human(actor)?'Tap/drag on the table to aim. Adjust power, then shoot.':'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Tap an open spot on the felt to place the cue ball.',placeStash:'Place the hidden '+stashBall(state.pendingStash)+'-ball anywhere legal.',done:'Rack again to play another game.'};
  $('#control-title').textContent=title[state.phase];$('#control-hint').textContent=hint[state.phase];
  $('#shoot').disabled=state.phase!=='aim'||!human(state.turn);
  $('#power').disabled=state.phase!=='aim'||!human(state.turn);
@@ -151,12 +151,7 @@ function drawBall(b){
 function render(){
  const w=TABLE.width,h=TABLE.height,r=TABLE.radius,gr=ctx.createRadialGradient(w*.44,h*.42,100,w*.5,h*.5,710);
  gr.addColorStop(0,'#217766');gr.addColorStop(1,'#104638');ctx.fillStyle=gr;ctx.fillRect(0,0,w,h);
- // Visible cushion faces line up with the physics collision planes (ball centers at radius r).
- // The former decorative inset rectangle looked like an invisible second set of rails.
- ctx.save();ctx.strokeStyle='#b58a53';ctx.lineWidth=3;
- ctx.beginPath();ctx.moveTo(38,r);ctx.lineTo(w/2-43,r);ctx.moveTo(w/2+43,r);ctx.lineTo(w-38,r);
- ctx.moveTo(38,h-r);ctx.lineTo(w/2-43,h-r);ctx.moveTo(w/2+43,h-r);ctx.lineTo(w-38,h-r);
- ctx.moveTo(r,38);ctx.lineTo(r,h-38);ctx.moveTo(w-r,38);ctx.lineTo(w-r,h-38);ctx.stroke();ctx.restore();
+ ctx.strokeStyle='#f6eac214';ctx.lineWidth=2;ctx.strokeRect(20,20,w-40,h-40);
  ctx.setLineDash([4,10]);ctx.strokeStyle='#f7e8c129';ctx.beginPath();ctx.moveTo(250,12);ctx.lineTo(250,h-12);ctx.stroke();ctx.setLineDash([]);
  ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(695,250,3,0,2*Math.PI);ctx.fill();
  for(const p of pockets){ctx.fillStyle='#06150f';ctx.beginPath();ctx.arc(p.x,p.y,TABLE.pocketRadius+4,0,2*Math.PI);ctx.fill();ctx.strokeStyle='#b0834f';ctx.lineWidth=4;ctx.stroke();}

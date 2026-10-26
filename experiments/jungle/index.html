@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+ <meta name="theme-color" content="#081b17">
+ <meta name="description" content="Experimental 3D jungle stage for Squatch Pool: The 4T's">
+ <title>The 4T's • Squatch Pool Jungle Lab</title>
+ <link rel="stylesheet" href="./jungle.css">
+ <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js"}}</script>
+ <script type="module" src="./jungle.js"></script>
+ <script>setTimeout(function(){if(!document.querySelector('#stage canvas')){document.getElementById('loading').hidden=true;document.getElementById('unsupported').hidden=false;}},12000);</script>
+</head>
+<body>
+ <main class="shell">
+  <header>
+   <div><span class="eyebrow">SQUATCH POOL / AN EXPERIMENTAL STAGE</span><h1>WELCOME TO <em>THE 4T'S</em></h1></div>
+   <a class="return-link" href="../../">← Back to the playable game</a>
+  </header>
+  <section class="theater" aria-label="3D jungle pool stage">
+   <div id="stage" aria-label="Interactive 3D billiards scene with Speed Squatch standing behind the table" tabindex="0"></div>
+   <div id="loading" role="status">The jungle is waking up…</div>
+   <div class="hud hud-top">
+    <div class="live-pill"><span class="live-dot"></span> JUNGLE LAB / FIRST LOOK</div>
+    <button id="camera" type="button" aria-pressed="false" disabled>◎ OVERHEAD VIEW</button>
+   </div>
+   <div class="intro" id="intro">
+    <div class="caption-card"><div class="eyebrow" id="chapter">DEEP IN THE WOODS</div><h2 id="intro-title">Somewhere, a cue ball drops.</h2><p id="intro-copy">Follow the noise. The 4T's are expecting company.</p></div>
+    <button class="skip" type="button" id="skip">SKIP INTRO →</button>
+   </div>
+   <div class="game-hud" id="game-hud" hidden>
+    <div class="cue-instructions"><div class="eyebrow">FIRST LOOK · FREE SHOOTING</div><strong id="status">Tap the felt to aim.</strong><small>This is a 3D stage prototype, not a rules match.</small></div>
+    <div class="power"><label for="power">SHOT POWER <output for="power" id="power-label">65%</output></label><input id="power" type="range" min="15" max="100" value="65"></div>
+    <button id="shoot" class="gold" type="button">SHOOT ➜</button>
+   </div>
+   <div class="unsupported" id="unsupported" hidden><h2>Looks like the jungle lost its lights.</h2><p>This experimental scene needs WebGL and a connection to load the open-source Three.js module. The normal game still works.</p><a href="../../">PLAY CLASSIC SQUATCH POOL →</a></div>
+  </section>
+  <footer class="actions"><button id="replay" type="button" disabled>↻ REPLAY ENTRANCE</button><button id="reset" type="button" disabled>🎱 RACK AGAIN</button><label><input type="checkbox" id="reduced"> Less motion</label><span>Original procedural scenery • Three.js (MIT) • No saved game data</span></footer>
+  <p class="disclaimer">This is an isolated creative prototype. The working game remains at the link above. Camera modes here share the exact same ball state, but this is not yet the live-game Classic/3D integration.</p>
+ </main>
+</body>
+</html>
