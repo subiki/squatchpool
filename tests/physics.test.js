@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {ball,rack,step,canPlace,findPlacement} from '../src/physics.js';
+import {ball,rack,step,canPlace,findPlacement,applyCueSpin} from '../src/physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
  const balls=rack();assert.equal(balls.length,14);assert.equal(balls.some(b=>b.id===7||b.id===15),false);
@@ -85,4 +85,42 @@ test('full-rack break has finite positions and contact events', () => {
  for(let i = 0;i < 1000;i++) contacts += step(balls).contacts.length;
  assert.ok(contacts > 0,'break shot must reach and contact the rack');
  assert.ok(balls.every(b => b.pocketed || [b.x,b.y,b.vx,b.vy].every(Number.isFinite)));
+});
+
+test('Tailuge cue spin exposes draw, follow, and side english without changing aim', () => {
+ const b=ball(0,250,250);b.vx=700;b.vy=0;
+ applyCueSpin(b,1,0.5);
+ assert.equal(b.vx,700);
+ assert.ok(b.wy>0,'follow must spin cue in direction of travel');
+ assert.ok(b.wz>0,'right english must produce side angular velocity');
+ applyCueSpin(b,-1,-0.5);
+ assert.ok(b.wy<0,'draw must reverse rolling spin');
+ assert.ok(b.wz<0,'left english must reverse side spin');
+});
+test('Tailuge collision transfers momentum and generates side-spin throw', () => {
+ const a=ball(0,100,250),b=ball(1,140,250),balls=[a,b];
+ a.vx=800;applyCueSpin(a,0,0.9);
+ let touches=0;
+ for(let i=0;i<80;i++)touches+=step(balls).contacts.length;
+ assert.ok(touches>0);
+ assert.ok(b.x>140);
+ assert.ok([a.wx,a.wy,a.wz,b.wx,b.wy,b.wz].every(Number.isFinite));
+});
+test('pocket jaw near-miss is not falsely pocketed', () => {
+ const b=ball(1,440,85),balls=[b];b.vy=-500;
+ for(let i=0;i<200;i++)step(balls);
+ assert.equal(b.pocketed,false);
+ assert.ok(b.x>=-11&&b.x<=1011);
+ assert.ok(b.y>=-11&&b.y<=511);
+});
+test('Tailuge rack fully settles without NaNs at normal break speed', () => {
+ const balls=rack();balls[0].vx=1100;
+ let contacts=0,ended=false;
+ for(let i=0;i<2400;i++){
+  contacts+=step(balls).contacts.length;
+  if(balls.every(b=>b.pocketed||Math.hypot(b.vx,b.vy)<5)){ended=true;break;}
+ }
+ assert.ok(contacts>=8,'break must hit and spread rack');
+ assert.equal(ended,true,'rack should settle before 20 seconds');
+ assert.ok(balls.every(b=>b.pocketed||[b.x,b.y,b.vx,b.vy,b.wx,b.wy,b.wz].every(Number.isFinite)));
 });

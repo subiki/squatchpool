@@ -1,4 +1,4 @@
-import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance} from './physics.js';
+import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin} from './physics.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
@@ -13,8 +13,8 @@ function log(message){
 }
 function newGame(){
  clearTimeout(botTimer);
- state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'aim',angle:0,power:68,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
- accumulator=0;$('#power').value='68';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
+ state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'aim',angle:0,power:68,spinTop:0,spinSide:0,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
+ accumulator=0;$('#power').value='68';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
  say("First time? Aim on the felt, set power, then tap SHOOT. Clear your balls and the surprise ball before the 8.");update();
 }
@@ -29,12 +29,15 @@ function update(){
  $('#shot-counter').textContent=state.shotNumber===0?'Break shot':'Shot '+(state.shotNumber+1);
  $('#table-status').textContent=state.phase==='placeStash'?'SURPRISE BALL!':state.phase==='placeCue'?'BALL IN HAND':state.groups[0]?'GROUPS SET':'OPEN TABLE';
  $('#power-value').textContent=state.power+'%';
+ $('#spin-top-value').textContent=state.spinTop>0?'Follow '+state.spinTop+'%':state.spinTop<0?'Draw '+(-state.spinTop)+'%':'Center';
+ $('#spin-side-value').textContent=state.spinSide>0?'Right '+state.spinSide+'%':state.spinSide<0?'Left '+(-state.spinSide)+'%':'Center';
  const actor=state.phase==='placeStash'?otherPlayer(state.turn):state.turn;
  const title={aim:person(state.turn)+(state.shotNumber===0?' breaks':' shoots'),moving:'Balls rolling…',placeCue:'Ball in hand',placeStash:"But wait… THERE'S MORE!",done:'Rack finished!'};
  const hint={aim:human(actor)?'1. Tap or drag to aim  ·  2. Set power  ·  3. Press SHOOT':'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
  $('#control-title').textContent=title[state.phase];$('#control-hint').textContent=hint[state.phase];
  $('#shoot').disabled=state.phase!=='aim'||!human(state.turn);
  $('#power').disabled=state.phase!=='aim'||!human(state.turn);
+ $('#spin-top').disabled=$('#spin-side').disabled=state.phase!=='aim'||!human(state.turn);
 }
 function revealStashIfNeeded(){
  const group=state.groups[state.turn];
@@ -86,6 +89,7 @@ function hit(direction=state.angle,power=state.power){
  const b=cue();if(!b||b.pocketed)return;
  const speed=240+11*clamp(power,10,100);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
+ applyCueSpin(b,state.spinTop/100,state.spinSide/100);
  state.shot={player:state.turn,balls:[],firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
  state.shotNumber++;state.isBreak=false;state.phase='moving';
  say(person(state.turn)+' lets it fly!');update();
@@ -214,6 +218,8 @@ canvas.addEventListener('pointermove',e=>{if(dragging)aimFrom(eventPoint(e));});
 canvas.addEventListener('pointerup',()=>dragging=false);
 canvas.addEventListener('pointercancel',()=>dragging=false);
 $('#power').addEventListener('input',e=>{state.power=Number(e.target.value);update();});
+$('#spin-top').addEventListener('input',e=>{state.spinTop=Number(e.target.value);update();});
+$('#spin-side').addEventListener('input',e=>{state.spinSide=Number(e.target.value);update();});
 $('#shoot').addEventListener('click',()=>{if(state.phase==='aim'&&human(state.turn))hit();});
 $('#new-game').addEventListener('click',newGame);
 $('#play-again').addEventListener('click',newGame);

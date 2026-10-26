@@ -4,7 +4,12 @@
 Finish and verify the **existing playable browser game**, then release a shareable Squatch Pool alpha. Keep changes lean. Read README.md, docs/BACKLOG.md and open GitHub issues before doing work.
 
 ## Current reality (recheck every session)
-The repository contains a static, self-contained Canvas 2D prototype with a vendored Planck.js/Box2D physics engine of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the implementation just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
+The repository contains a static, self-contained Canvas 2D prototype with a GPL-3.0 Tailuge Billiards-derived billiards physics engine of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the Tailuge integration just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
+
+## Physics and open-source obligations
+- Tailuge-derived billiards physics lives in `src/vendor/tailuge-physics.js`; the game adapter and pocket/rail geometry live in `src/physics.js`. Preserve this modular boundary and the 120Hz frame API.
+- Under GPL-3.0, distribute full corresponding source and license with the browser game. Keep `/LICENSE`, `/THIRD_PARTY.md` and public source links available. Do not silently change the license or hide adaptations.
+- Box2D/Planck was the older implementation and is not the active engine. Further spin/cushion/pocket tuning must use observable playtests and focused regressions.
 
 ## Canon and delivery
 - Squatch Pool is set in a **Pacific Northwest temperate rainforest**, never a tropical jungle. Use native cedar/hemlock, moss, ferns, mist and rain in art, lore, copy, character intros and prompts. Preserve historical archives verbatim.
