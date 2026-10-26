@@ -11,8 +11,15 @@ The repository contains a static, self-contained Canvas 2D prototype with a GPL-
 - Suppress cue stick and aim guidance until both called ball and pocket are locked. During the break, aim immediately with no call. `Undo call` clears both selections only before a shot is fired. Never permit shoot (including keyboard) without the required call.
 - `tests/call-ui.test.js` mocks the browser surface and loads the actual game module; keep it passing alongside physics/rules tests. Real browser playtesting is still a required release gate.
 
+## Regulation table sizes — geometry invariants
+- The three size buttons choose standard **7 ft = 78×39 in**, **8 ft = 88×44 in** (not oversized/pro 8 ft 92×46), **9 ft = 100×50 in**, measured between opposite cushion noses.
+- Never scale or stretch balls or pockets with bed size. All tables retain **2.25 in balls**, **4.56 in corner mouths**, **5.06 in side mouths**, and the same cushion/pocket angles and shelf depths. The shared constant `PX_PER_IN` is derived from the ball diameter; `setTableSize(7|8|9)` rebuilds the shared arrays in place.
+- Place racks, head string, rails, pockets, cue and other marks from the current `TABLE.width`/`TABLE.height`; do not cache these dimensions at module load. Canvas pixel dimensions, CSS aspect ratio, hit coordinates, physics and visual geometry must stay synchronized.
+- Changing table size starts a new rack and remembers the preference locally. No extra network, sign-in, or Cloudflare settings. Preserve the no-call break, table-tap ball/pocket choice and undo UX.
+- All 3 sizes must pass the same pocket, rail, ball-overlap, and break tests, plus the actual game click regression. Real touch/desktop verification is still required.
+
 ## Geometry and called-shot truth
-- One physical/visual source of truth is `src/table-geometry.js`, scaled from WPA tournament specifications (100×50-inch playing area, ball 2.25 inches, corner mouth 4.56 inches diagonally between lips, side mouth 5.06 inches across tips, corner and side shelves, angled facings). No circular capture zones or unaligned decorative rails.
+- One physical/visual source of truth is `src/table-geometry.js`, scaled from standard 7/8/9 foot playing surfaces and WPA pockets (9 ft is 100×50 inches, ball 2.25 inches, corner mouth 4.56 inches diagonally between lips, side mouth 5.06 inches across tips, corner and side shelves, angled facings). No circular capture zones or unaligned decorative rails.
 - `But Wait, There’s More` requires an explicitly **called ball and pocket after the break**; slop stays pocketed but does not retain turn or assign a group; eight in an uncalled pocket loses. Break shots are exempt from calling. Use shot pocket IDs emitted by physics; never infer the pocket by ball position after it disappears.
 
 ## Physics and open-source obligations

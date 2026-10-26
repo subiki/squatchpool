@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {pockets,facings,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
+import {TABLE,pockets,cushions,facings,jaws,setTableSize,PLAYING_SURFACES,BALL_DIAMETER_IN,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
 import {ball,rack,step,canPlace,findPlacement,applyCueSpin} from '../src/physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
@@ -194,4 +194,62 @@ test('angled rubber pocket facings reflect WPA corner and side cuts',()=>{
  assert.ok(Math.abs(180-angle(facings[0])-142)<2);
  assert.ok(Math.abs(180-angle(facings[2])-104)<2);
  assert.equal(facings.length,12);
+});
+
+test('7, 8, 9 foot tables change only the bed size; balls and pocket widths stay physical',()=>{
+ const expected={7:[78,39],8:[88,44],9:[100,50]};
+ const references={pockets,cushions,facings,jaws};
+ try{
+  for(const [size,[length,width]] of Object.entries(expected)){
+   setTableSize(Number(size));
+   assert.equal(TABLE.size,Number(size));
+   assert.equal(TABLE.playingLengthIn,length);
+   assert.equal(TABLE.playingWidthIn,width);
+   assert.ok(Math.abs((TABLE.width-2*TABLE.radius)/PX_PER_IN-length)<1e-8);
+   assert.ok(Math.abs((TABLE.height-2*TABLE.radius)/PX_PER_IN-width)<1e-8);
+   assert.equal(2*TABLE.radius/PX_PER_IN,BALL_DIAMETER_IN);
+   assert.equal(TABLE.playingLengthIn/TABLE.playingWidthIn,2);
+   assert.ok(Math.abs(mouthWidth(pockets[0])/PX_PER_IN-CORNER_MOUTH_IN)<1e-9);
+   assert.ok(Math.abs(mouthWidth(pockets[1])/PX_PER_IN-SIDE_MOUTH_IN)<1e-9);
+   assert.equal(pockets.length,6);assert.equal(cushions.length,6);
+   assert.equal(jaws.length,12);assert.equal(facings.length,12);
+   assert.equal(pockets.find(p=>p.id==='TR').x,TABLE.width);
+   assert.equal(pockets.find(p=>p.id==='BR').y,TABLE.height);
+   assert.strictEqual(pockets,references.pockets,'shared pockets array stays connected to game');
+   assert.strictEqual(cushions,references.cushions,'shared cushions array stays connected to game');
+   assert.strictEqual(facings,references.facings,'shared facing array stays connected to game');
+   assert.strictEqual(jaws,references.jaws,'shared jaw array stays connected to physics');
+   const balls=rack(),cue=balls[0];
+   assert.equal(balls.length,14);
+   assert.ok(Math.abs(cue.y-TABLE.height/2)<1e-8);
+   assert.ok(balls.every(b=>b.x>TABLE.radius&&b.x<TABLE.width-TABLE.radius&&b.y>TABLE.radius&&b.y<TABLE.height-TABLE.radius),size+'ft rack must fit inside the rails');
+   assert.ok(balls.every((b,i)=>balls.slice(i+1).every(o=>Math.hypot(b.x-o.x,b.y-o.y)>=2*TABLE.radius-0.01)),size+'ft rack must not overlap');
+  }
+  assert.throws(()=>setTableSize(6),RangeError);
+ }finally{setTableSize(9);}
+});
+test('each table size has working six pockets, rails and full rack break',()=>{
+ try{
+  for(const size of [7,8,9]){
+   setTableSize(size);
+   for(const p of pockets){
+    const b=ball(1,p.kind==='side'?p.x:p.x+p.sx*65,p.kind==='side'?p.y+p.sy*80:p.y+p.sy*65);
+    if(p.kind==='side')b.vy=-p.sy*450;
+    else {b.vx=-p.sx*320;b.vy=-p.sy*320;}
+    const balls=[b],events=[];
+    for(let i=0;i<120&&!b.pocketed;i++)events.push(...step(balls).pocketEvents);
+    assert.equal(b.pocketed,true,size+'ft '+p.id+' must capture ball');
+    assert.deepEqual(events,[{id:1,pocketId:p.id}]);
+   }
+   // At midtable the side pocket is open. Bank elsewhere along the long rail.
+   const b=ball(0,TABLE.width*0.4,65),balls=[b];b.vy=-500;
+   let bounced=false;
+   for(let i=0;i<100;i++){step(balls);bounced ||= b.vy>0;}
+   assert.equal(bounced,true,size+'ft long-cushion rebound');
+   const rackBalls=rack();rackBalls[0].vx=1100;let contacts=0;
+   for(let i=0;i<280;i++)contacts+=step(rackBalls).contacts.length;
+   assert.ok(contacts>=5,size+'ft break must hit rack');
+   assert.ok(rackBalls.every(b=>b.pocketed||[b.x,b.y,b.vx,b.vy].every(Number.isFinite)));
+  }
+ }finally{setTableSize(9);}
 });

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {setTableSize} from '../src/table-geometry.js';
 
 // Fake only the browser surface, not the physics or gameplay. This regression
 // loads the actual game module, drives its real pointer/click handlers, and
@@ -12,6 +13,12 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  const elements=new Map(),events=new Map();
  const markers=['TL','TM','TR','BL','BM','BR'].map(id=>({
   dataset:{pocket:id},addEventListener(event,fn){events.set('pocket-'+id+':'+event,fn);}
+ }));
+ const sizeButtons=['7','8','9'].map(size=>({
+  dataset:{size},pressed:false,attributes:{},
+  classList:{toggle(){}},
+  setAttribute(name,value){this.attributes[name]=value;},
+  addEventListener(event,fn){events.set('size-'+size+':'+event,fn);}
  }));
  const grad={addColorStop(){}};
  let cueDraws=0,nextFrame=()=>{},time=0,lastTranslate={x:0,y:0};
@@ -33,7 +40,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
    replaceChildren(...items){this.children=items;},
    get lastElementChild(){return this.children.at(-1)??{remove(){}};},
    remove(){},getContext(){return ctx;},setPointerCapture(){},
-   getBoundingClientRect(){return {left:0,top:0,width:1000,height:500};},
+   getBoundingClientRect(){return {left:0,top:0,width:this.width||1000,height:this.height||500};},
   });
   return elements.get(id);
  }
@@ -44,7 +51,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  });
  globalThis.document={
   querySelector:element,
-  querySelectorAll(selector){return selector==='.pocket-pick'?markers:[];},
+  querySelectorAll(selector){return selector==='.pocket-pick'?markers:selector==='.table-size-pick'?sizeButtons:[];},
   createElement:makeElement,
  };
  globalThis.window={addEventListener(){}};
@@ -54,6 +61,10 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  try{
   await import('../src/game.js');
   assert.equal(element('#shoot').disabled,false,'break does not need a call');
+  assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
+  assert.match(element('#table-dimensions').textContent,/7 FT.*78.*39/);
+  const width7=element('#table').width,height7=element('#table').height;
+  assert.ok(width7<800&&height7<420,'default is the compact 7 foot bar box');
   assert.equal(element('#pocket-targets').hidden,true);
   tick();tick();assert.ok(cueDraws>0,'cue appears for break');
   click('#shoot');
@@ -95,7 +106,26 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#pocket-targets').hidden,true);
   assert.equal(element('#shoot').disabled,false,'new rack returns to break');
   assert.equal(element('#undo-call').disabled,true);
+  events.get('size-8:click')();
+  assert.equal(sizeButtons[1].attributes['aria-pressed'],'true');
+  assert.equal(sizeButtons[0].attributes['aria-pressed'],'false');
+  assert.match(element('#table-dimensions').textContent,/8 FT.*88.*44/);
+  assert.ok(element('#table').width>width7&&element('#table').height>height7);
+  assert.equal(element('#shoot').disabled,false,'size change starts a clean break');
+  assert.equal(element('#pocket-targets').hidden,true);
+  const width8=element('#table').width,height8=element('#table').height;
+  events.get('size-9:click')();
+  assert.equal(sizeButtons[2].attributes['aria-pressed'],'true');
+  assert.match(element('#table-dimensions').textContent,/9 FT.*100.*50/);
+  assert.ok(element('#table').width>width8&&element('#table').height>height8);
+  assert.equal(element('#shoot').disabled,false);
+  events.get('size-7:click')();
+  assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
+  assert.equal(element('#table').width,width7);
+  assert.equal(element('#table').height,height7);
+  assert.equal(element('#shoot').disabled,false,'switching back to seven reracks properly');
  }finally{
+  setTableSize(9); // keep shared mutable geometry clean for other tests
   for(const [key,v] of Object.entries(original)){
    if(v===undefined)delete globalThis[key];else globalThis[key]=v;
   }

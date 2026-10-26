@@ -29,6 +29,13 @@
     <div class="mode-controls">
      <label for="mode">Who's at the table?</label>
      <select id="mode" aria-label="Opponent type"><option value="bot">You vs. Speed Squatch</option><option value="local">Two players (pass &amp; play)</option></select>
+     <span class="table-size-label" id="table-size-label">Table size</span>
+     <div class="table-size-buttons" role="group" aria-labelledby="table-size-label">
+      <button type="button" class="table-size-pick selected" data-size="7" aria-pressed="true"><strong>7 FT</strong><small>BAR · 78×39</small></button>
+      <button type="button" class="table-size-pick" data-size="8" aria-pressed="false"><strong>8 FT</strong><small>HOME · 88×44</small></button>
+      <button type="button" class="table-size-pick" data-size="9" aria-pressed="false"><strong>9 FT</strong><small>PRO · 100×50</small></button>
+     </div>
+     <small class="size-note">2¼″ balls and regulation pocket mouths at every size. Changing size starts a new rack.</small>
      <button id="new-game" class="secondary">↻ New rack</button>
     </div>
    </div>
@@ -40,7 +47,7 @@
      <div class="player" id="player-1"><span class="portrait squatch" aria-hidden="true">🦍</span><div><strong id="player-name-1">Speed Squatch</strong><small id="player-group-1">Open table</small></div><span class="player-count" id="player-count-1">—</span></div>
     </div>
     <div class="table-frame">
-     <div class="table-topline"><span>THE FOUR T'S • TABLE NO. 1</span><span id="table-status">OPEN TABLE</span></div>
+     <div class="table-topline"><span>THE FOUR T'S • <span id="table-dimensions">7 FT · 78 × 39 IN</span></span><span id="table-status">OPEN TABLE</span></div>
      <div class="table-playfield">
       <canvas id="table" width="1000" height="500" aria-label="Pool table. After the break, tap a ball, then a pocket; aim and shoot." role="img"></canvas>
       <div class="pocket-targets" id="pocket-targets" aria-label="Choose a pocket" hidden>
