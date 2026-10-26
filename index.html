@@ -50,6 +50,15 @@
      <div class="power"><label for="power">POWER <output id="power-value" for="power">68%</output></label><input id="power" type="range" min="10" max="100" value="68" step="1"></div>
      <button id="shoot" class="shoot">SHOOT <span aria-hidden="true">➜</span></button>
     </div>
+    <div class="spin-panel" aria-label="Advanced cue-ball spin (optional)">
+      <span class="spin-heading">🎱 CUE SPIN <small>Optional · leave centered for a normal shot</small></span>
+      <label for="spin-top">Draw / Follow <output id="spin-top-value" for="spin-top">Center</output>
+       <input id="spin-top" type="range" min="-100" max="100" value="0" step="5" aria-label="Backspin or topspin">
+      </label>
+      <label for="spin-side">English <output id="spin-side-value" for="spin-side">Center</output>
+       <input id="spin-side" type="range" min="-100" max="100" value="0" step="5" aria-label="Left or right sidespin">
+      </label>
+    </div>
    </section>
    <section class="rules-card world-card" style="margin-top:24px"><p class="eyebrow highlight">THE ORIGINAL UNIVERSE</p><h2>More games. More Squatches. More stories.</h2><p>Explore the original episodes, technical rules and field notes while we build new playable adventures.</p><a href="./rules.html">LEARN THE GAMES →</a> · <a href="./archive.html">ORIGINAL STORIES & FIELD NOTES →</a></section>
    <section class="below">
@@ -60,7 +69,7 @@
     </article>
     <article class="rules-card log-card"><p class="eyebrow highlight">TABLE TALK</p><h3>Shot history</h3><ol id="shot-log" aria-label="Shot history"><li>Fresh rack. Everyone still has a chance.</li></ol></article>
    </section>
-   <footer>Squatch Pool • Imaginary legends, very real pool rules. <a href="https://github.com/subiki/squatchpool">Source on GitHub</a></footer>
+   <footer>Squatch Pool • Billiards physics adapted from <a href="https://github.com/tailuge/billiards">Tailuge Billiards</a> (GPL-3.0). <a href="./LICENSE">License</a> · <a href="./THIRD_PARTY.md">Source and attribution</a> · <a href="./src/physics.js">Game physics source</a></footer>
   </main>
  </div>
  <div class="modal-backdrop" id="result-modal" hidden>
