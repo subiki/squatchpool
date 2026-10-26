@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {setTableSize} from '../src/table-geometry.js';
 
 // Fake only the browser surface, not the physics or gameplay. This regression
 // loads the actual game module, drives its real pointer/click handlers, and
@@ -115,6 +116,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#table').height,height7);
   assert.equal(element('#shoot').disabled,false,'switching back to seven reracks properly');
  }finally{
+  setTableSize(9); // keep shared mutable geometry clean for other tests
   for(const [key,v] of Object.entries(original)){
    if(v===undefined)delete globalThis[key];else globalThis[key]=v;
   }
