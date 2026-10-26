@@ -6,6 +6,11 @@ Finish and verify the **existing playable browser game**, then release a shareab
 ## Current reality (recheck every session)
 The repository contains a static, self-contained Canvas 2D prototype with a GPL-3.0 Tailuge Billiards-derived billiards physics engine of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the Tailuge integration just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
 
+## Direct table call UX
+- No native ball/pocket dropdowns: on post-break human turns, tap a legal object ball in the canvas, then tap one of six visible, accessible pocket buttons over the canvas. Large touch targets and fallback numbered ball buttons must remain functional on phones.
+- Suppress cue stick and aim guidance until both called ball and pocket are locked. During the break, aim immediately with no call. `Undo call` clears both selections only before a shot is fired. Never permit shoot (including keyboard) without the required call.
+- `tests/call-ui.test.js` mocks the browser surface and loads the actual game module; keep it passing alongside physics/rules tests. Real browser playtesting is still a required release gate.
+
 ## Geometry and called-shot truth
 - One physical/visual source of truth is `src/table-geometry.js`, scaled from WPA tournament specifications (100×50-inch playing area, ball 2.25 inches, corner mouth 4.56 inches diagonally between lips, side mouth 5.06 inches across tips, corner and side shelves, angled facings). No circular capture zones or unaligned decorative rails.
 - `But Wait, There’s More` requires an explicitly **called ball and pocket after the break**; slop stays pocketed but does not retain turn or assign a group; eight in an uncalled pocket loses. Break shots are exempt from calling. Use shot pocket IDs emitted by physics; never infer the pocket by ball position after it disappears.
