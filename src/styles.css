@@ -33,7 +33,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .center-score strong{font-size:1.15rem;display:block;color:#f1e0ba}
 .table-frame{border:13px solid #69452d;box-shadow:inset 0 0 0 2px #cb955e,0 8px 0 #2d1b14,0 14px 22px #0008;background:#402c1e;border-radius:22px;overflow:hidden}
 .table-topline,.table-bottomline{height:22px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;color:#d8ae78;font-size:.64rem;font-weight:850;letter-spacing:.17em;background:repeating-linear-gradient(90deg,#3c2519,#4b2c1d 14px,#3c2519 32px)}
-#table{display:block;width:100%;height:auto;aspect-ratio:2/1;cursor:crosshair;touch-action:none;background:#155b4d}
+#table{display:block;width:100%;height:auto;aspect-ratio:var(--table-aspect,2/1);cursor:crosshair;touch-action:none;background:#155b4d}
 .announcer{display:flex;gap:12px;align-items:center;padding:23px 10px 15px;min-height:91px}
 .announcer-avatar{width:47px;height:47px;flex-shrink:0;display:grid;place-items:center;font-size:1.6rem;border-radius:50%;background:#56725033;border:1px solid #7e987659}
 .announcer .eyebrow{margin:0 0 4px;color:#e6bd7d}.announcer p{margin:0;color:#f2e9d3;font-size:1.03rem}
@@ -105,7 +105,7 @@ button:disabled{opacity:.4;cursor:not-allowed}
 
 
 /* Direct table-first called shots. Pocket markers are real buttons, not dropdowns. */
-.table-playfield{position:relative;width:100%;aspect-ratio:2/1}
+.table-playfield{position:relative;width:100%;aspect-ratio:var(--table-aspect,2/1)}
 .pocket-targets{position:absolute;inset:0;z-index:2;pointer-events:none}
 .pocket-targets[hidden]{display:none}
 .pocket-pick{
@@ -142,3 +142,9 @@ button:disabled{opacity:.4;cursor:not-allowed}
  .pocket-bl{bottom:1px;left:1px}.pocket-br{bottom:1px;right:1px}
  .pocket-tm{top:1px}.pocket-bm{bottom:1px}
 }
+
+/* Display physical table options without shrinking the existing play controls. */
+.size-note{font-size:.78rem;line-height:1.4;color:#dac59c;max-width:280px}
+#table-size{width:100%;font-weight:750;border-color:#bc9864}
+#table-dimensions{font-weight:900;letter-spacing:.06em}
+@media(max-width:760px){.size-note{grid-column:1/-1;max-width:none;font-size:.72rem}}
