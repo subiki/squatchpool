@@ -1,5 +1,5 @@
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin} from './physics.js';
-import {renderPocket,facings} from './table-geometry.js';
+import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
@@ -14,6 +14,15 @@ function log(message){
 }
 function newGame(){
  clearTimeout(botTimer);
+ const requested=Number($('#table-size').value)||7;
+ setTableSize(requested);
+ canvas.width=Math.round(TABLE.width);
+ canvas.height=Math.round(TABLE.height);
+ // Canonical simulation coordinates must match the browser's pixel canvas.
+ // The fractional logical dimensions are retained for inch-perfect physics.
+ $('.table-playfield')?.style?.setProperty('--table-aspect',String(TABLE.width/TABLE.height));
+ $('#table-dimensions').textContent=TABLE.size+' FT · '+TABLE.playingLengthIn+' × '+TABLE.playingWidthIn+' IN';
+ try{if(typeof localStorage!=='undefined')localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
  state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'aim',angle:0,power:68,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
  accumulator=0;$('#power').value='68';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
@@ -234,8 +243,8 @@ function render(){
  ctx.beginPath();
  for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}
  ctx.stroke();ctx.restore();
- ctx.setLineDash([4,10]);ctx.strokeStyle='#f7e8c129';ctx.beginPath();ctx.moveTo(250,12);ctx.lineTo(250,h-12);ctx.stroke();ctx.setLineDash([]);
- ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(695,250,3,0,2*Math.PI);ctx.fill();
+ ctx.setLineDash([4,10]);ctx.strokeStyle='#f7e8c129';ctx.beginPath();ctx.moveTo(r+(w-2*r)/4,r);ctx.lineTo(r+(w-2*r)/4,h-r);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(r+(w-2*r)*.70,h/2,3,0,2*Math.PI);ctx.fill();
  if(state.phase==='aim'&&state.callPocket){
   const p=pockets.find(p=>p.id===state.callPocket);
   if(p){ctx.save();ctx.strokeStyle='#ffe2a3';ctx.lineWidth=3;ctx.setLineDash([5,4]);ctx.beginPath();
@@ -253,7 +262,7 @@ function render(){
   if(state.callBall!==null){const selected=state.balls.find(b=>b.id===state.callBall&&!b.pocketed);
    if(selected){ctx.save();ctx.strokeStyle='#ffdf84';ctx.lineWidth=2;ctx.beginPath();ctx.arc(selected.x,selected.y,r+5,0,2*Math.PI);ctx.stroke();ctx.restore();}}
   const cb=cue();if(callReady()&&cb&&!cb.pocketed){
-   const dx=Math.cos(state.angle),dy=Math.sin(state.angle);let reach=850;
+   const dx=Math.cos(state.angle),dy=Math.sin(state.angle);let reach=Math.hypot(w,h);
    for(const b of state.balls){if(b.pocketed||b.id===0)continue;
     const tx=b.x-cb.x,ty=b.y-cb.y,proj=tx*dx+ty*dy;if(proj<=0)continue;
     const side=Math.abs(tx*dy-ty*dx);if(side<2*r){
@@ -343,10 +352,19 @@ $('#shoot').addEventListener('click',()=>{if(state.phase==='aim'&&human(state.tu
 $('#new-game').addEventListener('click',newGame);
 $('#play-again').addEventListener('click',newGame);
 $('#mode').addEventListener('change',newGame);
+$('#table-size').addEventListener('change',newGame);
 window.addEventListener('keydown',e=>{
  if(!state||state.phase!=='aim'||!human(state.turn)||/input|select|textarea/i.test(e.target?.tagName))return;
  if(e.key==='ArrowLeft'||e.key==='a'){state.angle-=.02;e.preventDefault();}
  if(e.key==='ArrowRight'||e.key==='d'){state.angle+=.02;e.preventDefault();}
  if(e.code==='Space'){e.preventDefault();hit();}
 });
+// Returning players keep their selected size; first-time players use the
+// tighter 7-ft bar box by default. Storage failures never block a match.
+try{
+ if(typeof localStorage!=='undefined'){
+  const saved=localStorage.getItem('squatch-table-size');
+  if(['7','8','9'].includes(saved))$('#table-size').value=saved;
+ }
+}catch{}
 newGame();requestAnimationFrame(frame);
