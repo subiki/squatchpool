@@ -29,6 +29,13 @@
     <div class="mode-controls">
      <label for="mode">Who's at the table?</label>
      <select id="mode" aria-label="Opponent type"><option value="bot">You vs. Speed Squatch</option><option value="local">Two players (pass &amp; play)</option></select>
+     <label for="table-size">Table size</label>
+     <select id="table-size" aria-label="Playing table size">
+      <option value="7" selected>7 ft · Bar box (78 × 39 in)</option>
+      <option value="8">8 ft · Home table (88 × 44 in)</option>
+      <option value="9">9 ft · Tournament (100 × 50 in)</option>
+     </select>
+     <small class="size-note">2¼″ balls and regulation pocket mouths at every size. Changing size starts a new rack.</small>
      <button id="new-game" class="secondary">↻ New rack</button>
     </div>
    </div>
@@ -40,7 +47,7 @@
      <div class="player" id="player-1"><span class="portrait squatch" aria-hidden="true">🦍</span><div><strong id="player-name-1">Speed Squatch</strong><small id="player-group-1">Open table</small></div><span class="player-count" id="player-count-1">—</span></div>
     </div>
     <div class="table-frame">
-     <div class="table-topline"><span>THE FOUR T'S • TABLE NO. 1</span><span id="table-status">OPEN TABLE</span></div>
+     <div class="table-topline"><span>THE FOUR T'S • <span id="table-dimensions">7 FT · 78 × 39 IN</span></span><span id="table-status">OPEN TABLE</span></div>
      <div class="table-playfield">
       <canvas id="table" width="1000" height="500" aria-label="Pool table. After the break, tap a ball, then a pocket; aim and shoot." role="img"></canvas>
       <div class="pocket-targets" id="pocket-targets" aria-label="Choose a pocket" hidden>
