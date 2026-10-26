@@ -49,3 +49,37 @@ test('cannot win by pocketing last group ball and eight together',()=>{
  const r=adjudicate({balls,shooter:0,groups:['solids','stripes'],deployed:{solids:true,stripes:true},pocketed:[7,8],firstContact:7,breakShot:false,preShotReadyForEight:false});
  assert.equal(r.winner,1);
 });
+
+test('fast cue ball cannot tunnel through an object ball', () => {
+ const cue = ball(0,100,200), object = ball(1,170,200);
+ cue.vx = 1300;
+ let firstContacts = 0;
+ for(let i = 0;i < 80;i++) firstContacts += step([cue,object]).contacts.length;
+ assert.ok(firstContacts >= 1,'cue should contact object ball at break-shot speed');
+ assert.ok(object.x > 170,'object ball should move after contact');
+});
+test('top-cushion bank touches the visible cushion face, without an invisible gap', () => {
+ const b = ball(1,400,65);b.vy = -500;
+ let near = Infinity, bounced = false;
+ for(let i = 0;i < 100;i++) {
+  step([b]);near = Math.min(near,b.y);bounced ||= b.vy > 0;
+ }
+ assert.equal(bounced,true);
+ assert.ok(near >= 20 && near <= 25,'ball center banks at the 11px nose plus 11px ball radius');
+ assert.equal(b.pocketed,false);
+});
+test('side-pocket approach sinks, but a nearby shot hits the top cushion', () => {
+ const sink = ball(1,500,85),miss = ball(2,440,85);
+ sink.vy = -500;miss.vy = -500;
+ for(let i = 0;i < 180;i++) step([sink,miss]);
+ assert.equal(sink.pocketed,true);
+ assert.equal(miss.pocketed,false);
+ assert.ok(miss.y > 20);
+});
+test('full-rack break has finite positions and contact events', () => {
+ const balls = rack();balls[0].vx = 1000;
+ let contacts = 0;
+ for(let i = 0;i < 1000;i++) contacts += step(balls).contacts.length;
+ assert.ok(contacts > 0,'break shot must reach and contact the rack');
+ assert.ok(balls.every(b => b.pocketed || [b.x,b.y,b.vx,b.vy].every(Number.isFinite)));
+});
