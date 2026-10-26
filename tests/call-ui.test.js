@@ -33,7 +33,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
    replaceChildren(...items){this.children=items;},
    get lastElementChild(){return this.children.at(-1)??{remove(){}};},
    remove(){},getContext(){return ctx;},setPointerCapture(){},
-   getBoundingClientRect(){return {left:0,top:0,width:1000,height:500};},
+   getBoundingClientRect(){return {left:0,top:0,width:this.width||1000,height:this.height||500};},
   });
   return elements.get(id);
  }
@@ -54,6 +54,10 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  try{
   await import('../src/game.js');
   assert.equal(element('#shoot').disabled,false,'break does not need a call');
+  assert.equal(element('#table-size').value,'','test environment uses default choice');
+  assert.match(element('#table-dimensions').textContent,/7 FT.*78.*39/);
+  const width7=element('#table').width,height7=element('#table').height;
+  assert.ok(width7<800&&height7<420,'default is the compact 7 foot bar box');
   assert.equal(element('#pocket-targets').hidden,true);
   tick();tick();assert.ok(cueDraws>0,'cue appears for break');
   click('#shoot');
@@ -95,6 +99,21 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#pocket-targets').hidden,true);
   assert.equal(element('#shoot').disabled,false,'new rack returns to break');
   assert.equal(element('#undo-call').disabled,true);
+  const sizeSelect=element('#table-size');
+  sizeSelect.value='8';events.get('#table-size:change')();
+  assert.match(element('#table-dimensions').textContent,/8 FT.*88.*44/);
+  assert.ok(element('#table').width>width7&&element('#table').height>height7);
+  assert.equal(element('#shoot').disabled,false,'size change starts a clean break');
+  assert.equal(element('#pocket-targets').hidden,true);
+  const width8=element('#table').width,height8=element('#table').height;
+  sizeSelect.value='9';events.get('#table-size:change')();
+  assert.match(element('#table-dimensions').textContent,/9 FT.*100.*50/);
+  assert.ok(element('#table').width>width8&&element('#table').height>height8);
+  assert.equal(element('#shoot').disabled,false);
+  sizeSelect.value='7';events.get('#table-size:change')();
+  assert.equal(element('#table').width,width7);
+  assert.equal(element('#table').height,height7);
+  assert.equal(element('#shoot').disabled,false,'switching back to seven reracks properly');
  }finally{
   for(const [key,v] of Object.entries(original)){
    if(v===undefined)delete globalThis[key];else globalThis[key]=v;
