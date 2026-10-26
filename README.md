@@ -1,6 +1,14 @@
 # Squatch Pool · The 4T's
 
-**Status: first playable proof of concept.** A mobile-friendly, self-contained browser pool game set at the Squatches' secret Pacific Northwest watering hole.
+**Status: v0.1 proof of concept in progress (not yet release-verified).** A mobile-friendly, self-contained browser pool game set at the Squatches' secret watering hole in the Pacific Northwest temperate rainforest.
+
+## Release direction
+
+**Fun first, process second.** Ship small improvements, playtest with real people, and increase automation only when repeated failures justify it. We are **not** adopting full test-driven development or coverage quotas during the proof of concept. A passing test suite is not proof that the game is fun or release-ready.
+
+Our release gates, aggressive *targets* and maturity policy live in [docs/ROADMAP.md](docs/ROADMAP.md) (tracking [#33](https://github.com/subiki/squatchpool/issues/33)). **Current focus: v0.1 — one complete, understandable, fun match** with correct opponent-selected surprise-ball strategy, believable rails and pockets, usable phone/desktop controls and restart. Missing acceptance evidence means a gate is still open. Later rainforest storytelling, additional games, and site/domain migration are parallel or subsequent work, never blockers for fixing the playable prototype.
+
+For contributors and agents: read [AGENTS.md](AGENTS.md) and [docs/DELIVERY.md](docs/DELIVERY.md). Existing game tests are lightweight safety checks; browser playtesting is the release decision.
 
 ## Play locally
 
@@ -39,7 +47,7 @@ npm run check  # parse-check JavaScript modules
 
 The game uses Canvas 2D with a **vendored MIT-licensed Planck.js (Box2D) rigid-body physics engine** (`src/vendor/planck.mjs`), wrapped by `src/physics.js` at a fixed 120 Hz step. The wrapper keeps the original ball/rules API and defines shared physical and visible cushion geometry. Turn logic is in `src/rules.js`; UI and minimal AI are in `src/game.js`. The site stays static and self-contained, with no CDN or runtime install. High-speed balls use Box2D bullet collision detection. The first pass has no spin or fully modeled pocket jaws; live desktop and touch playtesting are still required.
 
-## Milestone / definition of done
+## v0.1 acceptance checklist (not yet certified)
 
 1. [x] Shoot the cue ball, collide with other balls and rails, pocket balls.
 2. [x] Alternate turns or play a minimal single-player opponent.

@@ -1,4 +1,6 @@
-# Squatch Pool backlog — parked until first game passes playtesting
+# Squatch Pool backlog — prioritized by release gate
+
+See [ROADMAP.md](ROADMAP.md) for v0.1–v1.0 release gates and target dates. Keep the first playable game ahead of cinematic polish, engine experiments, and community features. Items below are opportunities, not automatic commitments to a specific release.
 
 ## Gate: one complete game first
 
@@ -8,7 +10,7 @@
 - Refine aiming, cushion/pocket physics, and the simple AI only as needed for fun play.
 - Create a web deployment with a preview URL and test it. Add real Squatch character art and reactions only after controls work.
 
-## Next content (when the first game is fun)
+## Next content (after v0.1 playability; scope according to release evidence)
 
 - Add other original Squatch games, particularly **Coin-Op Cutthroat** (three players; balls never return after being potted; on a scratch, the third player may claim one of the scratcher's balls, including to re-enter; next player takes ball-in-hand; last player with balls wins). Implement from full original source material; don't assume ordinary cutthroat rules.
 - More characters: Speed Squatch, Hudsquatch, Big Jim, and the rest of The 4T's cast.
