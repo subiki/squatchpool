@@ -1,5 +1,5 @@
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin} from './physics.js';
-import {renderPocket} from './table-geometry.js';
+import {renderPocket,facings} from './table-geometry.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
@@ -185,6 +185,9 @@ function render(){
  ctx.fillStyle='#5d402a';ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
  ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
  for(const p of pockets)renderPocket(ctx,p);
+ ctx.save();ctx.strokeStyle='#a6865f';ctx.lineWidth=2.5;ctx.lineCap='round';
+ ctx.beginPath();for(const f of facings){ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);}
+ ctx.stroke();ctx.restore();
  // Visible cushion faces line up with the physics collision planes (ball centers at radius r).
  // The former decorative inset rectangle looked like an invisible second set of rails.
  ctx.save();ctx.strokeStyle='#b58a53';ctx.lineWidth=3;
@@ -200,6 +203,7 @@ function render(){
    ctx.stroke();ctx.restore();}
  }
  for(let i=1;i<=7;i++)for(const y of [r/2,h-r/2]){ctx.save();ctx.translate(i*w/8,y);ctx.rotate(Math.PI/4);ctx.fillStyle='#d6ab6a';ctx.fillRect(-3,-3,6,6);ctx.restore();}
+ for(let i=1;i<=3;i++)for(const x of [r/2,w-r/2]){ctx.save();ctx.translate(x,i*h/4);ctx.rotate(Math.PI/4);ctx.fillStyle='#d6ab6a';ctx.fillRect(-3,-3,6,6);ctx.restore();}
  if(state.phase==='aim'){
   if(state.callBall!==null){const selected=state.balls.find(b=>b.id===state.callBall&&!b.pocketed);
    if(selected){ctx.save();ctx.strokeStyle='#ffdf84';ctx.lineWidth=2;ctx.beginPath();ctx.arc(selected.x,selected.y,r+5,0,2*Math.PI);ctx.stroke();ctx.restore();}}
