@@ -14,11 +14,14 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   dataset:{pocket:id},addEventListener(event,fn){events.set('pocket-'+id+':'+event,fn);}
  }));
  const grad={addColorStop(){}};
- let cueDraws=0,nextFrame=()=>{},time=0;
+ let cueDraws=0,nextFrame=()=>{},time=0,lastTranslate={x:0,y:0};
+ const objectBallPositions=new Map();
  const ctx=new Proxy({
   createRadialGradient(){return grad;},
   createLinearGradient(){return grad;},
-  stroke(){if(this.strokeStyle==='#d4a76c')cueDraws++;}
+  stroke(){if(this.strokeStyle==='#d4a76c')cueDraws++;},
+  translate(x,y){lastTranslate={x,y};},
+  fillText(value){if(/^\\d+$/.test(String(value)))objectBallPositions.set(String(value),lastTranslate);}
  },{get(o,key){return key in o?o[key]:()=>{};},set(o,key,v){o[key]=v;return true;}});
  function element(id){
   if(!elements.has(id))elements.set(id,{
@@ -62,7 +65,10 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   const initiallyDrawn=cueDraws;tick();
   assert.equal(cueDraws,initiallyDrawn,'cue hidden before call');
   const ballButton=element('#ball-picks').children[0];
-  ballButton.listeners.get('click')();
+  const ballPosition=objectBallPositions.get(ballButton.textContent);
+  assert.ok(ballPosition,'target ball rendered for direct pointer selection');
+  events.get('#table:pointerdown')({clientX:ballPosition.x,clientY:ballPosition.y,pointerId:1});
+  assert.equal(element('#call-ball-status').textContent,'Ball: '+ballButton.textContent,'ball tapped on canvas');
   assert.equal(element('#table-status').textContent,'PICK A POCKET');
   assert.equal(element('#pocket-targets').hidden,false,'six pocket targets shown');
   assert.equal(element('#undo-call').disabled,false);
