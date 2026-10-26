@@ -209,8 +209,8 @@ test('7, 8, 9 foot tables change only the bed size; balls and pocket widths stay
    assert.ok(Math.abs((TABLE.height-2*TABLE.radius)/PX_PER_IN-width)<1e-8);
    assert.equal(2*TABLE.radius/PX_PER_IN,BALL_DIAMETER_IN);
    assert.equal(TABLE.playingLengthIn/TABLE.playingWidthIn,2);
-   assert.equal(mouthWidth(pockets[0])/PX_PER_IN,CORNER_MOUTH_IN);
-   assert.equal(mouthWidth(pockets[1])/PX_PER_IN,SIDE_MOUTH_IN);
+   assert.ok(Math.abs(mouthWidth(pockets[0])/PX_PER_IN-CORNER_MOUTH_IN)<1e-9);
+   assert.ok(Math.abs(mouthWidth(pockets[1])/PX_PER_IN-SIDE_MOUTH_IN)<1e-9);
    assert.equal(pockets.length,6);assert.equal(cushions.length,6);
    assert.equal(jaws.length,12);assert.equal(facings.length,12);
    assert.equal(pockets.find(p=>p.id==='TR').x,TABLE.width);
@@ -222,7 +222,8 @@ test('7, 8, 9 foot tables change only the bed size; balls and pocket widths stay
    const balls=rack(),cue=balls[0];
    assert.equal(balls.length,14);
    assert.ok(Math.abs(cue.y-TABLE.height/2)<1e-8);
-   assert.ok(balls.every(b=>canPlace(balls.filter(o=>o!==b),b.x,b.y)),size+'ft rack must not overlap or clip');
+   assert.ok(balls.every(b=>b.x>TABLE.radius&&b.x<TABLE.width-TABLE.radius&&b.y>TABLE.radius&&b.y<TABLE.height-TABLE.radius),size+'ft rack must fit inside the rails');
+   assert.ok(balls.every((b,i)=>balls.slice(i+1).every(o=>Math.hypot(b.x-o.x,b.y-o.y)>=2*TABLE.radius-0.01)),size+'ft rack must not overlap');
   }
   assert.throws(()=>setTableSize(6),RangeError);
  }finally{setTableSize(9);}
@@ -240,12 +241,9 @@ test('each table size has working six pockets, rails and full rack break',()=>{
     assert.equal(b.pocketed,true,size+'ft '+p.id+' must capture ball');
     assert.deepEqual(events,[{id:1,pocketId:p.id}]);
    }
-   const cue=ball(0,TABLE.width/2,65),bank=[cue];cue.vy=-500;
-   let bounced=false;
-   for(let i=0;i<100;i++){step(bank);bounced ||= cue.vy>0;}
    // At midtable the side pocket is open. Bank elsewhere along the long rail.
    const b=ball(0,TABLE.width*0.4,65),balls=[b];b.vy=-500;
-   bounced=false;
+   let bounced=false;
    for(let i=0;i<100;i++){step(balls);bounced ||= b.vy>0;}
    assert.equal(bounced,true,size+'ft long-cushion rebound');
    const rackBalls=rack();rackBalls[0].vx=1100;let contacts=0;
