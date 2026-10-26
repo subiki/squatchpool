@@ -67,3 +67,14 @@ button:disabled{opacity:.4;cursor:not-allowed}
  .brand-mark{width:45px;height:45px}.topbar h1{font-size:1.17rem}.topbar .eyebrow{font-size:.59rem}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important}}
+
+/* First-run guidance: prominent but short, including narrow mobile layouts. */
+.quickstart{display:flex;align-items:center;flex-wrap:wrap;gap:10px 17px;margin:0 0 16px;padding:15px 19px;border:2px solid #f1c77d;border-radius:15px;background:#3d3320;color:#fff6df;box-shadow:0 6px 22px #0005}
+.quickstart strong{color:#ffdb91;font-size:1.03rem;letter-spacing:.035em}
+.quickstart span{font-size:1rem;font-weight:700}
+.quickstart b{display:inline-grid;place-items:center;width:26px;height:26px;margin-right:5px;border-radius:50%;background:#f1c77d;color:#1c211b}
+.quickstart small{flex-basis:100%;font-size:.92rem;color:#f6e4bd}
+.aim-help strong{font-size:1.22rem;color:#ffe0a4}
+.aim-help span{display:block;margin-top:5px;font-size:1.02rem;line-height:1.5;color:#fff4dd}
+.control-panel{border:2px solid #d4aa64;background:#182a20}
+@media(max-width:760px){.quickstart{gap:9px 13px;padding:13px}.quickstart strong{flex-basis:100%}.quickstart span{font-size:.91rem}.quickstart small{font-size:.86rem}.aim-help span{font-size:.97rem}}
