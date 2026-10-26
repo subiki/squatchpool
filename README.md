@@ -28,12 +28,12 @@ An existing Squatch Pool story/game concept, adapted into the first playable pro
 3. When a player pockets their final *visible* group ball, the opponent chooses either remaining hidden ball (solid or stripe) and places it anywhere legal. They can choose their own ball to block the shooter.
 4. If the returned ball belongs to the shooter, they must pocket it before the 8. If it belongs to the opponent, it can be used as a defensive obstacle. Pocketing the 8 early loses; pocketing it legally wins. The current prototype still auto-selects the shooter's group: see issue #7 for the required gameplay correction.
 
-**Prototype simplifications (not authoritative 8-ball rules):** no called shot/pocket, no explicit rail-after-contact requirement, no three-foul rule, no break-specific foul rules. The engine treats an incorrect first contact or a scratch as ball-in-hand for the opponent; a miss passes the turn. A legal pocket on the break grants another shot but does not assign groups. The automated Speed Squatch opponent is rudimentary and may make poor shots. No advanced spin or jumping. These are implementation limits, not claims about the original house rules.
+**Prototype simplifications (not authoritative 8-ball rules):** no called shot/pocket, no explicit rail-after-contact requirement, no three-foul rule, no break-specific foul rules. The engine treats an incorrect first contact or a scratch as ball-in-hand for the opponent; a miss passes the turn. A legal pocket on the break grants another shot but does not assign groups. The automated Speed Squatch opponent is rudimentary and may make poor shots. Draw/follow and sidespin are now available as optional physics controls; jump shots and full 3D cue elevation are not implemented. These are implementation limits, not claims about the original house rules.
 
 ## Controls
 
 - Tap or drag anywhere on the table to aim from the cue ball.
-- Set power with the slider, then select **Shoot**. On desktop, left/right arrows (or A/D) adjust aim and Space shoots.
+- Set power with the slider, then select **Shoot**. Optionally dial in **Draw/Follow** or **English** under the main controls (both start centered). On desktop, left/right arrows (or A/D) adjust aim and Space shoots.
 - On fouls or scratches, place the cue ball by tapping a clear spot.
 - When a hidden ball must be restored, the opponent places it by tapping an empty spot; Speed Squatch chooses automatically in single-player mode.
 - Choose **Two players (pass & play)** to share one screen, or play against the basic Squatch bot.
@@ -45,7 +45,7 @@ npm test       # built-in Node test runner; no npm install
 npm run check  # parse-check JavaScript modules
 ```
 
-The game uses Canvas 2D with a **vendored MIT-licensed Planck.js (Box2D) rigid-body physics engine** (`src/vendor/planck.mjs`), wrapped by `src/physics.js` at a fixed 120 Hz step. The wrapper keeps the original ball/rules API and defines shared physical and visible cushion geometry. Turn logic is in `src/rules.js`; UI and minimal AI are in `src/game.js`. The site stays static and self-contained, with no CDN or runtime install. High-speed balls use Box2D bullet collision detection. The first pass has no spin or fully modeled pocket jaws; live desktop and touch playtesting are still required.
+The game uses Canvas 2D with a **Tailuge Billiards GPL-3.0-based physics adapter** in `src/vendor/tailuge-physics.js`, integrated through `src/physics.js` at a fixed 120 Hz step. The numerical ball collision/throw, cloth sliding/rolling, follow/draw/sidespin, and Han-model cushions are adapted from Tailuge's real open-source billiards code. Squatch provides its own six-pocket continuous time-of-impact detection, table jaws, game rules, controls and rendering. The site remains static and self-contained, with no npm installation or CDN needed to play.\n\n**License and source:** Tailuge's GPL-3.0 code means the combined deployed browser work is GPL-3.0, with [complete license](LICENSE), [upstream credit and adaptation details](THIRD_PARTY.md), and unminified browser source available at the site's static paths. This is a deliberate GPL commitment, not an MIT-library drop-in. The physics models are calibrated for short arcade racks and require further live desktop/touch playtesting; do not confuse this with integrating Tailuge's entire 3D application.
 
 ## v0.1 acceptance checklist (not yet certified)
 
