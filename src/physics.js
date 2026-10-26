@@ -9,20 +9,20 @@ import { ballCollision, cushionBounce, advanceFriction, applyCueSpin as setCueSp
 export { setCueSpin as applyCueSpin };
 import {TABLE,cushions,pockets,jaws,facings,pocketCaptureTime} from './table-geometry.js';
 export {TABLE,cushions,pockets} from './table-geometry.js';
-const R=TABLE.radius,W=TABLE.width,H=TABLE.height,STOP=5;
+const R=TABLE.radius,STOP=5;
 export const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export const ball=(id,x,y)=>({id,x,y,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary',pocketed:false});
 export const stationary=balls=>balls.every(b=>b.pocketed||Math.hypot(b.vx,b.vy)<STOP);
 export function canPlace(balls,x,y,ignoreId=null){
- const inset=2*R+1;
+ const {width:W,height:H}=TABLE,inset=2*R+1;
  if(x<inset||x>W-inset||y<inset||y>H-inset)return false;
  if(pockets.some(p=>p.kind==='side'?
   Math.abs(x-p.x)<p.half+R&&p.sy*(y-p.y)<2.3*R:
   p.sx*(x-p.x)+p.sy*(y-p.y)<p.lip+2*R&&p.sx*(x-p.x)>0&&p.sy*(y-p.y)>0))return false;
  return balls.every(b=>b.pocketed||b.id===ignoreId||Math.hypot(b.x-x,b.y-y)>=2*R+2);
 }
-export function findPlacement(balls,preferred={x:260,y:250}){
+export function findPlacement(balls,preferred={x:TABLE.width/4,y:TABLE.height/2}){
  if(canPlace(balls,preferred.x,preferred.y))return preferred;
  for(let radius=26;radius<=400;radius+=26)for(let i=0;i<36;i++){
   const angle=i*Math.PI/18,x=preferred.x+Math.cos(angle)*radius,y=preferred.y+Math.sin(angle)*radius;
@@ -31,10 +31,15 @@ export function findPlacement(balls,preferred={x:260,y:250}){
  return null;
 }
 export function rack(){
- const balls=[ball(0,255,250)],numbers=[1,10,3,12,8,2,9,11,4,13,5,14,6];let index=0;
+ const W=TABLE.width,H=TABLE.height;
+ // A physical inch always uses the same number of pixels across table sizes.
+ const cueX=R+(W-2*R)/4,apexX=R+(W-2*R)*0.70;
+ const balls=[ball(0,cueX,H/2)],numbers=[1,10,3,12,8,2,9,11,4,13,5,14,6];
+ let index=0;
+ const spacingX=2*R*Math.sqrt(3)/2+0.35,spacingY=2*R+0.9;
  for(let row=0;row<5;row++)for(let column=0;column<=row;column++){
   if(row===4&&(column===0||column===4))continue;
-  balls.push(ball(numbers[index++],695+row*19.4,250+(column-row/2)*22.9));
+  balls.push(ball(numbers[index++],apexX+row*spacingX,H/2+(column-row/2)*spacingY));
  }
  return balls;
 }
@@ -74,7 +79,7 @@ function advance(balls,time){
 }
 const valid=b=>!b.pocketed&&Number.isFinite(b.x+b.y+b.vx+b.vy);
 export function step(balls,dt=1/120){
- const pocketed=[],contacts=[],pocketEvents=[];
+ const W=TABLE.width,H=TABLE.height,pocketed=[],contacts=[],pocketEvents=[];
  if(!(dt>0))return{pocketed,contacts,pocketEvents};
  let remaining=Math.min(dt,1/30),events=0;
  while(remaining>1e-8&&events++<120){
