@@ -3,7 +3,7 @@ import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
-let state,lastTime=0,accumulator=0,botTimer=null;
+let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const person=i=>i===0?(state.mode==='bot'?'You':'Player 1'):(state.mode==='bot'?'Speed Squatch':'Player 2');
 const human=i=>state.mode==='local'||i===0;
 const cue=()=>state.balls.find(b=>b.id===0);
@@ -14,8 +14,12 @@ function log(message){
 }
 function newGame(){
  clearTimeout(botTimer);
- const requested=Number($('#table-size').value)||7;
- setTableSize(requested);
+ setTableSize(selectedTableSize);
+ for(const button of document.querySelectorAll('.table-size-pick')){
+  const chosen=Number(button.dataset.size)===TABLE.size;
+  button.classList.toggle('selected',chosen);
+  button.setAttribute('aria-pressed',String(chosen));
+ }
  canvas.width=Math.round(TABLE.width);
  canvas.height=Math.round(TABLE.height);
  // Canonical simulation coordinates must match the browser's pixel canvas.
@@ -352,7 +356,9 @@ $('#shoot').addEventListener('click',()=>{if(state.phase==='aim'&&human(state.tu
 $('#new-game').addEventListener('click',newGame);
 $('#play-again').addEventListener('click',newGame);
 $('#mode').addEventListener('change',newGame);
-$('#table-size').addEventListener('change',newGame);
+for(const button of document.querySelectorAll('.table-size-pick')){
+ button.addEventListener('click',()=>{selectedTableSize=Number(button.dataset.size);newGame();});
+}
 window.addEventListener('keydown',e=>{
  if(!state||state.phase!=='aim'||!human(state.turn)||/input|select|textarea/i.test(e.target?.tagName))return;
  if(e.key==='ArrowLeft'||e.key==='a'){state.angle-=.02;e.preventDefault();}
@@ -364,7 +370,7 @@ window.addEventListener('keydown',e=>{
 try{
  if(typeof localStorage!=='undefined'){
   const saved=localStorage.getItem('squatch-table-size');
-  if(['7','8','9'].includes(saved))$('#table-size').value=saved;
+  if(['7','8','9'].includes(saved))selectedTableSize=Number(saved);
  }
 }catch{}
 newGame();requestAnimationFrame(frame);
