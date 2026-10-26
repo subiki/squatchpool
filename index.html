@@ -29,12 +29,12 @@
     <div class="mode-controls">
      <label for="mode">Who's at the table?</label>
      <select id="mode" aria-label="Opponent type"><option value="bot">You vs. Speed Squatch</option><option value="local">Two players (pass &amp; play)</option></select>
-     <label for="table-size">Table size</label>
-     <select id="table-size" aria-label="Playing table size">
-      <option value="7" selected>7 ft · Bar box (78 × 39 in)</option>
-      <option value="8">8 ft · Home table (88 × 44 in)</option>
-      <option value="9">9 ft · Tournament (100 × 50 in)</option>
-     </select>
+     <span class="table-size-label" id="table-size-label">Table size</span>
+     <div class="table-size-buttons" role="group" aria-labelledby="table-size-label">
+      <button type="button" class="table-size-pick selected" data-size="7" aria-pressed="true"><strong>7 FT</strong><small>BAR · 78×39</small></button>
+      <button type="button" class="table-size-pick" data-size="8" aria-pressed="false"><strong>8 FT</strong><small>HOME · 88×44</small></button>
+      <button type="button" class="table-size-pick" data-size="9" aria-pressed="false"><strong>9 FT</strong><small>PRO · 100×50</small></button>
+     </div>
      <small class="size-note">2¼″ balls and regulation pocket mouths at every size. Changing size starts a new rack.</small>
      <button id="new-game" class="secondary">↻ New rack</button>
     </div>
