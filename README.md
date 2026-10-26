@@ -8,7 +8,7 @@
 
 Our release gates, aggressive *targets* and maturity policy live in [docs/ROADMAP.md](docs/ROADMAP.md) (tracking [#33](https://github.com/subiki/squatchpool/issues/33)). **Current focus: v0.1 — one complete, understandable, fun match** with correct opponent-selected surprise-ball strategy, believable rails and pockets, usable phone/desktop controls and restart. Missing acceptance evidence means a gate is still open. Later rainforest storytelling, additional games, and site/domain migration are parallel or subsequent work, never blockers for fixing the playable prototype.
 
-For contributors and agents: read [AGENTS.md](AGENTS.md) and [docs/DELIVERY.md](docs/DELIVERY.md). Existing game tests are lightweight safety checks; browser playtesting is the release decision.
+For contributors and agents: read [AGENTS.md](AGENTS.md) and [docs/DELIVERY.md](docs/DELIVERY.md). Existing game tests include a headless real-game click regression, but browser playtesting is the release decision.
 
 ## Play locally
 
@@ -33,7 +33,7 @@ An existing Squatch Pool story/game concept, adapted into the first playable pro
 ## Controls
 
 - Tap or drag anywhere on the table to aim from the cue ball.
-- After the break, choose the **called ball** and **called pocket** (six choices) before shooting. Slopped balls stay down, but don't retain the turn or assign groups. The 8-ball in an uncalled pocket is a loss. The break does not require a call.\n- Set power with the slider, then select **Shoot**. Optionally dial in **Draw/Follow** or **English** under the main controls (both start centered). On desktop, left/right arrows (or A/D) adjust aim and Space shoots.
+- **After the break:** tap your intended object ball **on the table**, then tap one of the **six illuminated pocket numbers**. Only then does the cue stick appear so you can aim and shoot. Buttons numbered by available balls below the table are a touch/keyboard alternative when balls are tightly clustered. Tap **Undo call** to clear your pending ball and pocket before shooting, then choose again. No call required on the break. Slop stays down but doesn't keep your turn; an uncalled 8-ball loses.\n- Set power with the slider, then select **Shoot**. Optionally dial in **Draw/Follow** or **English** under the main controls (both start centered). On desktop, left/right arrows (or A/D) adjust aim and Space shoots.
 - On fouls or scratches, place the cue ball by tapping a clear spot.
 - When a hidden ball must be restored, the opponent places it by tapping an empty spot; Speed Squatch chooses automatically in single-player mode.
 - Choose **Two players (pass & play)** to share one screen, or play against the basic Squatch bot.
