@@ -107,7 +107,7 @@ function aimFrom(p){
  if(Math.hypot(dx,dy)>8)state.angle=Math.atan2(dy,dx);
 }
 function hit(direction=state.angle,power=state.power){
- if(state.phase!=='aim')return;
+ if(state.phase!=='aim'||(!state.isBreak&&(state.callBall===null||!state.callPocket)))return;
  const b=cue();if(!b||b.pocketed)return;
  const speed=240+11*clamp(power,10,100);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
