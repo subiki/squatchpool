@@ -6,6 +6,10 @@ Finish and verify the **existing playable browser game**, then release a shareab
 ## Current reality (recheck every session)
 The repository already contains a dependency-free Canvas 2D prototype of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the implementation just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
 
+## Canon and delivery
+- Squatch Pool is set in a **Pacific Northwest temperate rainforest**, never a tropical jungle. Use native cedar/hemlock, moss, ferns, mist and rain in art, lore, copy, character intros and prompts. Preserve historical archives verbatim.
+- Follow [docs/DELIVERY.md](docs/DELIVERY.md) for the issue → branch → PR → CI → Cloudflare preview → merge → production verification loop. Reuse the existing Cloudflare integration; do not build duplicate deployment infrastructure.
+
 ## Parallel-agent coordination
 - Assume another agent may be editing the same repository at the same time.
 - Before any write: refresh the target file/issue, check branches and open PRs, and choose a non-overlapping issue.
