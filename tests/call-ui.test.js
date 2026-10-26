@@ -21,7 +21,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   createLinearGradient(){return grad;},
   stroke(){if(this.strokeStyle==='#d4a76c')cueDraws++;},
   translate(x,y){lastTranslate={x,y};},
-  fillText(value){if(/^\\d+$/.test(String(value)))objectBallPositions.set(String(value),lastTranslate);}
+  fillText(value){if(typeof value==='string'&&value.length<=2&&Number.isInteger(Number(value)))objectBallPositions.set(value,lastTranslate);}
  },{get(o,key){return key in o?o[key]:()=>{};},set(o,key,v){o[key]=v;return true;}});
  function element(id){
   if(!elements.has(id))elements.set(id,{
