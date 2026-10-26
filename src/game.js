@@ -1,4 +1,4 @@
-import {TABLE,pockets,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance} from './physics.js';
+import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance} from './physics.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
@@ -154,12 +154,12 @@ function render(){
  // Visible cushion faces line up with the physics collision planes (ball centers at radius r).
  // The former decorative inset rectangle looked like an invisible second set of rails.
  ctx.save();ctx.strokeStyle='#b58a53';ctx.lineWidth=3;
- ctx.beginPath();ctx.moveTo(38,r);ctx.lineTo(w/2-43,r);ctx.moveTo(w/2+43,r);ctx.lineTo(w-38,r);
- ctx.moveTo(38,h-r);ctx.lineTo(w/2-43,h-r);ctx.moveTo(w/2+43,h-r);ctx.lineTo(w-38,h-r);
- ctx.moveTo(r,38);ctx.lineTo(r,h-38);ctx.moveTo(w-r,38);ctx.lineTo(w-r,h-38);ctx.stroke();ctx.restore();
+ ctx.beginPath();
+ for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}
+ ctx.stroke();ctx.restore();
  ctx.setLineDash([4,10]);ctx.strokeStyle='#f7e8c129';ctx.beginPath();ctx.moveTo(250,12);ctx.lineTo(250,h-12);ctx.stroke();ctx.setLineDash([]);
  ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(695,250,3,0,2*Math.PI);ctx.fill();
- for(const p of pockets){ctx.fillStyle='#06150f';ctx.beginPath();ctx.arc(p.x,p.y,TABLE.pocketRadius+4,0,2*Math.PI);ctx.fill();ctx.strokeStyle='#b0834f';ctx.lineWidth=4;ctx.stroke();}
+ for(const p of pockets){ctx.fillStyle='#06150f';ctx.beginPath();ctx.arc(p.x,p.y,p.radius+2,0,2*Math.PI);ctx.fill();ctx.strokeStyle='#b0834f';ctx.lineWidth=4;ctx.stroke();}
  for(let i=1;i<=7;i++)for(const y of [7,h-7]){ctx.save();ctx.translate(i*w/8,y);ctx.rotate(Math.PI/4);ctx.fillStyle='#d6ab6a';ctx.fillRect(-3,-3,6,6);ctx.restore();}
  if(state.phase==='aim'){
   const cb=cue();if(cb&&!cb.pocketed){
