@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {pockets,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
+import {pockets,facings,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
 import {ball,rack,step,canPlace,findPlacement,applyCueSpin} from '../src/physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
@@ -184,4 +184,14 @@ test('break is exempt from called pockets, with open groups after pocket',()=>{
   pocketed:[2],firstContact:2,breakShot:true,pocketEvents:[{id:2,pocketId:'TL'}]});
  assert.equal(result.keepTurn,true);
  assert.equal(result.newGroup,null);
+});
+
+test('angled rubber pocket facings reflect WPA corner and side cuts',()=>{
+ // Facings are paired per pocket in order, with horizontal edges pointing
+ // toward the mouth. 142° corner corresponds to a 38° bevel turn;
+ // 104° side corresponds to a 76° bevel turn.
+ const angle=(f)=>Math.atan2(Math.abs(f.y2-f.y1),Math.abs(f.x2-f.x1))*180/Math.PI;
+ assert.ok(Math.abs(180-angle(facings[0])-142)<2);
+ assert.ok(Math.abs(180-angle(facings[2])-104)<2);
+ assert.equal(facings.length,12);
 });
