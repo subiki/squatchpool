@@ -4,7 +4,7 @@
 Finish and verify the **existing playable browser game**, then release a shareable Squatch Pool alpha. Keep changes lean. Read README.md, docs/BACKLOG.md and open GitHub issues before doing work.
 
 ## Current reality (recheck every session)
-The repository already contains a dependency-free Canvas 2D prototype of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the implementation just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
+The repository contains a static, self-contained Canvas 2D prototype with a vendored Planck.js/Box2D physics engine of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the implementation just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
 
 ## Canon and delivery
 - Squatch Pool is set in a **Pacific Northwest temperate rainforest**, never a tropical jungle. Use native cedar/hemlock, moss, ferns, mist and rain in art, lore, copy, character intros and prompts. Preserve historical archives verbatim.
@@ -17,6 +17,14 @@ The repository already contains a dependency-free Canvas 2D prototype of **But W
 - If another agent owns a task, choose a distinct independent issue (tests/docs/validation) and say what you are taking.
 - Treat live playtest findings and newer confirmed rule descriptions in GitHub as higher priority than stale roadmap text.
 - Never mark someone else's task complete without verifying acceptance evidence.
+
+## Release strategy and engineering maturity
+- [docs/ROADMAP.md](docs/ROADMAP.md) defines the v0.1–v1.0 product exit gates and aggressive target dates. Treat dates as targets; never declare a release complete without evidence. Do not call the current prototype v1.0 or infer completion from green CI.
+- **v0.1–v0.2:** optimize for fun and a complete match. Run existing tests and syntax checks plus focused manual browser playtests; add regression tests for concrete failures, not speculative coverage. **No full TDD or coverage quota.**
+- **v0.3–v0.4:** add focused repeatable physics/rules regressions as needed; validate a real desktop and touch playthrough for each release.
+- **v0.5–v1.0:** gradually enforce PR checks, deployed preview smoke tests, release evidence and rollback only as reliability needs justify them. Do not create a second Cloudflare deployment system.
+- Prioritize a working game over release ceremony. A failed core flow blocks a release; an optional cinematic does not. Cut optional scope before compromising core play.
+- Domain/content migration (#28) runs independently. Never block physics/gameplay changes on registrar or DNS work.
 
 ## Delivery order and gates
 1. **P0: Preserve playable deployment** — confirm current public URL and run existing tests. Fix regressions first. See #5.
@@ -45,8 +53,8 @@ Existing M0 engine-selection issue #12 is historical planning; reassess against 
 - Keep working deployment available. Avoid sweeping refactors, framework rewrites, new engines, elaborate CI, or unrelated polish.
 - If source/license questions arise, inspect actual files and dependencies rather than guessing.
 
-## Release gate
-The game is DONE only when a public URL opens without login; desktop and touch aiming/shooting work; normal collisions, pockets and scratches work; two local players can finish a full game with correct held-ball choice and placement, turns, fouls and win detection; restart works; and Squatch identity is visible. Record real-browser evidence. If a gate is unverified, report it as unverified.
+## Immediate v0.1 release gate
+v0.1 is eligible for release only when a public URL opens without login; desktop and touch aiming/shooting work; normal collisions, pockets and scratches work; two local players can finish a full game with correct held-ball choice and placement, turns, fouls and win detection; restart works; and Squatch identity is visible. Record real-browser evidence. If a gate is unverified, report it as unverified.
 
 ## Blockers and recovery
 Diagnose routine failures and try bounded fixes. Preserve last known playable state. Escalate only missing access/credentials, consequential licensing questions, or genuinely unresolved original rules. Report what failed, what was tried, the recommended resolution, and one specific question. Do not fabricate tests, deployments, approvals, or completion.
