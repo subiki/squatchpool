@@ -11,7 +11,7 @@ export function createJungleView({host, classic, controls, getState, onTablePoin
   const intro = document.createElement('div');
   intro.className = 'jungle-entrance';
   intro.hidden = true;
-  intro.innerHTML = '<div class="entrance-card"><span class="eyebrow">THE 4T\'S PRESENTS</span><strong>SPEED SQUATCH</strong><p>Too many cues. Not enough patience.</p><button type="button" class="secondary skip-entrance">SKIP INTRO ➜</button></div>';
+  intro.innerHTML = '<div class="entrance-card"><span class="eyebrow">THE 4T\'S PRESENTS</span><strong>SPEED SQUATCH</strong><p>"SHANE VAN BOENING!" · Too many cues, not enough patience.</p><button type="button" class="secondary skip-entrance">SKIP INTRO ➜</button></div>';
   host.append(intro);
   intro.querySelector('button').addEventListener('click', stopIntro);
   const btnClassic = controls.classic;
