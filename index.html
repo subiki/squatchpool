@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="theme-color" content="#101d19">
+ <meta name="description" content="Play But Wait, There's More — a Squatch Pool house-rules game from The 4T's.">
+ <title>Squatch Pool · The 4T's</title>
+ <link rel="stylesheet" href="./src/styles.css">
+ <script type="module" src="./src/game.js"></script>
+</head>
+<body>
+ <div class="grain" aria-hidden="true"></div>
+ <div class="app">
+  <header class="topbar">
+   <div class="brand-mark" aria-hidden="true">♠</div>
+   <div><p class="eyebrow">The 4T's • Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div>
+   <span class="prototype">FIRST BREAK / v0.1</span>
+  </header>
+  <main>
+   <div class="intro">
+    <div>
+     <div class="eyebrow highlight">THE FIRST GAME</div>
+     <h2>But Wait, <em>There's More.</em></h2>
+     <p>Classic 8-ball, with a Squatch-sized surprise: each player has one ball hidden until the opponent brings it back.</p>
+    </div>
+    <div class="mode-controls">
+     <label for="mode">Who's at the table?</label>
+     <select id="mode" aria-label="Opponent type"><option value="bot">You vs. Speed Squatch</option><option value="local">Two players (pass &amp; play)</option></select>
+     <button id="new-game" class="secondary">↻ New rack</button>
+    </div>
+   </div>
+   <section class="match" aria-label="Pool game">
+    <div class="scoreboard">
+     <div class="player active" id="player-0"><span class="portrait" aria-hidden="true">🎱</span><div><strong id="player-name-0">You</strong><small id="player-group-0">Open table</small></div><span class="player-count" id="player-count-0">—</span></div>
+     <div class="center-score"><span>HOUSE RULES</span><strong>VS.</strong><small id="shot-counter">Break shot</small></div>
+     <div class="player" id="player-1"><span class="portrait squatch" aria-hidden="true">🦍</span><div><strong id="player-name-1">Speed Squatch</strong><small id="player-group-1">Open table</small></div><span class="player-count" id="player-count-1">—</span></div>
+    </div>
+    <div class="table-frame">
+     <div class="table-topline"><span>THE FOUR T'S • TABLE NO. 1</span><span id="table-status">OPEN TABLE</span></div>
+     <canvas id="table" width="1000" height="500" aria-label="Overhead billiards table. Tap or drag to aim, then press Shoot." role="img"></canvas>
+     <div class="table-bottomline"><span>★ PACIFIC NORTHWEST ★</span><span>NO DRINKS ON THE FELT</span></div>
+    </div>
+    <div class="announcer" aria-live="polite"><span class="announcer-avatar" aria-hidden="true">🌲</span><div><div class="eyebrow">FROM THE BOOTH</div><p id="announcer-text">Welcome to The 4T's. Break 'em like you mean it.</p></div></div>
+    <div class="control-panel">
+     <div class="aim-help"><strong id="control-title">Your shot</strong><span id="control-hint">Tap or drag on the table to aim. Choose your power, then shoot.</span></div>
+     <div class="power"><label for="power">POWER <output id="power-value" for="power">68%</output></label><input id="power" type="range" min="10" max="100" value="68" step="1"></div>
+     <button id="shoot" class="shoot">SHOOT <span aria-hidden="true">➜</span></button>
+    </div>
+   </section>
+   <section class="below">
+    <article class="rules-card">
+     <p class="eyebrow highlight">THE HOUSE EXPLAINS</p><h3>What's the catch?</h3>
+     <p>Play 8-ball, except the <strong>7-ball and 15-ball</strong> start off the table. After you clear your visible group, your opponent places your missing ball back onto the felt. Sink that too, then pocket the 8 to win.</p>
+     <p class="note">In this first prototype: no called pockets or push-out rules; fouls award ball-in-hand. Groups are assigned after a legal post-break pocket. These simplifications are documented in the repo.</p>
+    </article>
+    <article class="rules-card log-card"><p class="eyebrow highlight">TABLE TALK</p><h3>Shot history</h3><ol id="shot-log" aria-label="Shot history"><li>Fresh rack. Everyone still has a chance.</li></ol></article>
+   </section>
+   <footer>Squatch Pool • Imaginary legends, very real pool rules. <a href="https://github.com/subiki/squatchpool">Source on GitHub</a></footer>
+  </main>
+ </div>
+ <div class="modal-backdrop" id="result-modal" hidden>
+  <div class="result" role="dialog" aria-modal="true" aria-labelledby="result-title">
+   <div class="result-art">🏆</div><p class="eyebrow">GAME OVER</p>
+   <h2 id="result-title">Rack finished!</h2><p id="result-description"></p>
+   <button id="play-again" class="shoot">RACK 'EM AGAIN ➜</button>
+  </div>
+ </div>
+</body>
+</html>
