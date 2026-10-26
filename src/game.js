@@ -1,11 +1,24 @@
 import {TABLE,pockets,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance} from './physics.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
+import {createJungleView} from './jungle3d.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null;
 const person=i=>i===0?(state.mode==='bot'?'You':'Player 1'):(state.mode==='bot'?'Speed Squatch':'Player 2');
 const human=i=>state.mode==='local'||i===0;
 const cue=()=>state.balls.find(b=>b.id===0);
+const jungle=createJungleView({
+ host:$('#jungle-stage'),classic:canvas,
+ controls:{classic:$('#classic-view'),jungle:$('#jungle-view'),intro:$('#squatch-intro')},
+ getState:()=>state,
+ onTablePoint:(p,isDrag)=>{
+  if(!state)return;
+  if(state.phase==='placeCue'&&!isDrag&&human(state.turn))placeCue(p);
+  else if(state.phase==='placeStash'&&!isDrag&&human(otherPlayer(state.turn)))placeStash(p);
+  else if(state.phase==='aim'&&human(state.turn))aimFrom(p);
+ },
+ onStatus:message=>say(message)
+});
 function say(message){$('#announcer-text').textContent=message;}
 function log(message){
  const list=$('#shot-log'),li=document.createElement('li');li.textContent=message;list.prepend(li);
@@ -95,6 +108,7 @@ function finishShot(){
  const shot=state.shot;state.shot=null;
  const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
  const potted=shot.balls.filter(n=>n!==0);
+ jungle.react(decision.winner!==null?'win':decision.foul?'scratch':potted.length?'pocket':'miss');
  log(person(shot.player)+': '+(potted.length?'pocketed '+potted.join(', '):'no balls')+(shot.balls.includes(0)?' • scratch':'')+'. '+decision.reason);
  if(decision.newGroup){
   state.groups[shot.player]=decision.newGroup;
@@ -200,7 +214,7 @@ function frame(timestamp){
   }
   if(steps===14)accumulator=0;
  }
- if(state)render();requestAnimationFrame(frame);
+ if(state){render();jungle.render(state,timestamp);}requestAnimationFrame(frame);
 }
 function eventPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*TABLE.width/r.width,y:(e.clientY-r.top)*TABLE.height/r.height};}
 let dragging=false;

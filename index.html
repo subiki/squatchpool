@@ -37,9 +37,19 @@
      <div class="center-score"><span>HOUSE RULES</span><strong>VS.</strong><small id="shot-counter">Break shot</small></div>
      <div class="player" id="player-1"><span class="portrait squatch" aria-hidden="true">🦍</span><div><strong id="player-name-1">Speed Squatch</strong><small id="player-group-1">Open table</small></div><span class="player-count" id="player-count-1">—</span></div>
     </div>
+    <div class="scene-switch" role="group" aria-label="Table view">
+      <span>TABLE VIEW</span>
+      <button id="classic-view" type="button" class="secondary selected" aria-pressed="true">🎱 Classic</button>
+      <button id="jungle-view" type="button" class="secondary" aria-pressed="false">🌿 Jungle 3D</button>
+      <button id="squatch-intro" type="button" class="secondary">Meet Speed Squatch</button>
+      <small>Same rack, same rules — only the view changes.</small>
+    </div>
     <div class="table-frame">
      <div class="table-topline"><span>THE FOUR T'S • TABLE NO. 1</span><span id="table-status">OPEN TABLE</span></div>
-     <canvas id="table" width="1000" height="500" aria-label="Overhead billiards table. Tap or drag to aim, then press Shoot." role="img"></canvas>
+     <div class="playing-surface">
+      <canvas id="table" width="1000" height="500" aria-label="Overhead billiards table. Tap or drag to aim, then press Shoot." role="img"></canvas>
+      <div id="jungle-stage" class="jungle-stage" aria-label="Cinematic 3D pool table" hidden></div>
+     </div>
      <div class="table-bottomline"><span>★ PACIFIC NORTHWEST ★</span><span>NO DRINKS ON THE FELT</span></div>
     </div>
     <div class="announcer" aria-live="polite"><span class="announcer-avatar" aria-hidden="true">🌲</span><div><div class="eyebrow">FROM THE BOOTH</div><p id="announcer-text">Welcome to The 4T's. Break 'em like you mean it.</p></div></div>

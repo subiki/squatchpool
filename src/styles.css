@@ -78,3 +78,23 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .aim-help span{display:block;margin-top:5px;font-size:1.02rem;line-height:1.5;color:#fff4dd}
 .control-panel{border:2px solid #d4aa64;background:#182a20}
 @media(max-width:760px){.quickstart{gap:9px 13px;padding:13px}.quickstart strong{flex-basis:100%}.quickstart span{font-size:.91rem}.quickstart small{font-size:.86rem}.aim-help span{font-size:.97rem}}
+
+/* Jungle 3D is optional; Classic remains the instant, low-power fallback. */
+.scene-switch{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:0 0 13px;padding:4px 1px}
+.scene-switch>span{font-size:.75rem;font-weight:900;letter-spacing:.14em;color:#e2c489;margin-right:6px}
+.scene-switch>small{color:#b3c3b4;font-size:.76rem}
+.scene-switch button{padding:10px 15px;font-size:.88rem}
+.scene-switch button.selected{border:2px solid #efc57c;background:#355b3b;color:#fff1cc}
+.playing-surface{position:relative;width:100%;aspect-ratio:2/1;background:#0a231c;overflow:hidden}
+.playing-surface canvas#table{width:100%;height:100%;aspect-ratio:2/1;display:block}
+.playing-surface canvas#table[hidden]{display:none}
+.jungle-stage{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#071d17}
+.jungle-stage[hidden]{display:none}
+.jungle-stage>canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.jungle-entrance{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-start;padding:clamp(12px,4%,33px);pointer-events:none;background:linear-gradient(90deg,#07150faa,transparent 70%)}
+.jungle-entrance[hidden]{display:none}
+.entrance-card{max-width:min(90%,330px);padding:12px 17px;border-left:4px solid #efca81;background:linear-gradient(110deg,#13281dea,#1b3920b5);border-radius:0 12px 12px 0;box-shadow:0 4px 20px #0008}
+.entrance-card strong{display:block;font-size:clamp(1.25rem,3.1vw,2rem);line-height:1.1;letter-spacing:.05em;color:#fff0be}
+.entrance-card p{font-size:.86rem;color:#f1e6cf;margin:5px 0}
+.entrance-card button{pointer-events:auto;min-height:38px;padding:8px 12px}
+@media(max-width:760px){.scene-switch{gap:6px;margin-bottom:10px}.scene-switch>span{flex-basis:100%}.scene-switch button{font-size:.81rem;padding:9px 10px}.scene-switch>small{flex-basis:100%;margin-top:2px}.entrance-card{padding:8px 12px}.entrance-card p{display:none}}
