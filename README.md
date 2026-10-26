@@ -1,6 +1,6 @@
 # Squatch Pool · The 4T's
 
-**Status: first playable proof of concept.** A mobile-friendly, dependency-free browser pool game set at the Squatches' secret Pacific Northwest watering hole.
+**Status: first playable proof of concept.** A mobile-friendly, self-contained browser pool game set at the Squatches' secret Pacific Northwest watering hole.
 
 ## Play locally
 
@@ -37,7 +37,7 @@ npm test       # built-in Node test runner; no npm install
 npm run check  # parse-check JavaScript modules
 ```
 
-The game uses Canvas 2D and a fixed-step physics module (`src/physics.js`). Turn logic is in `src/rules.js`, and UI + minimal AI are in `src/game.js`. Everything is static and self-contained.
+The game uses Canvas 2D with a **vendored MIT-licensed Planck.js (Box2D) rigid-body physics engine** (`src/vendor/planck.mjs`), wrapped by `src/physics.js` at a fixed 120 Hz step. The wrapper keeps the original ball/rules API and defines shared physical and visible cushion geometry. Turn logic is in `src/rules.js`; UI and minimal AI are in `src/game.js`. The site stays static and self-contained, with no CDN or runtime install. High-speed balls use Box2D bullet collision detection. The first pass has no spin or fully modeled pocket jaws; live desktop and touch playtesting are still required.
 
 ## Milestone / definition of done
 
