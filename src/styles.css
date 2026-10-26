@@ -92,3 +92,13 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .spin-panel input{display:block;width:100%;height:22px;margin:8px 0 2px;accent-color:#efc77d;cursor:pointer;touch-action:pan-y}
 .spin-panel input:disabled{opacity:.45}
 @media(max-width:760px){.spin-panel{grid-template-columns:1fr 1fr;gap:8px 14px;padding:11px}.spin-heading small{display:block;margin:2px 0}.spin-panel label{font-size:.73rem}}
+
+
+/* Called pocket controls: always visible, obvious, touch-friendly. */
+.call-panel{display:grid;grid-template-columns:minmax(190px,1.3fr) 1fr 1fr;gap:12px;align-items:center;margin:13px 0 10px;padding:13px 16px;border:1px solid #ceaf76;border-radius:13px;background:#243a2b;color:#fff2d5}
+.call-instructions strong{display:block;font-size:.95rem;color:#ffdfaa;letter-spacing:.05em}
+.call-instructions small{display:block;font-size:.82rem;color:#d7e0d0;margin-top:3px;line-height:1.35}
+.call-panel label{display:block;font-weight:850;font-size:.8rem;color:#f5dfb6}
+.call-panel select{display:block;width:100%;min-height:44px;margin-top:4px;border-color:#b49a6e;font-size:.94rem;padding:8px 10px}
+.call-panel select:disabled{opacity:.7;cursor:default}
+@media(max-width:760px){.call-panel{grid-template-columns:1fr 1fr;gap:9px;padding:11px}.call-instructions{grid-column:1/-1}.call-panel select{font-size:.85rem}}
