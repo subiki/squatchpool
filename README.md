@@ -17,8 +17,8 @@ An existing Squatch Pool story/game concept, adapted into the first playable pro
 
 1. Two players play 8-ball. One solid (7) and one stripe (15) are removed from the rear corners of the rack before breaking, leaving 13 object balls on the table.
 2. After the break, the first legal pocketed solid or stripe establishes groups. You may pocket your own group; the 8 must stay on the table.
-3. When a player pockets their final *visible* group ball, the opponent chooses a legal spot to put the held-back ball of that group back into play.
-4. That player must pocket this surprise ball as well before legally potting the 8. Pocketing the 8 early loses. Pocketing the 8 legally wins.
+3. When a player pockets their final *visible* group ball, the opponent chooses either remaining hidden ball (solid or stripe) and places it anywhere legal. They can choose their own ball to block the shooter.
+4. If the returned ball belongs to the shooter, they must pocket it before the 8. If it belongs to the opponent, it can be used as a defensive obstacle. Pocketing the 8 early loses; pocketing it legally wins. The current prototype still auto-selects the shooter's group: see issue #7 for the required gameplay correction.
 
 **Prototype simplifications (not authoritative 8-ball rules):** no called shot/pocket, no explicit rail-after-contact requirement, no three-foul rule, no break-specific foul rules. The engine treats an incorrect first contact or a scratch as ball-in-hand for the opponent; a miss passes the turn. A legal pocket on the break grants another shot but does not assign groups. The automated Speed Squatch opponent is rudimentary and may make poor shots. No advanced spin or jumping. These are implementation limits, not claims about the original house rules.
 
