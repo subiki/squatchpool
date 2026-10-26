@@ -1,4 +1,5 @@
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin} from './physics.js';
+import {renderPocket} from './table-geometry.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
@@ -13,12 +14,33 @@ function log(message){
 }
 function newGame(){
  clearTimeout(botTimer);
- state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'aim',angle:0,power:68,spinTop:0,spinSide:0,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
+ state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'aim',angle:0,power:68,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
  accumulator=0;$('#power').value='68';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
  say("First time? Aim on the felt, set power, then tap SHOOT. Clear your balls and the surprise ball before the 8.");update();
 }
+function callTargets(){
+ const group=state.groups[state.turn];
+ return state.balls.filter(b=>!b.pocketed&&b.id!==0&&(
+  group?(readyForEight(state.balls,group,state.deployed[group])?b.id===8:groupOf(b.id)===group):groupOf(b.id)));
+}
+function updateCallUI(){
+ const target=$('#call-ball'),pocket=$('#call-pocket');
+ const available=callTargets();
+ if(!available.some(b=>b.id===state.callBall))state.callBall=null;
+ const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose ball';
+ const options=available.map(b=>{const option=document.createElement('option');option.value=String(b.id);option.textContent=b.id+'-ball';return option;});
+ target.replaceChildren(placeholder,...options);
+ target.value=state.callBall===null?'':String(state.callBall);
+ pocket.value=state.callPocket||'';
+ const active=state.phase==='aim'&&!state.isBreak&&human(state.turn);
+ target.disabled=pocket.disabled=!active;
+ $('#call-hint').textContent=state.isBreak?'Break shot: no call needed.':
+  state.phase==='aim'?(human(state.turn)?'Pick both before shooting. Slop does not count.':'Speed Squatch calls his shot.'):
+  'Calls lock when the cue ball is struck.';
+}
 function update(){
+ updateCallUI();
  for(let i=0;i<2;i++){
   $('#player-'+i).classList.toggle('active',state.turn===i&&state.winner===null);
   $('#player-name-'+i).textContent=person(i);
@@ -33,9 +55,9 @@ function update(){
  $('#spin-side-value').textContent=state.spinSide>0?'Right '+state.spinSide+'%':state.spinSide<0?'Left '+(-state.spinSide)+'%':'Center';
  const actor=state.phase==='placeStash'?otherPlayer(state.turn):state.turn;
  const title={aim:person(state.turn)+(state.shotNumber===0?' breaks':' shoots'),moving:'Balls rolling…',placeCue:'Ball in hand',placeStash:"But wait… THERE'S MORE!",done:'Rack finished!'};
- const hint={aim:human(actor)?'1. Tap or drag to aim  ·  2. Set power  ·  3. Press SHOOT':'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
+ const hint={aim:human(actor)?(state.isBreak?'Break: aim, power, SHOOT.':'Call ball + pocket, then aim and SHOOT.'):'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
  $('#control-title').textContent=title[state.phase];$('#control-hint').textContent=hint[state.phase];
- $('#shoot').disabled=state.phase!=='aim'||!human(state.turn);
+ $('#shoot').disabled=state.phase!=='aim'||!human(state.turn)||(!state.isBreak&&(state.callBall===null||!state.callPocket));
  $('#power').disabled=state.phase!=='aim'||!human(state.turn);
  $('#spin-top').disabled=$('#spin-side').disabled=state.phase!=='aim'||!human(state.turn);
 }
@@ -90,14 +112,14 @@ function hit(direction=state.angle,power=state.power){
  const speed=240+11*clamp(power,10,100);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
- state.shot={player:state.turn,balls:[],firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
+ state.shot={player:state.turn,balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
  state.shotNumber++;state.isBreak=false;state.phase='moving';
  say(person(state.turn)+' lets it fly!');update();
 }
 function finishShot(){
  if(state.phase!=='moving'||!state.shot)return;
  const shot=state.shot;state.shot=null;
- const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
+ const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,pocketEvents:shot.pocketEvents,calledBall:shot.calledBall,calledPocket:shot.calledPocket,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
  const potted=shot.balls.filter(n=>n!==0);
  log(person(shot.player)+': '+(potted.length?'pocketed '+potted.join(', '):'no balls')+(shot.balls.includes(0)?' • scratch':'')+'. '+decision.reason);
  if(decision.newGroup){
@@ -112,6 +134,7 @@ function finishShot(){
   $('#result-modal').hidden=false;say(decision.reason);update();return;
  }
  if(!decision.keepTurn)state.turn=otherPlayer(state.turn);
+ state.callBall=null;state.callPocket=null;
  state.pendingCue=decision.foul;
  if(decision.foul){const b=cue();b.pocketed=true;b.vx=0;b.vy=0;}
  say(decision.reason);resume();
@@ -128,13 +151,16 @@ function planBotShot(){
    const ghost={x:target.x-pdx/len*2*TABLE.radius,y:target.y-pdy/len*2*TABLE.radius};
    if(ghost.x<TABLE.radius||ghost.x>TABLE.width-TABLE.radius||ghost.y<TABLE.radius||ghost.y>TABLE.height-TABLE.radius)continue;
    if(!clearShot(state.balls,b,ghost,[0,target.id])||!clearShot(state.balls,target,pocket,[target.id,0]))continue;
-   const score=distance(b,ghost)+len*.8;if(!best||score<best.score)best={point:ghost,score};
+   const score=distance(b,ghost)+len*.8;if(!best||score<best.score)best={point:ghost,score,targetId:target.id,pocketId:pocket.id};
   }
   if(!best&&targets.length){
-   const target=targets.sort((a,c)=>distance(a,b)-distance(c,b))[0];best={point:target,score:distance(b,target)};
+   const target=targets.sort((a,c)=>distance(a,b)-distance(c,b))[0];
+   const pocket=pockets.slice().sort((a,c)=>distance(target,a)-distance(target,c))[0];
+   best={point:target,score:distance(b,target),targetId:target.id,pocketId:pocket.id};
   }
   const angle=best?Math.atan2(best.point.y-b.y,best.point.x-b.x):0;
   state.angle=angle+(Math.random()-.5)*.028;
+  state.callBall=best?.targetId??null;state.callPocket=best?.pocketId??null;
   hit(state.angle,clamp(60+(best?.score||300)/27,56,95));
  },900);
 }
@@ -155,6 +181,10 @@ function drawBall(b){
 function render(){
  const w=TABLE.width,h=TABLE.height,r=TABLE.radius,gr=ctx.createRadialGradient(w*.44,h*.42,100,w*.5,h*.5,710);
  gr.addColorStop(0,'#217766');gr.addColorStop(1,'#104638');ctx.fillStyle=gr;ctx.fillRect(0,0,w,h);
+ // Rail tops are wood inside the canvas; diamond inlays stay on the wood.
+ ctx.fillStyle='#5d402a';ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
+ ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
+ for(const p of pockets)renderPocket(ctx,p);
  // Visible cushion faces line up with the physics collision planes (ball centers at radius r).
  // The former decorative inset rectangle looked like an invisible second set of rails.
  ctx.save();ctx.strokeStyle='#b58a53';ctx.lineWidth=3;
@@ -163,9 +193,16 @@ function render(){
  ctx.stroke();ctx.restore();
  ctx.setLineDash([4,10]);ctx.strokeStyle='#f7e8c129';ctx.beginPath();ctx.moveTo(250,12);ctx.lineTo(250,h-12);ctx.stroke();ctx.setLineDash([]);
  ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(695,250,3,0,2*Math.PI);ctx.fill();
- for(const p of pockets){ctx.fillStyle='#06150f';ctx.beginPath();ctx.arc(p.x,p.y,p.radius+2,0,2*Math.PI);ctx.fill();ctx.strokeStyle='#b0834f';ctx.lineWidth=4;ctx.stroke();}
- for(let i=1;i<=7;i++)for(const y of [7,h-7]){ctx.save();ctx.translate(i*w/8,y);ctx.rotate(Math.PI/4);ctx.fillStyle='#d6ab6a';ctx.fillRect(-3,-3,6,6);ctx.restore();}
+ if(state.phase==='aim'&&state.callPocket){
+  const p=pockets.find(p=>p.id===state.callPocket);
+  if(p){ctx.save();ctx.strokeStyle='#ffe2a3';ctx.lineWidth=3;ctx.setLineDash([5,4]);ctx.beginPath();
+   ctx.arc(p.x+(p.kind==='corner'?p.sx*25:0),p.y+(p.kind==='corner'?p.sy*25:p.sy*14),14,0,Math.PI*2);
+   ctx.stroke();ctx.restore();}
+ }
+ for(let i=1;i<=7;i++)for(const y of [r/2,h-r/2]){ctx.save();ctx.translate(i*w/8,y);ctx.rotate(Math.PI/4);ctx.fillStyle='#d6ab6a';ctx.fillRect(-3,-3,6,6);ctx.restore();}
  if(state.phase==='aim'){
+  if(state.callBall!==null){const selected=state.balls.find(b=>b.id===state.callBall&&!b.pocketed);
+   if(selected){ctx.save();ctx.strokeStyle='#ffdf84';ctx.lineWidth=2;ctx.beginPath();ctx.arc(selected.x,selected.y,r+5,0,2*Math.PI);ctx.stroke();ctx.restore();}}
   const cb=cue();if(cb&&!cb.pocketed){
    const dx=Math.cos(state.angle),dy=Math.sin(state.angle);let reach=850;
    for(const b of state.balls){if(b.pocketed||b.id===0)continue;
@@ -193,6 +230,7 @@ function frame(timestamp){
   while(accumulator>=1/120&&steps<14){
    const result=step(state.balls,1/120);
    for(const id of result.pocketed)state.shot.balls.push(id);
+   state.shot.pocketEvents.push(...result.pocketEvents);
    if(state.shot.firstContact===null)for(const [a,b] of result.contacts)if(a===0||b===0){state.shot.firstContact=a===0?b:a;break;}
    state.shot.time+=1/120;
    if(stationary(state.balls))state.shot.stillFrames++;else state.shot.stillFrames=0;
@@ -220,6 +258,8 @@ canvas.addEventListener('pointercancel',()=>dragging=false);
 $('#power').addEventListener('input',e=>{state.power=Number(e.target.value);update();});
 $('#spin-top').addEventListener('input',e=>{state.spinTop=Number(e.target.value);update();});
 $('#spin-side').addEventListener('input',e=>{state.spinSide=Number(e.target.value);update();});
+$('#call-ball').addEventListener('change',e=>{state.callBall=e.target.value===''?null:Number(e.target.value);update();});
+$('#call-pocket').addEventListener('change',e=>{state.callPocket=e.target.value||null;update();});
 $('#shoot').addEventListener('click',()=>{if(state.phase==='aim'&&human(state.turn))hit();});
 $('#new-game').addEventListener('click',newGame);
 $('#play-again').addEventListener('click',newGame);
