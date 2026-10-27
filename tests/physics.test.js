@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TABLE,pockets,cushions,facings,jaws,setTableSize,PLAYING_SURFACES,BALL_DIAMETER_IN,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
 import {ball,rack,step,canPlace,findPlacement,applyCueSpin,canPlaceBreakCue,headStringX,shotSpeed,kitchenPoint} from '../src/physics.js';
-import {METERS_PER_PIXEL} from '../src/vendor/tailuge-physics.js';
+import {METERS_PER_PIXEL,ballCollision} from '../src/vendor/tailuge-physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
  const balls=rack();assert.equal(balls.length,14);assert.equal(balls.some(b=>b.id===7||b.id===15),false);
@@ -332,4 +332,18 @@ test('physical pool-ball dimensions and rolling resistance are stable',()=>{
  b.wy=b.vx*METERS_PER_PIXEL/0.028575;
  for(let i=0;i<240;i++)step([b]);
  assert.ok(b.vx>220&&b.vx<300,'rolling ball should travel rather than die early');
+});
+
+test('head-on collision transfers momentum and retains regulation collision energy',()=>{
+ const cue=ball(0,100,200),object=ball(1,122,200);
+ cue.vx=2800;
+ const before=cue.vx*cue.vx;
+ assert.equal(ballCollision(cue,object),true);
+ // Equal-mass collision at coefficient 0.94: an initially still target
+ // should receive 97% of incoming velocity; no momentum disappears.
+ assert.ok(Math.abs(cue.vx+object.vx-2800)<0.01);
+ assert.ok(object.vx>2680&&object.vx<2800);
+ const remaining=(cue.vx*cue.vx+object.vx*object.vx)/before;
+ assert.ok(remaining>=.93&&remaining<=1.001,
+  'contact must not artificially absorb or create cue-ball energy');
 });
