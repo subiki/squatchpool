@@ -13,7 +13,7 @@ export function newStatsId(){
 // Small dependency-injectable client so tests can exercise retries, duplicate
 // delivery and rendering without an HTTP server or the Cloudflare account.
 export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{},onStatus=()=>{}}){
- let visitor=null,queue=[],flushing=false;
+ let visitor=null,queue=[],flushing=null;
  const read=key=>{try{return storage?.getItem(key)||null;}catch{return null;}};
  const save=(key,value)=>{try{storage?.setItem(key,value);}catch{}};
  const savedVisitor=read(VISITOR_KEY);
@@ -36,11 +36,12 @@ export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{
    onStats(data);onStatus('live');
   }catch{onStatus('unavailable');}
  }
- async function flush(){
-  if(flushing||!queue.length||typeof request!=='function')return;
-  flushing=true;
-  try{
-   while(queue.length){
+ function flush(){
+  if(flushing)return flushing;
+  if(!queue.length||typeof request!=='function')return Promise.resolve();
+  flushing=(async()=>{
+   try{
+    while(queue.length){
     const event=queue[0],response=await request(API,{
      method:'POST',headers:{'Content-Type':'application/json'},
      body:JSON.stringify(event),cache:'no-store',
@@ -56,8 +57,9 @@ export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{
     queue.shift();persist();
     if(result?.stats?.site){onStats(result.stats);onStatus('live');}
    }
-  }catch{onStatus('unavailable');}
-  finally{flushing=false;}
+   }catch{onStatus('unavailable');}
+  })().finally(()=>{flushing=null;});
+  return flushing;
  }
  function add(event){
   if(!isUuid(visitor)||!isUuid(event.rackId))return;
