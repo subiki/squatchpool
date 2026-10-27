@@ -60,13 +60,32 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  const click=(id)=>{assert.ok(events.has(id+':click'),id+' listener');events.get(id+':click')();};
  try{
   await import('../src/game.js');
-  assert.equal(element('#shoot').disabled,false,'break does not need a call');
+  assert.equal(element('#shoot').disabled,true,'place cue ball before break');
+  assert.equal(element('#table-status').textContent,'PLACE BREAK CUE');
+  assert.equal(element('#move-cue').hidden,false,'placement guidance visible');
+  assert.equal(element('#move-cue').disabled,true,'already placing cue ball');
+  // Tap outside the kitchen: should not bypass placement restriction.
+  events.get('#table:pointerdown')({clientX:450,clientY:130,pointerId:1});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,true,'cannot break from wrong side of head string');
+  // Drag the ball to a legal position and release to enable aiming.
+  events.get('#table:pointerdown')({clientX:90,clientY:120,pointerId:2});
+  events.get('#table:pointermove')({clientX:110,clientY:140,pointerId:2});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,false,'break enabled after placement');
+  assert.equal(element('#move-cue').disabled,false,'can change position before strike');
+  click('#move-cue');
+  assert.equal(element('#shoot').disabled,true,'reposition disables the break until released');
+  events.get('#table:pointerdown')({clientX:120,clientY:170,pointerId:3});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,false,'repositioned cue can break');
+
   assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
   assert.match(element('#table-dimensions').textContent,/7 FT.*78.*39/);
   const width7=element('#table').width,height7=element('#table').height;
   assert.ok(width7<800&&height7<420,'default is the compact 7 foot bar box');
   assert.equal(element('#pocket-targets').hidden,true);
-  tick();tick();assert.ok(cueDraws>0,'cue appears for break');
+  tick();tick();assert.ok(cueDraws>0,'cue appears after legal break placement');
   click('#shoot');
   let frames=0;
   while(element('#table-status').textContent!=='PICK A BALL'&&frames++<2000)tick();
@@ -104,26 +123,39 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#undo-call').disabled,true,'cannot change fired shot');
   click('#new-game');
   assert.equal(element('#pocket-targets').hidden,true);
-  assert.equal(element('#shoot').disabled,false,'new rack returns to break');
+  assert.equal(element('#shoot').disabled,true,'new rack requires break cue placement');
+  assert.equal(element('#table-status').textContent,'PLACE BREAK CUE');
+  events.get('#table:pointerdown')({clientX:100,clientY:170,pointerId:4});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,false,'new rack can place and break');
   assert.equal(element('#undo-call').disabled,true);
   events.get('size-8:click')();
   assert.equal(sizeButtons[1].attributes['aria-pressed'],'true');
   assert.equal(sizeButtons[0].attributes['aria-pressed'],'false');
   assert.match(element('#table-dimensions').textContent,/8 FT.*88.*44/);
   assert.ok(element('#table').width>width7&&element('#table').height>height7);
-  assert.equal(element('#shoot').disabled,false,'size change starts a clean break');
+  assert.equal(element('#shoot').disabled,true,'size change starts cue-placement phase');
+  events.get('#table:pointerdown')({clientX:120,clientY:170,pointerId:5});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,false,'size 8 accepts head-quarter placement');
   assert.equal(element('#pocket-targets').hidden,true);
   const width8=element('#table').width,height8=element('#table').height;
   events.get('size-9:click')();
   assert.equal(sizeButtons[2].attributes['aria-pressed'],'true');
   assert.match(element('#table-dimensions').textContent,/9 FT.*100.*50/);
   assert.ok(element('#table').width>width8&&element('#table').height>height8);
-  assert.equal(element('#shoot').disabled,false);
+  assert.equal(element('#shoot').disabled,true,'size 9 requires cue placement');
+  events.get('#table:pointerdown')({clientX:145,clientY:215,pointerId:6});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,false,'size 9 accepts legal placement');
   events.get('size-7:click')();
   assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
   assert.equal(element('#table').width,width7);
   assert.equal(element('#table').height,height7);
-  assert.equal(element('#shoot').disabled,false,'switching back to seven reracks properly');
+  assert.equal(element('#shoot').disabled,true,'switching back reracks and requires cue placement');
+  events.get('#table:pointerdown')({clientX:110,clientY:165,pointerId:7});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,false,'switching back permits cue placement');
  }finally{
   setTableSize(9); // keep shared mutable geometry clean for other tests
   for(const [key,v] of Object.entries(original)){
