@@ -45,7 +45,7 @@ export function findPlacement(balls,preferred={x:TABLE.width/4,y:TABLE.height/2}
 export function rack(){
  const W=TABLE.width,H=TABLE.height;
  // A physical inch always uses the same number of pixels across table sizes.
- const cueX=R+(W-2*R)*0.18,apexX=R+(W-2*R)*0.70;
+ const cueX=R+(W-2*R)*0.18,apexX=R+(W-2*R)*0.75;
  const balls=[ball(0,cueX,H/2)],numbers=[1,10,3,12,8,2,9,11,4,13,5,14,6];
  let index=0;
  // Tight rack: neighboring balls nearly touch so break energy propagates.
