@@ -1,5 +1,6 @@
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,kitchenPoint,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
+import {initStats,newStatsId,reportRack,reportBalls} from './stats.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
@@ -27,7 +28,7 @@ function newGame(){
  $('.table-playfield')?.style?.setProperty('--table-aspect',String(TABLE.width/TABLE.height));
  $('#table-dimensions').textContent=TABLE.size+' FT · '+TABLE.playingLengthIn+' × '+TABLE.playingWidthIn+' IN';
  try{if(typeof localStorage!=='undefined')localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
- state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'placeBreak',angle:0,power:85,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
+ state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'placeBreak',angle:0,power:85,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,statsRackId:newStatsId(),generation:(state?.generation||0)+1};
  accumulator=0;$('#power').value='85';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
  say('Break setup: tap or drag anywhere in the shaded kitchen. You can change its position before BREAK!');update();
@@ -191,7 +192,8 @@ function hit(direction=state.angle,power=state.power){
  const speed=shotSpeed(power,state.isBreak);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
- state.shot={player:state.turn,balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
+ state.shot={player:state.turn,statsRackId:state.statsRackId,statsShotId:newStatsId(),balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
+ if(state.isBreak)reportRack(state.statsRackId);
  state.shotNumber++;state.isBreak=false;state.phase='moving';
  say(person(state.turn)+' lets it fly!');update();
 }
@@ -201,6 +203,7 @@ function finishShot(){
  if(shot.breakShot){state.power=68;$('#power').value='68';}
  const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,pocketEvents:shot.pocketEvents,calledBall:shot.calledBall,calledPocket:shot.calledPocket,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
  const potted=shot.balls.filter(n=>n!==0);
+ if(potted.length)reportBalls(shot.statsRackId,shot.statsShotId,potted.length);
  log(person(shot.player)+': '+(potted.length?'pocketed '+potted.join(', '):'no balls')+(shot.balls.includes(0)?' • scratch':'')+'. '+decision.reason);
  if(decision.newGroup){
   state.groups[shot.player]=decision.newGroup;
@@ -418,4 +421,5 @@ try{
   if(['7','8','9'].includes(saved))selectedTableSize=Number(saved);
  }
 }catch{}
+initStats();
 newGame();requestAnimationFrame(frame);
