@@ -158,3 +158,13 @@ button:disabled{opacity:.4;cursor:not-allowed}
 
 #table-dimensions{font-weight:900;letter-spacing:.06em}
 @media(max-width:760px){.size-note{grid-column:1/-1;max-width:none;font-size:.72rem}}
+
+
+/* Break shot: invite placement behind the head string, then allow correction
+   right up until the cue strikes the ball. */
+.move-break-cue{display:inline-flex;align-items:center;margin-top:9px;
+ min-height:42px;padding:9px 12px;font-size:.83rem;touch-action:manipulation;
+ border-color:#cfa76b;color:#ffe3b1}
+.move-break-cue[hidden]{display:none}
+.move-break-cue:not(:disabled):hover{background:#69543b}
+#table{touch-action:none}
