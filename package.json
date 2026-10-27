@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/game.js && node --check src/physics.js && node --check src/rules.js"
+    "check": "node --check src/game.js && node --check src/physics.js && node --check src/rules.js && node --check src/deployment.js && node --check scripts/stamp-deployment.mjs",
+    "postinstall": "node scripts/stamp-deployment.mjs",
+    "build": "node scripts/stamp-deployment.mjs"
   }
 }

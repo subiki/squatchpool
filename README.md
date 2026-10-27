@@ -10,6 +10,14 @@ Our release gates, aggressive *targets* and maturity policy live in [docs/ROADMA
 
 For contributors and agents: read [AGENTS.md](AGENTS.md) and [docs/DELIVERY.md](docs/DELIVERY.md). Existing game tests include a headless real-game click regression, but browser playtesting is the release decision.
 
+## Deployment timestamp (Pacific time)
+
+The top header displays the last known Cloudflare Pages deployment in **America/Los_Angeles**, automatically choosing PDT or PST. The current committed fallback is the **last independently verified successful Pages check run** (October 26, 2026 at 6:33 PM PDT, commit `ef762ad`); it is explicitly marked as *last verified* until newer build metadata is available. The browser never substitutes the current time or a Git commit date.
+
+For ongoing builds, Cloudflare Pages injects `CF_PAGES`, `CF_PAGES_COMMIT_SHA`, and `CF_PAGES_BRANCH`. The zero-dependency `npm postinstall` script generates `deployment.json` with its **build timestamp** and commit when the Pages build runs; the header shows that build's timestamp as its deployment identifier. The exact successful upload-completion time may be seconds later and remains available in the **Cloudflare Pages GitHub check run** or dashboard. No private repo tokens or Cloudflare credentials are exposed.
+
+The normal Cloudflare Pages setup remains **static root directory `.`**. `npm ci` (from `package-lock.json`) runs the stamp via `postinstall` automatically in standard Pages builds. If a custom build setup skips install scripts, configure **Build command: `npm run build`**, **Build output directory: `.`** in the existing Cloudflare Pages project's build settings. Don't add a second deployment system. Local npm installs do **not** emit a fake deployment timestamp. Preview branches are labeled `PREVIEW BUILD` rather than `DEPLOYED`.
+
 ## Play locally
 
 ```bash
