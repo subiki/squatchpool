@@ -1,4 +1,4 @@
-import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin} from './physics.js';
+import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
@@ -27,10 +27,10 @@ function newGame(){
  $('.table-playfield')?.style?.setProperty('--table-aspect',String(TABLE.width/TABLE.height));
  $('#table-dimensions').textContent=TABLE.size+' FT · '+TABLE.playingLengthIn+' × '+TABLE.playingWidthIn+' IN';
  try{if(typeof localStorage!=='undefined')localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
- state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'aim',angle:0,power:68,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
+ state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'placeBreak',angle:0,power:68,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
  accumulator=0;$('#power').value='68';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
- say("First time? Aim on the felt, set power, then tap SHOOT. Clear your balls and the surprise ball before the 8.");update();
+ say('Break setup: tap or drag the white ball behind the dashed head string. Release to aim.');update();
 }
 function callTargets(){
  const group=state.groups[state.turn];
@@ -83,7 +83,7 @@ function updateCallUI(){
    return button;
   }));
  }else if(choices.children.length)choices.replaceChildren();
- $('#call-hint').textContent=state.isBreak?'Break: no call needed. Aim and shoot.':
+ $('#call-hint').textContent=state.isBreak?(state.phase==='placeBreak'?'Break: first position the white ball in the shaded kitchen.':'Break: no called ball or pocket needed. Aim and shoot.'):
   !picking?(state.phase==='aim'?'Speed Squatch is calling a shot.':'Calls lock once you shoot.'):
   pickingBall?'1. Tap a ball on the table (or its number below).':
   pickingPocket?'2. Tap a glowing pocket number on the table.':
@@ -100,17 +100,20 @@ function update(){
   $('#player-count-'+i).textContent=g?String(liveGroupBalls(state.balls,g).length+(state.deployed[g]?0:1))+' left':'—';
  }
  $('#shot-counter').textContent=state.shotNumber===0?'Break shot':'Shot '+(state.shotNumber+1);
- $('#table-status').textContent=state.phase==='placeStash'?'SURPRISE BALL!':state.phase==='placeCue'?'BALL IN HAND':
+ $('#table-status').textContent=state.phase==='placeBreak'?'PLACE BREAK CUE':state.phase==='placeStash'?'SURPRISE BALL!':state.phase==='placeCue'?'BALL IN HAND':
   state.phase==='aim'&&!state.isBreak&&human(state.turn)?(state.callBall===null?'PICK A BALL':!state.callPocket?'PICK A POCKET':'AIM & SHOOT'):
   state.groups[0]?'GROUPS SET':'OPEN TABLE';
  $('#power-value').textContent=state.power+'%';
  $('#spin-top-value').textContent=state.spinTop>0?'Follow '+state.spinTop+'%':state.spinTop<0?'Draw '+(-state.spinTop)+'%':'Center';
  $('#spin-side-value').textContent=state.spinSide>0?'Right '+state.spinSide+'%':state.spinSide<0?'Left '+(-state.spinSide)+'%':'Center';
  const actor=state.phase==='placeStash'?otherPlayer(state.turn):state.turn;
- const title={aim:person(state.turn)+(state.shotNumber===0?' breaks':' shoots'),moving:'Balls rolling…',placeCue:'Ball in hand',placeStash:"But wait… THERE'S MORE!",done:'Rack finished!'};
- const hint={aim:human(actor)?(state.isBreak?'Break: aim, power, SHOOT.':!state.callBall?'Tap the object ball you want to call.':!state.callPocket?'Now tap one of the pocket targets.':'Call set. Tap or drag on the felt to aim, then SHOOT.'):'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
+ const title={placeBreak:'Place the break cue ball',aim:person(state.turn)+(state.shotNumber===0?' breaks':' shoots'),moving:'Balls rolling…',placeCue:'Ball in hand',placeStash:"But wait… THERE'S MORE!",done:'Rack finished!'};
+ const hint={placeBreak:'Tap or drag the white ball in the shaded head quarter of the table, then release to aim.',aim:human(actor)?(state.isBreak?'Break: aim, power, SHOOT.':!state.callBall?'Tap the object ball you want to call.':!state.callPocket?'Now tap one of the pocket targets.':'Call set. Tap or drag on the felt to aim, then SHOOT.'):'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
  $('#control-title').textContent=title[state.phase];$('#control-hint').textContent=hint[state.phase];
  $('#shoot').disabled=state.phase!=='aim'||!human(state.turn)||!callReady();
+ $('#move-cue').hidden=!state.isBreak||!human(state.turn)||!['placeBreak','aim'].includes(state.phase);
+ $('#move-cue').disabled=state.phase==='placeBreak';
+ $('#shoot').textContent=state.isBreak?'BREAK!':'SHOOT ➜';
  $('#power').disabled=state.phase!=='aim'||!human(state.turn)||!callReady();
  $('#spin-top').disabled=$('#spin-side').disabled=state.phase!=='aim'||!human(state.turn)||!callReady();
 }
@@ -143,6 +146,27 @@ function resume(){
  }
  update();
 }
+function placeBreakCue({x,y}){
+ if(state.phase!=='placeBreak'||!canPlaceBreakCue(state.balls,x,y)){
+  say('Place the white ball behind the head string, away from rails and other balls.');
+  return false;
+ }
+ Object.assign(cue(),{x,y,vx:0,vy:0,wx:0,wy:0,wz:0,pocketed:false});
+ return true;
+}
+function finishBreakPlacement(){
+ if(state.phase!=='placeBreak')return;
+ state.phase='aim';
+ state.angle=0;
+ say('Break cue placed. Aim on the table, set break power, then press BREAK!');
+ update();
+}
+function moveBreakCue(){
+ if(!state.isBreak||state.phase!=='aim'||!human(state.turn))return;
+ state.phase='placeBreak';
+ say('Tap or drag the cue ball in the shaded kitchen. Release to aim.');
+ update();
+}
 function placeCue({x,y}){
  if(!canPlace(state.balls,x,y,0)){say('That spot is blocked. Try a clear spot.');return;}
  Object.assign(cue(),{x,y,vx:0,vy:0,pocketed:false});
@@ -162,7 +186,7 @@ function aimFrom(p){
 function hit(direction=state.angle,power=state.power){
  if(state.phase!=='aim'||!callReady())return;
  const b=cue();if(!b||b.pocketed)return;
- const speed=240+11*clamp(power,10,100);
+ const speed=shotSpeed(power,state.isBreak);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
  state.shot={player:state.turn,balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
@@ -247,8 +271,14 @@ function render(){
  ctx.beginPath();
  for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}
  ctx.stroke();ctx.restore();
- ctx.setLineDash([4,10]);ctx.strokeStyle='#f7e8c129';ctx.beginPath();ctx.moveTo(r+(w-2*r)/4,r);ctx.lineTo(r+(w-2*r)/4,h-r);ctx.stroke();ctx.setLineDash([]);
- ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(r+(w-2*r)*.70,h/2,3,0,2*Math.PI);ctx.fill();
+ // Regulation head string: break cue center must remain behind this line.
+ if(state.phase==='placeBreak'){
+  ctx.fillStyle='#e6cb7135';ctx.fillRect(2*r,2*r,headStringX()-2*r,h-4*r);
+ }
+ ctx.setLineDash([6,9]);ctx.strokeStyle=state.phase==='placeBreak'?'#ffe6a5':'#f7e8c129';
+ ctx.lineWidth=state.phase==='placeBreak'?3:1;
+ ctx.beginPath();ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),h-r);ctx.stroke();ctx.setLineDash([]);
+ ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(r+(w-2*r)*.75,h/2,3,0,2*Math.PI);ctx.fill();
  if(state.phase==='aim'&&state.callPocket){
   const p=pockets.find(p=>p.id===state.callPocket);
   if(p){ctx.save();ctx.strokeStyle='#ffe2a3';ctx.lineWidth=3;ctx.setLineDash([5,4]);ctx.beginPath();
@@ -279,9 +309,9 @@ function render(){
    ctx.strokeStyle='#78c3bd';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(cb.x-dx*(r+back),cb.y-dy*(r+back));ctx.lineTo(cb.x-dx*(r+back+15),cb.y-dy*(r+back+15));ctx.stroke();ctx.restore();
   }
  }
- if(state.phase==='placeCue'||state.phase==='placeStash'){
+ if(state.phase==='placeBreak'||state.phase==='placeCue'||state.phase==='placeStash'){
   ctx.fillStyle='#f2d6a6ed';ctx.font='bold 25px system-ui';ctx.textAlign='center';
-  ctx.fillText(state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
+  ctx.fillText(state.phase==='placeBreak'?'POSITION WHITE BALL BEHIND HEAD STRING':state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
  }
  for(const b of state.balls)if(!b.pocketed)drawBall(b);
 }
@@ -307,7 +337,7 @@ function frame(timestamp){
  if(state)render();requestAnimationFrame(frame);
 }
 function eventPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*TABLE.width/r.width,y:(e.clientY-r.top)*TABLE.height/r.height};}
-let dragging=false;
+let dragging=false,draggingBreak=false;
 // Hit targets are sized in CSS pixels so touch taps remain usable on phones.
 function closestCallBall(point){
  const box=canvas.getBoundingClientRect();
@@ -324,6 +354,10 @@ function closestCallPocket(point){
 canvas.addEventListener('pointerdown',e=>{
  if(!state)return;
  const p=eventPoint(e);
+ if(state.phase==='placeBreak'&&human(state.turn)){
+  if(placeBreakCue(p)){draggingBreak=true;canvas.setPointerCapture(e.pointerId);}
+  return;
+ }
  if(state.phase==='placeCue'&&human(state.turn)){placeCue(p);return;}
  if(state.phase==='placeStash'&&human(otherPlayer(state.turn))){placeStash(p);return;}
  if(state.phase!=='aim'||!human(state.turn))return;
@@ -342,9 +376,9 @@ canvas.addEventListener('pointerdown',e=>{
  dragging=true;canvas.setPointerCapture(e.pointerId);aimFrom(p);
 });
 
-canvas.addEventListener('pointermove',e=>{if(dragging)aimFrom(eventPoint(e));});
-canvas.addEventListener('pointerup',()=>dragging=false);
-canvas.addEventListener('pointercancel',()=>dragging=false);
+canvas.addEventListener('pointermove',e=>{if(draggingBreak){placeBreakCue(eventPoint(e));return;}if(dragging)aimFrom(eventPoint(e));});
+canvas.addEventListener('pointerup',()=>{if(draggingBreak){draggingBreak=false;finishBreakPlacement();}dragging=false;});
+canvas.addEventListener('pointercancel',()=>{draggingBreak=false;dragging=false;});
 $('#power').addEventListener('input',e=>{state.power=Number(e.target.value);update();});
 $('#spin-top').addEventListener('input',e=>{state.spinTop=Number(e.target.value);update();});
 $('#spin-side').addEventListener('input',e=>{state.spinSide=Number(e.target.value);update();});
@@ -352,6 +386,7 @@ $('#undo-call').addEventListener('click',undoCall);
 for(const button of document.querySelectorAll('.pocket-pick')){
  button.addEventListener('click',()=>selectCallPocket(button.dataset.pocket));
 }
+$('#move-cue').addEventListener('click',moveBreakCue);
 $('#shoot').addEventListener('click',()=>{if(state.phase==='aim'&&human(state.turn))hit();});
 $('#new-game').addEventListener('click',newGame);
 $('#play-again').addEventListener('click',newGame);

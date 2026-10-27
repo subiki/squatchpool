@@ -42,9 +42,15 @@ Choose **7 FT**, **8 FT**, or **9 FT** with the three large buttons beside the o
 
 The **ball, pocket mouths, cushion facings, and pocket shelves retain the same physical inch measurements** at every size. Only the bed length/width, rail positions, pocket center positions, rack location, and view/canvas size change. All three beds are 2:1 *nose-to-nose*. The 8 ft choice is the standard 88 × 44 home table; WPA's 92 × 46 is an *oversized/pro* 8-footer not offered in this three-choice MVP. Dimensions follow [Dr. Dave's table sizing reference](https://drdavepoolinfo.com/faq/table/sizes/) and the [WPA equipment specifications](https://wpapool.com/wp-content/uploads/2024/01/RECOMMENDED-EQUIPMENT-SPECIFICATIONS.pdf). The labels are the table's common nominal sizes, not its measured bed length.
 
+## Break placement and power
+
+On a fresh rack, **tap or drag the white cue ball anywhere legal behind the head string** (the shaded left quarter of the playing surface). Release to lock the break position, aim on the felt, adjust power, and press **BREAK!**. The **Reposition break cue ball** button lets you change that position until the cue strikes. The break requires no called pocket. This applies to all 7/8/9-foot tables, and the head string is in the same regulation location relative to the bed.
+
+Break power now follows a cue-ball speed curve rather than the ordinary shot slider: 100% produces approximately **11.5 m/s (~25.7 mph)**; the default 68% is approximately **8.2 m/s (~18.3 mph)**, informed by [typical pool shot speeds](https://drdavepoolinfo.com/faq/speed/typical/). Ordinary-shot power is unchanged. The triangular rack is nearly frozen together (about 0.035 logical pixels of separation instead of 0.35–0.9), with apex on the foot spot at three-quarters of the bed. The collision engine remains Tailuge-based; no arbitrary acceleration of animation frames.
+
 ## Controls
 
-- Tap or drag anywhere on the table to aim from the cue ball.
+- **On a new rack:** place the white ball behind the head string first, then tap or drag elsewhere on the felt to aim. Use **Reposition break cue ball** to try another break position without restarting.
 - **After the break:** tap your intended object ball **on the table**, then tap one of the **six illuminated pocket numbers**. Only then does the cue stick appear so you can aim and shoot. Buttons numbered by available balls below the table are a touch/keyboard alternative when balls are tightly clustered. Tap **Undo call** to clear your pending ball and pocket before shooting, then choose again. No call required on the break. Slop stays down but doesn't keep your turn; an uncalled 8-ball loses.
 - Set power with the slider, then select **Shoot**. Optionally dial in **Draw/Follow** or **English** under the main controls (both start centered). On desktop, left/right arrows (or A/D) adjust aim and Space shoots.
 - On fouls or scratches, place the cue ball by tapping a clear spot.

@@ -4,7 +4,7 @@
  * This adapter supplies continuous time-of-impact detection for our six pocket
  * table and preserves the public game API used by the rules and UI.
  */
-import { ballCollision, cushionBounce, advanceFriction, applyCueSpin as setCueSpin }
+import { ballCollision, cushionBounce, advanceFriction, METERS_PER_PIXEL, applyCueSpin as setCueSpin }
   from './vendor/tailuge-physics.js';
 export { setCueSpin as applyCueSpin };
 import {TABLE,cushions,pockets,jaws,facings,pocketCaptureTime} from './table-geometry.js';
@@ -12,6 +12,18 @@ export {TABLE,cushions,pockets} from './table-geometry.js';
 const R=TABLE.radius,STOP=5;
 export const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+// 1 physical-inch mapping for the current regulation-size balls. Keep normal
+// shot speeds unchanged and only map the BREAK to realistic cue-ball m/s.
+export function shotSpeed(power,breakShot=false){
+ const pct=clamp(power,10,100)/100;
+ return breakShot?(2.8+8.7*Math.pow(pct,1.25))/METERS_PER_PIXEL:
+ 240+11*clamp(power,10,100);
+}
+export const headStringX=()=>TABLE.radius+(TABLE.width-2*TABLE.radius)/4;
+export function canPlaceBreakCue(balls,x,y){
+ // WPA: the cue-ball center must remain ABOVE (behind) the head string.
+ return x<headStringX()-0.5&&canPlace(balls,x,y,0);
+}
 export const ball=(id,x,y)=>({id,x,y,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary',pocketed:false});
 export const stationary=balls=>balls.every(b=>b.pocketed||Math.hypot(b.vx,b.vy)<STOP);
 export function canPlace(balls,x,y,ignoreId=null){
@@ -33,10 +45,11 @@ export function findPlacement(balls,preferred={x:TABLE.width/4,y:TABLE.height/2}
 export function rack(){
  const W=TABLE.width,H=TABLE.height;
  // A physical inch always uses the same number of pixels across table sizes.
- const cueX=R+(W-2*R)/4,apexX=R+(W-2*R)*0.70;
+ const cueX=R+(W-2*R)*0.18,apexX=R+(W-2*R)*0.75;
  const balls=[ball(0,cueX,H/2)],numbers=[1,10,3,12,8,2,9,11,4,13,5,14,6];
  let index=0;
- const spacingX=2*R*Math.sqrt(3)/2+0.35,spacingY=2*R+0.9;
+ // Tight rack: neighboring balls nearly touch so break energy propagates.
+ const spacingY=2*R+0.035,spacingX=spacingY*Math.sqrt(3)/2;
  for(let row=0;row<5;row++)for(let column=0;column<=row;column++){
   if(row===4&&(column===0||column===4))continue;
   balls.push(ball(numbers[index++],apexX+row*spacingX,H/2+(column-row/2)*spacingY));

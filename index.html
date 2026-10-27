@@ -39,7 +39,7 @@
      <button id="new-game" class="secondary">↻ New rack</button>
     </div>
    </div>
-   <section class="quickstart" aria-label="How to play"><strong>NEW HERE? START IN 3 STEPS</strong><span><b>1</b> Tap a ball, then pocket (after break)</span><span><b>2</b> Aim + power</span><span><b>3</b> Tap SHOOT</span><small>Clear your group. Your opponent chooses a hidden ball to place before your 8.</small></section>
+   <section class="quickstart" aria-label="How to play"><strong>NEW HERE? START IN 3 STEPS</strong><span><b>1</b> Break: place white ball behind the line</span><span><b>2</b> Aim and set break power</span><span><b>3</b> Tap BREAK! · Then call shots</span><small>Clear your group. Your opponent chooses a hidden ball to place before your 8.</small></section>
    <section class="match" aria-label="Pool game">
     <div class="scoreboard">
      <div class="player active" id="player-0"><span class="portrait" aria-hidden="true">🎱</span><div><strong id="player-name-0">You</strong><small id="player-group-0">Open table</small></div><span class="player-count" id="player-count-0">—</span></div>
@@ -49,7 +49,7 @@
     <div class="table-frame">
      <div class="table-topline"><span>THE FOUR T'S • <span id="table-dimensions">7 FT · 78 × 39 IN</span></span><span id="table-status">OPEN TABLE</span></div>
      <div class="table-playfield">
-      <canvas id="table" width="1000" height="500" aria-label="Pool table. After the break, tap a ball, then a pocket; aim and shoot." role="img"></canvas>
+      <canvas id="table" width="1000" height="500" aria-label="Pool table. First place the white ball behind the head string for the break. After the break, tap a ball then a pocket to call the shot." role="img"></canvas>
       <div class="pocket-targets" id="pocket-targets" aria-label="Choose a pocket" hidden>
        <button type="button" class="pocket-pick pocket-tl" data-pocket="TL" aria-label="Call top left pocket">1 <span>↖</span></button>
        <button type="button" class="pocket-pick pocket-tm" data-pocket="TM" aria-label="Call top middle pocket">2 <span>↑</span></button>
@@ -69,7 +69,7 @@
      <div class="ball-picks" id="ball-picks" aria-label="Eligible balls — alternative to tapping the table" hidden></div>
     </div>
     <div class="control-panel">
-     <div class="aim-help"><strong id="control-title">Your shot</strong><span id="control-hint">Tap or drag on the table to aim. Choose your power, then shoot.</span></div>
+     <div class="aim-help"><strong id="control-title">Your shot</strong><span id="control-hint">Tap or drag on the table to aim. Choose your power, then shoot.</span><button id="move-cue" type="button" class="secondary move-break-cue" hidden>↔ Reposition break cue ball</button></div>
      <div class="power"><label for="power">POWER <output id="power-value" for="power">68%</output></label><input id="power" type="range" min="10" max="100" value="68" step="1"></div>
      <button id="shoot" class="shoot">SHOOT <span aria-hidden="true">➜</span></button>
     </div>

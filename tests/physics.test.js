@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TABLE,pockets,cushions,facings,jaws,setTableSize,PLAYING_SURFACES,BALL_DIAMETER_IN,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
-import {ball,rack,step,canPlace,findPlacement,applyCueSpin} from '../src/physics.js';
+import {ball,rack,step,canPlace,findPlacement,applyCueSpin,canPlaceBreakCue,headStringX,shotSpeed} from '../src/physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
  const balls=rack();assert.equal(balls.length,14);assert.equal(balls.some(b=>b.id===7||b.id===15),false);
@@ -250,6 +250,52 @@ test('each table size has working six pockets, rails and full rack break',()=>{
    for(let i=0;i<280;i++)contacts+=step(rackBalls).contacts.length;
    assert.ok(contacts>=5,size+'ft break must hit rack');
    assert.ok(rackBalls.every(b=>b.pocketed||[b.x,b.y,b.vx,b.vy].every(Number.isFinite)));
+  }
+ }finally{setTableSize(9);}
+});
+
+test('break cue placement must be behind head string, not on it',()=>{
+ try{
+  for(const size of [7,8,9]){
+   setTableSize(size);
+   const balls=rack(),head=headStringX(),H=TABLE.height;
+   assert.ok(head>TABLE.width*.23&&head<TABLE.width*.27);
+   assert.equal(canPlaceBreakCue(balls,head,H/2),false,'on head string not legal');
+   assert.equal(canPlaceBreakCue(balls,head+3,H/2),false,'wrong side not legal');
+   assert.equal(canPlaceBreakCue(balls,head-10,H/2),true,'just behind string is legal');
+   assert.equal(canPlaceBreakCue(balls,Math.round(TABLE.width*.16),H*.45),true);
+   assert.equal(canPlaceBreakCue(balls,2,H/2),false,'no cue ball through rail');
+   assert.equal(canPlaceBreakCue(balls,head-5,1),false,'rail/pocket placement blocked');
+   // Table size changes never displace the regulation head-quarter.
+   assert.ok(balls[0].x<head);
+  }
+ }finally{setTableSize(9);}
+});
+test('break power targets real speeds, normal shots remain unchanged',()=>{
+ assert.ok(shotSpeed(100,true)>3600&&shotSpeed(100,true)<4100,'powerful 25mph break');
+ assert.ok(shotSpeed(68,true)>2500,'normal break spreads the rack');
+ assert.ok(shotSpeed(100,true)>shotSpeed(68,true));
+ assert.ok(shotSpeed(40,true)<shotSpeed(68,true));
+ assert.equal(shotSpeed(68,false),240+11*68,'routine shots remain tuned as before');
+});
+test('tight regulation rack transmits break energy to the full rack on all sizes',()=>{
+ try{
+  for(const size of [7,8,9]){
+   setTableSize(size);
+   const balls=rack(),initial=balls.slice(1).map(o=>({x:o.x,y:o.y}));
+   const delta=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+   // Triangle rows are nearly touching (rather than current 0.9px gaps).
+   assert.ok(delta(balls[1],balls[2])<2*TABLE.radius+0.12);
+   assert.ok(delta(balls[2],balls[3])<2*TABLE.radius+0.12);
+   assert.ok(delta(balls[1],balls[2])>=2*TABLE.radius);
+   balls[0].vx=shotSpeed(100,true);
+   let contacts=0;
+   for(let i=0;i<240;i++)contacts+=step(balls).contacts.length;
+   const moved=balls.slice(1).filter((b,i)=>b.pocketed||
+    delta(b,initial[i])>TABLE.radius*2).length;
+   assert.ok(contacts>=20,size+'ft high-power rack should transfer momentum');
+   assert.ok(moved>=12,size+'ft break should spread nearly all 13 object balls, not just a few');
+   assert.ok(balls.every(b=>b.pocketed||[b.x,b.y,b.vx,b.vy,b.wx,b.wy,b.wz].every(Number.isFinite)));
   }
  }finally{setTableSize(9);}
 });
