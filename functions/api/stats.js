@@ -9,12 +9,14 @@ const games=new Map(GAME_CATALOG.map(g=>[g.id,g]));
 const known=id=>games.get(id);
 const isUuid=v=>typeof v==='string'&&uuid.test(v);
 const rawDb=context=>context.env?.STATS_DB;
+let schemaReady=false;
 const unavailable=()=>json({error:'Statistics database is not connected yet.'},503);
 const bad=(message,status=400)=>json({error:message},status);
 
 // Schema bootstrap keeps deployment lean: create/bind D1 in Cloudflare once.
 // CREATE IF NOT EXISTS is harmless on subsequent requests; no manual SQL step.
 async function ensureSchema(db){
+ if(schemaReady)return;
  await db.batch([
   db.prepare(`CREATE TABLE IF NOT EXISTS site_stats_racks (
    id TEXT PRIMARY KEY, game_key TEXT NOT NULL,
@@ -22,13 +24,14 @@ async function ensureSchema(db){
   )`),
   db.prepare(`CREATE TABLE IF NOT EXISTS site_stats_balls (
    shot_id TEXT PRIMARY KEY, rack_id TEXT NOT NULL,
-   ball_count INTEGER NOT NULL CHECK (ball_count BETWEEN 1 AND 14),
+   ball_count INTEGER NOT NULL CHECK (ball_count BETWEEN 1 AND 100),
    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
    FOREIGN KEY(rack_id) REFERENCES site_stats_racks(id)
   )`),
   db.prepare('CREATE INDEX IF NOT EXISTS site_stats_racks_by_game ON site_stats_racks (game_key)'),
   db.prepare('CREATE INDEX IF NOT EXISTS site_stats_balls_by_rack ON site_stats_balls (rack_id)'),
  ]);
+ schemaReady=true;
 }
 
 async function snapshot(db){
