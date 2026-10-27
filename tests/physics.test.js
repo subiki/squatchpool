@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TABLE,pockets,cushions,facings,jaws,setTableSize,PLAYING_SURFACES,BALL_DIAMETER_IN,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
-import {ball,rack,step,canPlace,findPlacement,applyCueSpin,canPlaceBreakCue,headStringX,shotSpeed} from '../src/physics.js';
+import {ball,rack,step,canPlace,findPlacement,applyCueSpin,canPlaceBreakCue,headStringX,shotSpeed,kitchenPoint} from '../src/physics.js';
+import {METERS_PER_PIXEL} from '../src/vendor/tailuge-physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
  const balls=rack();assert.equal(balls.length,14);assert.equal(balls.some(b=>b.id===7||b.id===15),false);
@@ -272,8 +273,8 @@ test('break cue placement must be behind head string, not on it',()=>{
  }finally{setTableSize(9);}
 });
 test('break power targets real speeds, normal shots remain unchanged',()=>{
- assert.ok(shotSpeed(100,true)>3600&&shotSpeed(100,true)<4100,'powerful 25mph break');
- assert.ok(shotSpeed(68,true)>2500,'normal break spreads the rack');
+ assert.ok(shotSpeed(100,true)*METERS_PER_PIXEL>11.4&&shotSpeed(100,true)*METERS_PER_PIXEL<11.6,'powerful 25mph break');
+ assert.ok(shotSpeed(68,true)*METERS_PER_PIXEL>8,'normal break spreads the rack');
  assert.ok(shotSpeed(100,true)>shotSpeed(68,true));
  assert.ok(shotSpeed(40,true)<shotSpeed(68,true));
  assert.equal(shotSpeed(68,false),240+11*68,'routine shots remain tuned as before');
@@ -298,4 +299,37 @@ test('tight regulation rack transmits break energy to the full rack on all sizes
    assert.ok(balls.every(b=>b.pocketed||[b.x,b.y,b.vx,b.vy,b.wx,b.wy,b.wz].every(Number.isFinite)));
   }
  }finally{setTableSize(9);}
+});
+
+test('full kitchen usable up to the rails and head string at 7, 8, and 9 feet',()=>{
+ try{
+  for(const size of [7,8,9]){
+   setTableSize(size);
+   const balls=rack(),r=TABLE.radius,head=headStringX();
+   const pts=[
+    [2*r+0.02,2*r+0.02],[2*r+0.02,TABLE.height-2*r-0.02],
+    [head-0.04,2*r+0.02],[head-0.04,TABLE.height-2*r-0.02],
+    [head-0.04,TABLE.height/2],[2*r+0.02,TABLE.height/2]
+   ];
+   for(const [x,y] of pts)assert.equal(canPlaceBreakCue(balls,x,y),true,
+    size+'ft needs legal kitchen point '+x+','+y);
+   assert.equal(canPlaceBreakCue(balls,head,TABLE.height/2),false,'head string excluded');
+   assert.equal(canPlaceBreakCue(balls,2*r-0.02,TABLE.height/2),false,'outside left cushion');
+   assert.equal(canPlaceBreakCue(balls,head+0.01,TABLE.height/2),false,'outside kitchen');
+   assert.equal(canPlaceBreakCue(balls,head-2,r),false,'within top cushion');
+   assert.deepEqual(kitchenPoint(-400,-400),{x:2*r+.02,y:2*r+.02});
+   const other=ball(2,head-8,TABLE.height/2);
+   assert.equal(canPlaceBreakCue([other],other.x,other.y),false,'cannot overlap existing ball');
+  }
+ }finally{setTableSize(9);}
+});
+test('physical pool-ball dimensions and rolling resistance are stable',()=>{
+ // One 2.25-inch diameter matches the metre conversion used by Tailuge.
+ assert.ok(Math.abs(METERS_PER_PIXEL*22-0.05715)<1e-9);
+ // An already-rolling ball on fast cloth should retain meaningful speed
+ // over 2 seconds (but still decelerate; no energy injection).
+ const b=ball(0,250,100);b.vx=300;
+ b.wy=b.vx*METERS_PER_PIXEL/0.028575;
+ for(let i=0;i<240;i++)step([b]);
+ assert.ok(b.vx>220&&b.vx<300,'rolling ball should travel rather than die early');
 });
