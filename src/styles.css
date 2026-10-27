@@ -10,7 +10,14 @@ h1,h2,h3,p{margin-top:0}
 .brand-mark{font-size:2.15rem;color:#edc47d;display:grid;place-items:center;width:54px;height:54px;border:2px solid #9a7951;border-radius:16px;transform:rotate(-9deg)}
 .topbar .eyebrow{margin:0 0 3px}
 .topbar h1{font-weight:1000;letter-spacing:.095em;font-size:1.5rem;line-height:1}.topbar h1 span{color:#edc47d}
-.prototype{margin-left:auto;border:1px solid #7c8a6d;padding:9px 12px;border-radius:40px;color:#b4c2ad;font-size:.68rem;font-weight:800;letter-spacing:.14em}
+.prototype{display:inline-block;border:1px solid #7c8a6d;padding:7px 11px;border-radius:40px;color:#b4c2ad;font-size:.68rem;font-weight:800;letter-spacing:.14em}
+.release-meta{display:flex;flex-direction:column;align-items:flex-end;gap:5px;margin-left:auto;min-width:0;text-align:right}
+.deployment-info{display:flex;gap:7px;flex-wrap:wrap;align-items:baseline;justify-content:flex-end;font-size:.79rem;color:#f2d69e;font-variant-numeric:tabular-nums}
+.deployment-label{font-size:.66rem;font-weight:950;letter-spacing:.11em;color:#c0ccbc}
+#deployment-time{font-weight:900;white-space:nowrap}
+.deployment-note{font-size:.63rem;color:#a6b6aa;letter-spacing:.03em}
+@media(max-width:550px){.topbar{flex-wrap:wrap;gap:10px}.release-meta{align-items:flex-start;margin:3px 0 0;width:100%;text-align:left}.deployment-info{justify-content:flex-start;font-size:.81rem}}
+
 .intro{display:flex;justify-content:space-between;gap:24px;align-items:end;padding:35px 0 27px}
 .intro h2{font-size:clamp(2rem,5vw,3.35rem);line-height:1.08;letter-spacing:-.05em;margin:8px 0}
 .intro em{font-family:Georgia,serif;font-weight:400;color:#efc37c}
