@@ -18,6 +18,17 @@ For ongoing builds, Cloudflare Pages injects `CF_PAGES`, `CF_PAGES_COMMIT_SHA`, 
 
 The normal Cloudflare Pages setup remains **static root directory `.`**. `npm ci` (from `package-lock.json`) runs the stamp via `postinstall` automatically in standard Pages builds. If a custom build setup skips install scripts, configure **Build command: `npm run build`**, **Build output directory: `.`** in the existing Cloudflare Pages project's build settings. Don't add a second deployment system. Local npm installs do **not** emit a fake deployment timestamp. Preview branches are labeled `PREVIEW BUILD` rather than `DEPLOYED`.
 
+## Live site statistics — players, racks and balls by game
+
+The main page now displays **whole-site Players / Racks / Balls made**, with a **By game** breakdown. Above the playing table, a separate strip shows those totals for the current game, **But Wait, There's More**. When more playable games launch, each gets its own tracked row. The counters are backed by shared server-side Cloudflare D1 data, **not local browser-only totals**.
+
+- **Players** means distinct anonymous *browsers* that struck a rack. A bot does not count, and two pass-and-play humans sharing a device count as one browser. This is an approximate, privacy-preserving number, not registered accounts.
+- **Racks** counts actual break shots, never simply loading a page or positioning the white ball.
+- **Balls made** counts non-cue object balls physically pocketed, including slop and the 8 but not scratches; duplicates don't count.
+- Totals start when statistics are activated; no historical data before the feature can be reconstructed. A missing database displays **unavailable**, not invented counts, and doesn't interrupt gameplay.
+
+**One-time activation:** The existing Cloudflare Pages project must have a D1 database bound as **`STATS_DB`** under **Settings → Bindings → Add → D1 database**. The database tables are created automatically when the API first runs. Use a **separate D1 database for preview** to avoid test traffic polluting production, then redeploy the existing project. See [docs/STATS.md](docs/STATS.md) for the detailed setup, privacy, validation steps, data definitions and future game integration.
+
 ## Play locally
 
 ```bash

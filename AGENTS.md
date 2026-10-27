@@ -18,6 +18,13 @@ The repository contains a static, self-contained Canvas 2D prototype with a GPL-
 - Current `src/physics.js` exports `shotSpeed`, `headStringX`, `canPlaceBreakCue`, and `kitchenPoint`; `tests/call-ui.test.js` drives actual UI handlers.
 - Keep physical Tailuge ball radius **0.028575 m**, ball mass **0.17 kg**, ball-ball restitution **0.94**, and rolling friction **0.007** unless revised against real playtests. Earlier code used radius 0.03275 m, mass 0.23 kg, and friction 0.016; do not restore it to 'improve' break dynamics. Rendering must keep 2.25in balls on all table sizes. Keep animation frame backlog instead of dropping time (old .08s cap/reset made heavy breaks look slow). Do not reintroduce hardcoded 9ft dimensions.
 
+## Site-wide statistics (newly requested)
+- The main page must show shared real players/racks/balls totals and **by-game breakdown**, plus the current game's three totals immediately above the table. Register new *playable* game IDs in `src/stats-games.js` (do not count archive/rules as played games).
+- `functions/api/stats.js` exposes the one Cloudflare Pages Function API, backed by D1 binding `STATS_DB`. Do not invent localStorage aggregate counters or create a duplicate hosting pipeline. The D1 binding requires one-time Cloudflare dashboard hookup for **production**, with an isolated **preview** D1 database (see `docs/STATS.md`). A missing binding must show 'stats unavailable' gracefully, not 0; gameplay remains usable.
+- Player metric = distinct anonymous browsers that **struck a rack** (never bot counts, no claim that pass-and-play equals two people); rack = break actually struck; balls = non-cue balls physically pocketed after physics settles, including slop, no scratch count. Stats start when deployed and bound, **no historical backfill**.
+- IDs for rack and shots are browser UUIDs, server accepts idempotent inserts and validates game, rack ownership, count limits. Browser keeps a bounded retry queue. No names, emails or raw visitor IDs go to D1; store only hash. Never claim authenticated/unsybilable counts.
+- Preserve the 120Hz simulation and call/undo UX. Keep `tests/stats.test.js` green, test a real POST→GET across two browsers after D1 binding, and never count page loads as racks.
+
 ## Direct table call UX
 - No native ball/pocket dropdowns: on post-break human turns, tap a legal object ball in the canvas, then tap one of six visible, accessible pocket buttons over the canvas. Large touch targets and fallback numbered ball buttons must remain functional on phones.
 - Suppress cue stick and aim guidance until both called ball and pocket are locked. During the break, aim immediately with no call. `Undo call` clears both selections only before a shot is fired. Never permit shoot (including keyboard) without the required call.
@@ -79,7 +86,7 @@ Existing M0 engine-selection issue #12 is historical planning; reassess against 
 7. Repeat until release gate passes, or document the exact external blocker.
 
 ## Rules and product constraints
-- Browser/mobile web first; no native package, login, database, network multiplayer or community creator in P0.
+- Browser/mobile web first; no native package, login, network multiplayer or community creator in P0. The **one D1-backed anonymous statistics counter** is an explicit user-approved exception to the previous no-database prototype scope; keep it narrow and optional, with graceful failure.
 - Local two-player pass-and-play is sufficient; simple bot is optional.
 - Source-of-truth original game: **But Wait, There's More**. The opponent chooses which held ball to reintroduce and where to place it legally. Do not silently auto-select based on the shooter's group. See issue #7 for detailed edge cases and acceptance.
 - Do not infer undocumented Squatch rules from story episodes. Ask for only genuinely missing decisions; work on independent tasks meanwhile.
