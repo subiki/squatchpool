@@ -278,7 +278,7 @@ function render(){
  ctx.setLineDash([6,9]);ctx.strokeStyle=state.phase==='placeBreak'?'#ffe6a5':'#f7e8c129';
  ctx.lineWidth=state.phase==='placeBreak'?3:1;
  ctx.beginPath();ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),h-r);ctx.stroke();ctx.setLineDash([]);
- ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(r+(w-2*r)*.70,h/2,3,0,2*Math.PI);ctx.fill();
+ ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(r+(w-2*r)*.75,h/2,3,0,2*Math.PI);ctx.fill();
  if(state.phase==='aim'&&state.callPocket){
   const p=pockets.find(p=>p.id===state.callPocket);
   if(p){ctx.save();ctx.strokeStyle='#ffe2a3';ctx.lineWidth=3;ctx.setLineDash([5,4]);ctx.beginPath();
