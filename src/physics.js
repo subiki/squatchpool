@@ -21,8 +21,21 @@ export function shotSpeed(power,breakShot=false){
 }
 export const headStringX=()=>TABLE.radius+(TABLE.width-2*TABLE.radius)/4;
 export function canPlaceBreakCue(balls,x,y){
- // WPA: the cue-ball center must remain ABOVE (behind) the head string.
- return x<headStringX()-0.5&&canPlace(balls,x,y,0);
+ // Legal kitchen = whole ball between the cushion noses, with its center
+ // strictly behind the head string. No additional arbitrary 1-ball margin.
+ // Reject physical pockets or overlapping object balls; not rail-adjacent spots.
+ const R=TABLE.radius,H=TABLE.height,epsilon=.01;
+ if(!Number.isFinite(x)||!Number.isFinite(y))return false;
+ if(x<2*R+epsilon||x>=headStringX()-epsilon||
+    y<2*R+epsilon||y>H-2*R-epsilon)return false;
+ return balls.every(b=>b.pocketed||b.id===0||
+   Math.hypot(b.x-x,b.y-y)>=2*R+epsilon);
+}
+export function kitchenPoint(x,y){
+ // Touch/drag should reach the full legal kitchen, even from just beyond a rail.
+ const R=TABLE.radius,epsilon=.02;
+ return {x:clamp(x,2*R+epsilon,headStringX()-epsilon*2),
+  y:clamp(y,2*R+epsilon,TABLE.height-2*R-epsilon)};
 }
 export const ball=(id,x,y)=>({id,x,y,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary',pocketed:false});
 export const stationary=balls=>balls.every(b=>b.pocketed||Math.hypot(b.vx,b.vy)<STOP);

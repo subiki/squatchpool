@@ -12,12 +12,12 @@
  * the Squatch adapter, not Tailuge. GPL-3.0 applies to this adaptation and
  * the combined browser work; see /LICENSE and /THIRD_PARTY.md.
  */
-const R = 0.03275; // ball radius, metres (Tailuge constants.ts)
-const MASS = 0.23;
+const R = 0.028575; // regulation 2.25-inch pool-ball radius in metres
+const MASS = 0.17; // 6 oz regulation pool ball (~170 g)
 const G = 9.8;
 const I = (2 / 5) * MASS * R * R;
 const SLIDING_FRICTION = 0.126;
-const ROLLING_FRICTION = 0.016; // adjustable cloth speed for short arcade racks; upstream 0.0055
+const ROLLING_FRICTION = 0.007; // fast, plausible pool cloth; upstream 0.0055, typical range 0.005–0.015
 const SPINDOWN_RHO = 0.045;
 const CUSHION_E = 0.86;
 const CUSHION_MU = 0.85;
@@ -53,7 +53,8 @@ export function ballCollision(a, b) {
   const tangx = sx - vrn * nx, tangy = sy - vrn * ny;
   const relTang = Math.hypot(tangx, tangy, sz);
   const mu = 0.01 + 0.108 * Math.exp(-1.088 * relTang);
-  const jn = -(1 + 0.925) * vrn / (2 / MASS);
+  // A fresh phenolic ball set: restitution is within measured 0.92–0.98.
+  const jn = -(1 + 0.94) * vrn / (2 / MASS);
   const jt = relTang > 1e-8
     ? -Math.min(mu * Math.abs(jn), (MASS / 7) * relTang) / relTang
     : 0;

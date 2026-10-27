@@ -74,6 +74,13 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('#table:pointerup')();
   assert.equal(element('#shoot').disabled,false,'break enabled after placement');
   assert.equal(element('#move-cue').disabled,false,'can change position before strike');
+  assert.equal(element('#power').value,'85','break begins with powerful but adjustable default');
+  // Direct re-placement near the cushion edge, without pressing Reposition.
+  events.get('#table:pointerdown')({clientX:0,clientY:0,pointerId:34});
+  events.get('#table:pointermove')({clientX:23,clientY:24,pointerId:34});
+  events.get('#table:pointerup')();
+  assert.equal(element('#shoot').disabled,false,'near-rail kitchen re-placement is legal');
+
   click('#move-cue');
   assert.equal(element('#shoot').disabled,true,'reposition disables the break until released');
   events.get('#table:pointerdown')({clientX:120,clientY:170,pointerId:3});
@@ -90,6 +97,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   let frames=0;
   while(element('#table-status').textContent!=='PICK A BALL'&&frames++<2000)tick();
   assert.ok(frames<2000,'break ends and waits for called ball');
+  assert.equal(element('#power').value,'68','post-break shots return to normal power default');
   assert.equal(element('#shoot').disabled,true,'no uncaught shot allowed');
   assert.ok(element('#ball-picks').children.length>=1,'ball number buttons are visible');
   const initiallyDrawn=cueDraws;tick();

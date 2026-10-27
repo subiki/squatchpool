@@ -1,4 +1,4 @@
-import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,shotSpeed} from './physics.js';
+import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,kitchenPoint,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
@@ -27,10 +27,10 @@ function newGame(){
  $('.table-playfield')?.style?.setProperty('--table-aspect',String(TABLE.width/TABLE.height));
  $('#table-dimensions').textContent=TABLE.size+' FT · '+TABLE.playingLengthIn+' × '+TABLE.playingWidthIn+' IN';
  try{if(typeof localStorage!=='undefined')localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
- state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'placeBreak',angle:0,power:68,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
- accumulator=0;$('#power').value='68';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
+ state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'placeBreak',angle:0,power:85,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,generation:(state?.generation||0)+1};
+ accumulator=0;$('#power').value='85';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
- say('Break setup: tap or drag the white ball behind the dashed head string. Release to aim.');update();
+ say('Break setup: tap or drag anywhere in the shaded kitchen. You can change its position before BREAK!');update();
 }
 function callTargets(){
  const group=state.groups[state.turn];
@@ -108,7 +108,7 @@ function update(){
  $('#spin-side-value').textContent=state.spinSide>0?'Right '+state.spinSide+'%':state.spinSide<0?'Left '+(-state.spinSide)+'%':'Center';
  const actor=state.phase==='placeStash'?otherPlayer(state.turn):state.turn;
  const title={placeBreak:'Place the break cue ball',aim:person(state.turn)+(state.shotNumber===0?' breaks':' shoots'),moving:'Balls rolling…',placeCue:'Ball in hand',placeStash:"But wait… THERE'S MORE!",done:'Rack finished!'};
- const hint={placeBreak:'Tap or drag the white ball in the shaded head quarter of the table, then release to aim.',aim:human(actor)?(state.isBreak?'Break: aim, power, SHOOT.':!state.callBall?'Tap the object ball you want to call.':!state.callPocket?'Now tap one of the pocket targets.':'Call set. Tap or drag on the felt to aim, then SHOOT.'):'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
+ const hint={placeBreak:'Tap or drag anywhere in the shaded kitchen (even close to the rails), release, then aim.',aim:human(actor)?(state.isBreak?'Break: aim, power, SHOOT.':!state.callBall?'Tap the object ball you want to call.':!state.callPocket?'Now tap one of the pocket targets.':'Call set. Tap or drag on the felt to aim, then SHOOT.'):'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
  $('#control-title').textContent=title[state.phase];$('#control-hint').textContent=hint[state.phase];
  $('#shoot').disabled=state.phase!=='aim'||!human(state.turn)||!callReady();
  $('#move-cue').hidden=!state.isBreak||!human(state.turn)||!['placeBreak','aim'].includes(state.phase);
@@ -146,9 +146,11 @@ function resume(){
  }
  update();
 }
-function placeBreakCue({x,y}){
- if(state.phase!=='placeBreak'||!canPlaceBreakCue(state.balls,x,y)){
-  say('Place the white ball behind the head string, away from rails and other balls.');
+function placeBreakCue(point){
+ if(state.phase!=='placeBreak')return false;
+ const {x,y}=kitchenPoint(point.x,point.y);
+ if(!canPlaceBreakCue(state.balls,x,y)){
+  say('The cue ball must fit within the kitchen without overlapping a ball.');
   return false;
  }
  Object.assign(cue(),{x,y,vx:0,vy:0,wx:0,wy:0,wz:0,pocketed:false});
@@ -196,6 +198,7 @@ function hit(direction=state.angle,power=state.power){
 function finishShot(){
  if(state.phase!=='moving'||!state.shot)return;
  const shot=state.shot;state.shot=null;
+ if(shot.breakShot){state.power=68;$('#power').value='68';}
  const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,pocketEvents:shot.pocketEvents,calledBall:shot.calledBall,calledPocket:shot.calledPocket,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
  const potted=shot.balls.filter(n=>n!==0);
  log(person(shot.player)+': '+(potted.length?'pocketed '+potted.join(', '):'no balls')+(shot.balls.includes(0)?' • scratch':'')+'. '+decision.reason);
@@ -316,10 +319,12 @@ function render(){
  for(const b of state.balls)if(!b.pocketed)drawBall(b);
 }
 function frame(timestamp){
- const elapsed=lastTime?Math.min(.08,Math.max(0,(timestamp-lastTime)/1000)):0;lastTime=timestamp;
+ // The old .08s clamp plus discarded substeps caused visible slow motion
+ // on busy/mobile frames, exactly when break collisions were most expensive.
+ const elapsed=lastTime?Math.min(.25,Math.max(0,(timestamp-lastTime)/1000)):0;lastTime=timestamp;
  if(state?.phase==='moving'){
-  accumulator+=elapsed;let steps=0;
-  while(accumulator>=1/120&&steps<14){
+  accumulator=Math.min(.35,accumulator+elapsed);let steps=0;
+  while(accumulator>=1/120&&steps<24){
    const result=step(state.balls,1/120);
    for(const id of result.pocketed)state.shot.balls.push(id);
    state.shot.pocketEvents.push(...result.pocketEvents);
@@ -332,12 +337,13 @@ function frame(timestamp){
     accumulator=0;finishShot();break;
    }
   }
-  if(steps===14)accumulator=0;
+  // Keep leftover simulation time to catch up on the next animation frame.
+  // A finite backlog cap above prevents infinite catch-up after tab suspension.
  }
  if(state)render();requestAnimationFrame(frame);
 }
 function eventPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*TABLE.width/r.width,y:(e.clientY-r.top)*TABLE.height/r.height};}
-let dragging=false,draggingBreak=false;
+let dragging=false,draggingBreak=false,breakPositionValid=false;
 // Hit targets are sized in CSS pixels so touch taps remain usable on phones.
 function closestCallBall(point){
  const box=canvas.getBoundingClientRect();
@@ -354,8 +360,12 @@ function closestCallPocket(point){
 canvas.addEventListener('pointerdown',e=>{
  if(!state)return;
  const p=eventPoint(e);
- if(state.phase==='placeBreak'&&human(state.turn)){
-  if(placeBreakCue(p)){draggingBreak=true;canvas.setPointerCapture(e.pointerId);}
+ if(state.isBreak&&human(state.turn)&&
+    (state.phase==='placeBreak'||state.phase==='aim')&&p.x<=headStringX()+TABLE.radius){
+  // Placing anywhere inside the kitchen is direct: no cue-ball hit target.
+  if(state.phase==='aim')state.phase='placeBreak';
+  draggingBreak=true;breakPositionValid=placeBreakCue(p);
+  canvas.setPointerCapture(e.pointerId);
   return;
  }
  if(state.phase==='placeCue'&&human(state.turn)){placeCue(p);return;}
@@ -376,9 +386,9 @@ canvas.addEventListener('pointerdown',e=>{
  dragging=true;canvas.setPointerCapture(e.pointerId);aimFrom(p);
 });
 
-canvas.addEventListener('pointermove',e=>{if(draggingBreak){placeBreakCue(eventPoint(e));return;}if(dragging)aimFrom(eventPoint(e));});
-canvas.addEventListener('pointerup',()=>{if(draggingBreak){draggingBreak=false;finishBreakPlacement();}dragging=false;});
-canvas.addEventListener('pointercancel',()=>{draggingBreak=false;dragging=false;});
+canvas.addEventListener('pointermove',e=>{if(draggingBreak){breakPositionValid=placeBreakCue(eventPoint(e))||breakPositionValid;return;}if(dragging)aimFrom(eventPoint(e));});
+canvas.addEventListener('pointerup',()=>{if(draggingBreak){draggingBreak=false;if(breakPositionValid)finishBreakPlacement();breakPositionValid=false;}dragging=false;});
+canvas.addEventListener('pointercancel',()=>{draggingBreak=false;breakPositionValid=false;dragging=false;});
 $('#power').addEventListener('input',e=>{state.power=Number(e.target.value);update();});
 $('#spin-top').addEventListener('input',e=>{state.spinTop=Number(e.target.value);update();});
 $('#spin-side').addEventListener('input',e=>{state.spinSide=Number(e.target.value);update();});
