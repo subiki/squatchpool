@@ -6,6 +6,11 @@ Finish and verify the **existing playable browser game**, then release a shareab
 ## Current reality (recheck every session)
 The repository contains a static, self-contained Canvas 2D prototype with a GPL-3.0 Tailuge Billiards-derived billiards physics engine of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the Tailuge integration just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
 
+## Break-shot placement and physics
+- Start every new rack in `placeBreak` mode. Human breaker must tap or drag/release the cue ball at a legal point **behind (not on or beyond) the head string**. That is a physical restriction through `headStringX`/`canPlaceBreakCue`. Never permit `BREAK!` before placement. The `Reposition break cue ball` button returns to placement mode until cue strike; no called ball/pocket is needed on the break.
+- Keep break shot power physically calibrated independently from ordinary shots: max ~11.5m/s (~25.7mph), default ~8.2m/s. Never solve weak breaks by changing frame time or turning up all shots. Tight rack uses near-touching regulation balls; apex at foot spot, 75% along the bed. Validate full-break ball movement and first contact on all sizes as well as UI placement/reposition/forbidden kitchen clicks.
+- Current `src/physics.js` exports `shotSpeed`, `headStringX`, `canPlaceBreakCue`; `tests/call-ui.test.js` drives actual UI handlers. Do not reintroduce hardcoded 9ft dimensions.
+
 ## Direct table call UX
 - No native ball/pocket dropdowns: on post-break human turns, tap a legal object ball in the canvas, then tap one of six visible, accessible pocket buttons over the canvas. Large touch targets and fallback numbered ball buttons must remain functional on phones.
 - Suppress cue stick and aim guidance until both called ball and pocket are locked. During the break, aim immediately with no call. `Undo call` clears both selections only before a shot is fired. Never permit shoot (including keyboard) without the required call.
