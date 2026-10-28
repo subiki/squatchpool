@@ -118,3 +118,27 @@ test('an illegal white-ball combo cannot be redeemed by a separate legal pot',()
  assert.deepEqual(d.legalPocketed,[2]);
  assert.equal(d.keepTurn,false);
 });
+
+test('intermediate and advanced must call the 8 itself and its actual pocket to win',()=>{
+ const b=balls();
+ for(const ball of b)if(ball.id>=1&&ball.id<=7)ball.pocketed=true;
+ const bothPotted=[
+  {type:'contact',balls:[8,0]},
+  {type:'rail',ballId:0},
+  {type:'contact',balls:[8,2]},
+  {type:'pocket',ballId:2,pocketId:'TL'},
+  {type:'pocket',ballId:8,pocketId:'BR'}
+ ];
+ const setup={balls:b,groups:['solids','stripes'],shooterBall:8,
+  eightEligibleBefore:true,shotEvents:bothPotted};
+ for(const level of ['intermediate','advanced']){
+  assert.equal(turn({...setup,level,calledBall:2,calledPocket:'TL'}).winner,1,
+   level+': a correctly called different ball cannot make the 8 legal');
+  assert.equal(turn({...setup,level,calledBall:8,calledPocket:'TL'}).winner,1,
+   level+': the 8 must land in its called pocket');
+  assert.equal(turn({...setup,level,calledBall:8,calledPocket:'BR'}).winner,0,
+   level+': correctly called 8 wins');
+ }
+ assert.equal(turn({...setup,level:'beginner'}).winner,0,
+  'beginner may legally pocket the 8 without calling it');
+});
