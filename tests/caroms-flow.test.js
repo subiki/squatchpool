@@ -142,3 +142,36 @@ test('intermediate and advanced must call the 8 itself and its actual pocket to 
  assert.equal(turn({...setup,level:'beginner'}).winner,0,
   'beginner may legally pocket the 8 without calling it');
 });
+
+test('advanced called opponent ball cannot count a slopped own-group ball',()=>{
+ const shotEvents=[
+  {type:'contact',balls:[1,0]},
+  {type:'contact',balls:[1,2]},
+  {type:'contact',balls:[2,9]},
+  {type:'rail',ballId:0},
+  {type:'pocket',ballId:2,pocketId:'BR'},
+  {type:'pocket',ballId:9,pocketId:'TL'}
+ ];
+ const setup={groups:['solids','stripes'],shooterBall:1,shotEvents,level:'advanced'};
+ const opponentCall=turn({...setup,calledBall:9,calledPocket:'TL'});
+ assert.equal(opponentCall.foul,false,'physically legal carom is not a foul');
+ assert.equal(opponentCall.keepTurn,false,'calling opponent ball cannot retain turn');
+ assert.equal(opponentCall.nextPlayer,1);
+ const ownCall=turn({...setup,calledBall:2,calledPocket:'BR'});
+ assert.equal(ownCall.keepTurn,true,'correctly called own-group ball retains turn');
+ const beginner=turn({...setup,level:'beginner'});
+ assert.equal(beginner.keepTurn,true,'beginner slop remains valid');
+});
+test('advanced early 8 call cannot validate an unrelated group pocket',()=>{
+ const shotEvents=[
+  {type:'contact',balls:[1,0]},
+  {type:'contact',balls:[1,2]},
+  {type:'rail',ballId:0},
+  {type:'pocket',ballId:2,pocketId:'BR'}
+ ];
+ const d=turn({groups:['solids','stripes'],level:'advanced',calledBall:8,
+  calledPocket:'BR',shotEvents});
+ assert.equal(d.foul,false);
+ assert.equal(d.keepTurn,false);
+ assert.equal(d.nextPlayer,1);
+});
