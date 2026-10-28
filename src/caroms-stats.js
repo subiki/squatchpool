@@ -14,10 +14,14 @@ export function initCaromsStats(){
  if(typeof document==='undefined')return;
  const status=message=>put('caroms-stats-status',message);
  let hasGame=false;
+ // Accessing localStorage itself can throw SecurityError in restricted browsers.
+ // Telemetry is optional and must never prevent the game from starting.
+ let storage=null;
+ try{storage=globalThis.localStorage??null;}catch{}
  tracker=createStatsClient({
   gameId:GAME_ID,
   request:typeof fetch==='function'?fetch.bind(globalThis):null,
-  storage:typeof localStorage==='undefined'?null:localStorage,
+  storage,
   onStats:data=>{
    const game=data.games.find(g=>g.id===GAME_ID);
    hasGame=Boolean(game);
