@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TABLE,pockets,cushions,facings,jaws,setTableSize,PLAYING_SURFACES,BALL_DIAMETER_IN,mouthWidth,PX_PER_IN,CORNER_MOUTH_IN,SIDE_MOUTH_IN} from '../src/table-geometry.js';
 import {ball,rack,step,canPlace,findPlacement,applyCueSpin,canPlaceBreakCue,headStringX,shotSpeed,kitchenPoint} from '../src/physics.js';
-import {METERS_PER_PIXEL,ballCollision} from '../src/vendor/tailuge-physics.js';
+import {METERS_PER_PIXEL,ballCollision,advanceFriction} from '../src/vendor/tailuge-physics.js';
 import {adjudicate,readyForStash,readyForEight,stashBall} from '../src/rules.js';
 test('rack has cue plus 13 balls with one solid and one stripe reserved',()=>{
  const balls=rack();assert.equal(balls.length,14);assert.equal(balls.some(b=>b.id===7||b.id===15),false);
@@ -346,4 +346,48 @@ test('head-on collision transfers momentum and retains regulation collision ener
  const remaining=(cue.vx*cue.vx+object.vx*object.vx)/before;
  assert.ok(remaining>=.93&&remaining<=1.001,
   'contact must not artificially absorb or create cue-ball energy');
+});
+
+test('cloth friction: a naturally rolling 0.5 m/s ball stops in ~1.28 m and ~5.1 s',()=>{
+ // Dr Dave physical-properties constants: rolling mu=0.01, a=mu*g.
+ // 2.25-inch ball and 120 Hz integration, independent of table size/pockets.
+ const b=ball(1,0,0),R=.028575,speed=.5,dt=1/120;
+ b.vx=speed/METERS_PER_PIXEL;b.wy=speed/R;
+ let distanceMeters=0,elapsed=0;
+ for(let i=0;i<2000&&b.vx>0;i++){
+  advanceFriction(b,dt,5);
+  distanceMeters+=b.vx*METERS_PER_PIXEL*dt;elapsed+=dt;
+ }
+ const predicted=speed*speed/(2*.01*9.8);
+ assert.ok(Math.abs(distanceMeters-predicted)<.08,
+  `rolling stop distance ${distanceMeters.toFixed(3)}m should approximate ${predicted.toFixed(3)}m`);
+ assert.ok(elapsed>4.5&&elapsed<5.5,`rolling time was ${elapsed.toFixed(3)}s`);
+ assert.equal(b.motion,'stationary');
+});
+
+test('cloth friction: struck stun ball skids briefly before natural roll',()=>{
+ // With no initially attached topspin, sliding mu=0.20 should bring a
+ // 1 m/s stun ball into roll in ~0.146s after only ~0.125m travel.
+ const b=ball(1,0,0),R=.028575,dt=1/120;
+ b.vx=1/METERS_PER_PIXEL;b.wx=0;b.wy=0;
+ let elapsed=0,slideDistance=0,rolling=false;
+ for(let i=0;i<100;i++){
+  advanceFriction(b,dt,5);
+  slideDistance+=b.vx*METERS_PER_PIXEL*dt;elapsed+=dt;
+  if(b.motion==='rolling'){rolling=true;break;}
+ }
+ assert.ok(rolling,'cloth must turn stun/skid into natural roll');
+ assert.ok(elapsed>.11&&elapsed<.20,`skid->roll time was ${elapsed.toFixed(3)}s`);
+ assert.ok(slideDistance>.08&&slideDistance<.16,
+  `skid->roll distance was ${slideDistance.toFixed(3)}m`);
+ const velocity=b.vx*METERS_PER_PIXEL;
+ assert.ok(Math.abs(b.wy*R-velocity)<.012,'spin should match forward rolling speed');
+});
+
+test('cloth friction: side-spin decays about 5–15 rad/s per second',()=>{
+ const b=ball(1,0,0),R=.028575,dt=1/120;
+ b.vx=.5/METERS_PER_PIXEL;b.wy=.5/R;b.wz=20;
+ for(let i=0;i<120;i++)advanceFriction(b,dt,5);
+ const decay=20-b.wz;
+ assert.ok(decay>=5&&decay<=15,`vertical spin decay was ${decay.toFixed(2)} rad/s in 1s`);
 });

@@ -16,8 +16,12 @@ const R = 0.028575; // regulation 2.25-inch pool-ball radius in metres
 const MASS = 0.17; // 6 oz regulation pool ball (~170 g)
 const G = 9.8;
 const I = (2 / 5) * MASS * R * R;
-const SLIDING_FRICTION = 0.126;
-const ROLLING_FRICTION = 0.007; // fast, plausible pool cloth; upstream 0.0055, typical range 0.005–0.015
+// Calibrated to typical pool cloth instead of unusually slick tournament cloth.
+// Dr. Dave / Alciatore: sliding mu ~= .20; rolling mu ~= .01
+// (rolling reference range .005-.015). Do not conflate these two states.
+// https://drdavepoolinfo.com/FAQ/physics/physical-properties/
+const SLIDING_FRICTION = 0.20;
+const ROLLING_FRICTION = 0.010;
 const SPINDOWN_RHO = 0.045;
 const CUSHION_E = 0.86;
 const CUSHION_MU = 0.85;
@@ -150,10 +154,14 @@ export function advanceFriction(ball, dt, stopPixelsPerSecond = 5) {
   // Tailuge surfaceVelocityFull: Va = v + (up × Rω).
   const sx = vx - R * ball.wy, sy = vy + R * ball.wx;
   const slip = Math.hypot(sx, sy);
-  if (slip > 0.05) {
+  if (slip > 0.005) {
     // Tailuge sliding(): dv = -muS*g*unit(Va),
     // dw = +(5/2)*muS*g/R*unit(up×Va).
-    const friction = Math.min(SLIDING_FRICTION * G * dt, slip * 0.5);
+    // Slip speed changes at (7/2) * mu_s * g, because cloth friction
+    // slows linear velocity AND spins the ball into natural rolling.
+    // Cap at the exact transition; the old slip*.5 overshot zero-slip,
+    // leaving tiny artificial skid/roll toggles near the transition.
+    const friction = Math.min(SLIDING_FRICTION * G * dt, slip / 3.5);
     const ux = sx / slip, uy = sy / slip;
     vx -= ux * friction; vy -= uy * friction;
     ball.wx -= (5 / 2) * friction * uy / R;
@@ -161,7 +169,9 @@ export function advanceFriction(ball, dt, stopPixelsPerSecond = 5) {
     ball.motion = 'sliding';
   } else {
     // Tailuge forceRoll and rollingFull; roll without slipping, decelerate.
-    const decel = ROLLING_FRICTION * G / Math.sqrt(2) * dt;
+    // For a ball rolling on flat cloth |a| = mu_r * g, no sqrt(2).
+    // The old /sqrt(2) made even 0.007 behave like 0.00495.
+    const decel = ROLLING_FRICTION * G * dt;
     const next = Math.max(0, speed - decel);
     vx *= next / speed; vy *= next / speed;
     ball.wx = -vy / R; ball.wy = vx / R;

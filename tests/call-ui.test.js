@@ -58,6 +58,10 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  globalThis.requestAnimationFrame=callback=>{nextFrame=callback;};
  const tick=()=>{time+=1000/120;nextFrame(time);};
  const click=(id)=>{assert.ok(events.has(id+':click'),id+' listener');events.get(id+':click')();};
+ const setSlider=(id,value)=>{
+  element(id).value=String(value);
+  events.get(id+':input')({target:element(id)});
+ };
  try{
   await import('../src/game.js');
   assert.equal(element('#shoot').disabled,true,'place cue ball before break');
@@ -93,7 +97,17 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.ok(width7<800&&height7<420,'default is the compact 7 foot bar box');
   assert.equal(element('#pocket-targets').hidden,true);
   tick();tick();assert.ok(cueDraws>0,'cue appears after legal break placement');
+  setSlider('#power',92);
+  setSlider('#spin-top',-54);
+  setSlider('#spin-side',35);
+  assert.equal(element('#spin-top-value').textContent,'Draw 54%');
+  assert.equal(element('#spin-side-value').textContent,'Right 35%');
   click('#shoot');
+  assert.equal(element('#power').value,'68','break power resets immediately after shot');
+  assert.equal(element('#spin-top').value,'0','draw resets immediately after break');
+  assert.equal(element('#spin-side').value,'0','English resets immediately after break');
+  assert.equal(element('#spin-top-value').textContent,'Center');
+  assert.equal(element('#spin-side-value').textContent,'Center');
   let frames=0;
   while(element('#table-status').textContent!=='PICK A BALL'&&frames++<2000)tick();
   assert.ok(frames<2000,'break ends and waits for called ball');
@@ -126,7 +140,18 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   element('#ball-picks').children[0].listeners.get('click')();
   events.get('pocket-BR:click')();
   assert.equal(element('#shoot').disabled,false);
+  setSlider('#power',43);
+  setSlider('#spin-top',62);
+  setSlider('#spin-side',-78);
+  assert.equal(element('#spin-top-value').textContent,'Follow 62%');
+  assert.equal(element('#spin-side-value').textContent,'Left 78%');
   click('#shoot');
+  assert.equal(element('#power').value,'68','normal shot resets power');
+  assert.equal(element('#spin-top').value,'0','normal shot resets draw/follow');
+  assert.equal(element('#spin-side').value,'0','normal shot resets English');
+  assert.equal(element('#power-value').textContent,'68%');
+  assert.equal(element('#spin-top-value').textContent,'Center');
+  assert.equal(element('#spin-side-value').textContent,'Center');
   assert.equal(element('#shoot').disabled,true,'fired call locks controls');
   assert.equal(element('#undo-call').disabled,true,'cannot change fired shot');
   click('#new-game');

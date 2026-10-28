@@ -186,6 +186,12 @@ function aimFrom(p){
  const b=cue(),dx=p.x-b.x,dy=p.y-b.y;
  if(Math.hypot(dx,dy)>8)state.angle=Math.atan2(dy,dx);
 }
+function resetShotControls(){
+ // Each stroke consumes its own power/draw/English settings. Restore neutral
+ // controls immediately after striking, ready for the next shooter.
+ state.power=68;state.spinTop=0;state.spinSide=0;
+ $('#power').value='68';$('#spin-top').value='0';$('#spin-side').value='0';
+}
 function hit(direction=state.angle,power=state.power){
  if(state.phase!=='aim'||!callReady())return;
  const b=cue();if(!b||b.pocketed)return;
@@ -195,12 +201,13 @@ function hit(direction=state.angle,power=state.power){
  state.shot={player:state.turn,statsRackId:state.statsRackId,statsShotId:newStatsId(),balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
  if(state.isBreak)reportRack(state.statsRackId);
  state.shotNumber++;state.isBreak=false;state.phase='moving';
+ resetShotControls();
  say(person(state.turn)+' lets it fly!');update();
 }
 function finishShot(){
  if(state.phase!=='moving'||!state.shot)return;
  const shot=state.shot;state.shot=null;
- if(shot.breakShot){state.power=68;$('#power').value='68';}
+ // Stroke controls were reset at strike, not delayed until balls settled.
  const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,pocketEvents:shot.pocketEvents,calledBall:shot.calledBall,calledPocket:shot.calledPocket,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
  const potted=shot.balls.filter(n=>n!==0);
  if(potted.length)reportBalls(shot.statsRackId,shot.statsShotId,potted.length);
