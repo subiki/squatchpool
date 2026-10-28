@@ -226,12 +226,20 @@ canvas.addEventListener('pointerdown',e=>{
  const p=point(e),nearest=eligibleBalls().map(b=>({b,d:Math.hypot(b.x-p.x,b.y-p.y)}))
   .sort((a,b)=>a.d-b.d)[0];
  if(nearest&&nearest.d<TABLE.radius*2.4){
-  state.shooterBall=nearest.b.id;state.angle=0;update();return;
+  // Press-and-drag from a ball should select AND aim in one gesture on touch.
+  // A simple tap still selects without changing the aim of the same ball.
+  if(state.shooterBall!==nearest.b.id)state.angle=0;
+  state.shooterBall=nearest.b.id;update();
+  dragging=true;canvas.setPointerCapture(e.pointerId);return;
  }
  dragging=true;canvas.setPointerCapture(e.pointerId);aim(p);
 });
 canvas.addEventListener('pointermove',e=>{if(dragging)aim(point(e));});
-canvas.addEventListener('pointerup',()=>{dragging=false;});
+canvas.addEventListener('pointerup',e=>{
+ // Some touch devices deliver the final position only with pointerup.
+ if(dragging&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY))aim(point(e));
+ dragging=false;
+});
 canvas.addEventListener('pointercancel',()=>{dragging=false;});
 $('caroms-striker').addEventListener('change',e=>{state.shooterBall=Number(e.target.value);update();});
 $('caroms-call-ball').addEventListener('change',e=>{state.calledBall=e.target.value?Number(e.target.value):null;update();});
