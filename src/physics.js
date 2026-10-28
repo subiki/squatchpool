@@ -116,10 +116,10 @@ function advance(balls,time){
 }
 const valid=b=>!b.pocketed&&Number.isFinite(b.x+b.y+b.vx+b.vy);
 export function step(balls,dt=1/120){
- const W=TABLE.width,H=TABLE.height,pocketed=[],contacts=[],pocketEvents=[],railEvents=[];
- if(!(dt>0))return{pocketed,contacts,pocketEvents,railEvents};
- let remaining=Math.min(dt,1/30),events=0;
- while(remaining>1e-8&&events++<120){
+ const W=TABLE.width,H=TABLE.height,pocketed=[],contacts=[],pocketEvents=[],railEvents=[],shotEvents=[];
+ if(!(dt>0))return{pocketed,contacts,pocketEvents,railEvents,shotEvents};
+ let remaining=Math.min(dt,1/30),eventCount=0;
+ while(remaining>1e-8&&eventCount++<120){
   let best=null;
   const offer=(time,type,a,b=null,nx=0,ny=0)=>{
    if(time===null)return;
@@ -171,24 +171,31 @@ export function step(balls,dt=1/120){
   if(type==='pocket'){
    a.pocketed=true;a.vx=0;a.vy=0;a.wx=0;a.wy=0;a.wz=0;a.motion='stationary';
    pocketed.push(a.id);pocketEvents.push({id:a.id,pocketId:b.id});
+   shotEvents.push({type:'pocket',ballId:a.id,pocketId:b.id});
   }else if(type==='ball'){
    const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||1;
    const overlap=2*R-d,ux=dx/d,uy=dy/d;
    if(overlap>0){a.x-=ux*(overlap/2+1e-5);a.y-=uy*(overlap/2+1e-5);
     b.x+=ux*(overlap/2+1e-5);b.y+=uy*(overlap/2+1e-5);}
-   if(ballCollision(a,b))contacts.push([a.id,b.id]);
+   if(ballCollision(a,b)){
+    contacts.push([a.id,b.id]);
+    shotEvents.push({type:'contact',balls:[a.id,b.id]});
+   }
   }else if(type==='rail'){
    railEvents.push({id:a.id,type:'rail'});
+   shotEvents.push({type:'rail',ballId:a.id,surface:'cushion'});
    cushionBounce(a,nx,ny);
    // Post-collision project onto the same rail nose used for rendering.
    if(nx)a.x=nx>0?Math.max(a.x,2*R):Math.min(a.x,W-2*R);
    if(ny)a.y=ny>0?Math.max(a.y,2*R):Math.min(a.y,H-2*R);
   }else if(type==='facing'){
    railEvents.push({id:a.id,type:'facing'});
+   shotEvents.push({type:'rail',ballId:a.id,surface:'facing'});
    cushionBounce(a,nx,ny);
    a.x+=nx*1e-3;a.y+=ny*1e-3;
   }else if(type==='jaw'){
    railEvents.push({id:a.id,type:'jaw'});
+   shotEvents.push({type:'rail',ballId:a.id,surface:'jaw'});
    const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy)||1;
    const ux=dx/d,uy=dy/d;
    a.x=b.x+ux*(R+b.radius+1e-4);
@@ -208,7 +215,7 @@ export function step(balls,dt=1/120){
    b.vx=0;b.vy=0;b.wx=0;b.wy=0;b.wz=0;
   }
  }
- return{pocketed,contacts,pocketEvents};
+ return{pocketed,contacts,pocketEvents,railEvents,shotEvents};
 }
 export function clearShot(balls,from,to,excluded=[]){
  const dx=to.x-from.x,dy=to.y-from.y,len2=dx*dx+dy*dy;if(!len2)return false;
