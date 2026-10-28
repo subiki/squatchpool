@@ -3,6 +3,7 @@ import {TABLE,pockets,cushions,fullRack,step,stationary,findPlacement,shotSpeed,
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
+import {initCaromsStats,newCaromsStatsId,reportCaromsRack,reportCaromsBalls} from './caroms-stats.js';
 
 const $=id=>document.getElementById(id);
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
@@ -70,7 +71,7 @@ function newGame(){
  white.x=headStringX()+TABLE.radius*3;white.y=TABLE.height/2;
  state={balls,groups:[null,null],turn:0,phase:'aim',breakShot:true,shooterBall:1,
   angle:0,power:85,spinTop:0,spinSide:0,calledBall:null,calledPocket:null,
-  shot:null,shotNumber:0,winner:null};
+  shot:null,shotNumber:0,winner:null,statsRackId:newCaromsStatsId()};
  accumulator=0;
  $('caroms-power').value='85';$('caroms-top').value='0';$('caroms-side').value='0';
  $('caroms-log').replaceChildren();
@@ -93,6 +94,10 @@ function finishShot(){
   level:shot.level,breakShot:shot.breakShot,calledBall:shot.calledBall,
   calledPocket:shot.calledPocket,eightEligibleBefore:shot.eightEligibleBefore});
  state.groups=decision.groups;
+ // Every physically pocketed object ball counts, including slop and illegal shots.
+ // White-ball scratches do not count. Reporting never blocks the local match.
+ const made=decision.pocketed.filter(id=>id!==0).length;
+ if(made)reportCaromsBalls(state.statsRackId,shot.statsShotId,made);
  if(decision.respotCue)respot(0);
  if(decision.respotEight)respot(8);
  log(player(shot.player)+': '+(decision.pocketed.filter(id=>id!==0).join(', ')||'no object balls')+
@@ -119,7 +124,9 @@ function hit(){
  state.shot={player:state.turn,shooterBall:b.id,events:[],time:0,stillFrames:0,
   level:level(state.turn),breakShot:state.breakShot,calledBall:state.calledBall,
   calledPocket:state.calledPocket,
-  eightEligibleBefore:caromsEligible(state.balls,state.groups[state.turn])};
+  eightEligibleBefore:caromsEligible(state.balls,state.groups[state.turn]),
+  statsShotId:newCaromsStatsId()};
+ if(state.breakShot)reportCaromsRack(state.statsRackId);
  state.phase='moving';state.shotNumber++;
  state.power=68;state.spinTop=0;state.spinSide=0;
  $('caroms-power').value='68';$('caroms-top').value='0';$('caroms-side').value='0';
@@ -223,4 +230,4 @@ window.addEventListener('keydown',e=>{
  if(e.key==='ArrowRight'){state.angle+=.025;e.preventDefault();}
  if(e.code==='Space'){hit();e.preventDefault();}
 });
-newGame();requestAnimationFrame(frame);
+initCaromsStats();newGame();requestAnimationFrame(frame);
