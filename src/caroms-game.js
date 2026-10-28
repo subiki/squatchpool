@@ -174,7 +174,12 @@ function draw(){
    ctx.fillText(String(b.id),b.x,b.y);
   }
  }
- if(state.phase==='aim'&&striker()&&!striker().pocketed){
+ // Match the original called-shot flow: no visible stick or aim guide until
+ // the called ball and pocket are locked. Break and slop levels remain exempt.
+ const callPending=!state.breakShot&&
+  caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn]))&&
+  (state.calledBall===null||state.calledPocket===null);
+ if(state.phase==='aim'&&!callPending&&striker()&&!striker().pocketed){
   const b=striker(),dx=Math.cos(state.angle),dy=Math.sin(state.angle);
   ctx.strokeStyle='#fce2a8';ctx.lineWidth=3;ctx.setLineDash([9,8]);ctx.beginPath();
   ctx.moveTo(b.x+dx*(r+4),b.y+dy*(r+4));
