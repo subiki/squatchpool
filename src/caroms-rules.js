@@ -50,7 +50,12 @@ export function caromsTurn({balls,groups,shooter,shooterBall,shotEvents=[],
  const objectPockets=breakShot?{legal:pocketed.filter(id=>id!==0),illegal:[]}:
   caromsObjectPockets(shotEvents,shooterBall);
  const illegalCombo=objectPockets.illegal.length>0;
- const calledMade=Number.isInteger(calledBall)&&Boolean(calledPocket)&&
+ // Once groups are assigned, calling an opponent ball (or an early 8)
+ // cannot make an otherwise slopped own-group pocket count as a called shot.
+ // On an open table, the first legally called group ball still chooses sides.
+ const calledBallEligible=!group||
+  (eightEligibleBefore?calledBall===8:groupOf(calledBall)===group);
+ const calledMade=calledBallEligible&&Number.isInteger(calledBall)&&Boolean(calledPocket)&&
   pocketEvents.some(e=>e.ballId===calledBall&&e.pocketId===calledPocket&&
    objectPockets.legal.includes(e.ballId));
  const events=caromShotFromEvents({shooterBall,shotEvents,level,calledBall,calledPocket});
