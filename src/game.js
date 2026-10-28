@@ -415,7 +415,11 @@ for(const button of document.querySelectorAll('.table-size-pick')){
  button.addEventListener('click',()=>{selectedTableSize=Number(button.dataset.size);newGame();});
 }
 window.addEventListener('keydown',e=>{
- if(!state||state.phase!=='aim'||!human(state.turn)||/input|select|textarea/i.test(e.target?.tagName))return;
+ // Preserve native keyboard activation of focused controls (especially Undo).
+ const tag=e.target?.tagName?.toLowerCase();
+ if(!state||state.phase!=='aim'||!human(state.turn)||e.target?.isContentEditable||
+  (tag&&!['body','html','canvas'].includes(tag))||
+  e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
  if(e.key==='ArrowLeft'||e.key==='a'){state.angle-=.02;e.preventDefault();}
  if(e.key==='ArrowRight'||e.key==='d'){state.angle+=.02;e.preventDefault();}
  if(e.code==='Space'){e.preventDefault();hit();}
