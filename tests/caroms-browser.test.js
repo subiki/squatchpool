@@ -57,6 +57,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.equal(el('caroms-striker').value,'1','break striker is 1');
   assert.equal(el('caroms-power').value,'85','break power starts at 85%');
   assert.equal(el('caroms-call-controls').hidden,true,'no break call');
+  assert.equal(el('caroms-undo').disabled,true,'undo disabled on no-call break');
   const w7=el('caroms-table').width,h7=el('caroms-table').height;
   assert.ok(w7>h7&&w7>0,'rectangular table');
   change('caroms-power',94,'input');
@@ -83,6 +84,15 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.equal(el('caroms-shoot').disabled,true,'ball alone is not a call');
   change('caroms-call-pocket','TL');
   assert.equal(el('caroms-shoot').disabled,false,'complete call enables shoot');
+  assert.equal(el('caroms-undo').disabled,false,'pre-strike call can be undone');
+  click('caroms-undo');
+  assert.equal(el('caroms-call-ball').value,'','undo clears called ball');
+  assert.equal(el('caroms-call-pocket').value,'','undo clears called pocket');
+  assert.equal(el('caroms-shoot').disabled,true,'undo locks shot until new call');
+  assert.equal(el('caroms-undo').disabled,true,'no call remains to undo');
+  change('caroms-call-ball',called.value);
+  change('caroms-call-pocket','TL');
+  assert.equal(el('caroms-shoot').disabled,false,'calling again enables shot');
   change('caroms-power',47,'input');
   change('caroms-top',60,'input');
   change('caroms-side',-40,'input');
@@ -91,6 +101,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.equal(el('caroms-top').value,'0','normal follow reset');
   assert.equal(el('caroms-side').value,'0','normal English reset');
   assert.equal(el('caroms-shoot').disabled,true,'call locked while rolling');
+  assert.equal(el('caroms-undo').disabled,true,'undo blocked after strike');
   change('caroms-size','8');
   const w8=el('caroms-table').width,h8=el('caroms-table').height;
   assert.ok(w8>w7&&h8>h7,'8-foot bed larger than 7-foot');
