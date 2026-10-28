@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequestGet,onRequestPost} from '../functions/api/stats.js';
-import {createStatsClient} from '../src/stats.js';
+import {createStatsClient,initStats} from '../src/stats.js';
 
 const A='55555555-5555-4555-8555-555555555555';
 const B='66666666-6666-4666-8666-666666666666';
@@ -193,4 +193,26 @@ test('Caroms and But Wait retain independent retry queues on one browser',async(
  assert.equal(butWaitReload.pending(),1);
  assert.equal(caromsReload.pending(),1);
  assert.throws(()=>createStatsClient({request,storage,gameId:'not-a-game'}),/Unknown stats game/);
+});
+
+
+test('But Wait still initializes when localStorage getter denies access',()=>{
+ const keys=['localStorage','document','window','fetch'];
+ const original=Object.fromEntries(keys.map(key=>[key,
+  Object.getOwnPropertyDescriptor(globalThis,key)]));
+ try{
+  Object.defineProperty(globalThis,'localStorage',{
+   configurable:true,get(){throw new Error('SecurityError: storage denied');}
+  });
+  globalThis.document={querySelector:()=>null};
+  globalThis.window={addEventListener:()=>{}};
+  globalThis.fetch=undefined;
+  assert.doesNotThrow(()=>initStats(),
+   'stats initialization must never prevent But Wait from starting');
+ }finally{
+  for(const key of keys){
+   if(original[key])Object.defineProperty(globalThis,key,original[key]);
+   else delete globalThis[key];
+  }
+ }
 });
