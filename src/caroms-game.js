@@ -58,6 +58,7 @@ function update(){
  for(const id of ['caroms-striker','caroms-power','caroms-top','caroms-side'])
   $(id).disabled=!canAim;
  for(const id of ['caroms-call-ball','caroms-call-pocket'])$(id).disabled=!canAim||!needCall;
+ $('caroms-undo').disabled=!canAim||!needCall||(!state.calledBall&&!state.calledPocket);
  $('caroms-power-value').textContent=state.power+'%';
  $('caroms-top-value').textContent=state.spinTop+'%';
  $('caroms-side-value').textContent=state.spinSide+'%';
@@ -182,7 +183,16 @@ function frame(t){
    state.shot.time+=1/120;
    state.shot.stillFrames=stationary(state.balls)?state.shot.stillFrames+1:0;
    accumulator-=1/120;
-   if(state.shot.stillFrames>24||state.shot.time>20){finishShot();break;}
+   if(state.shot.stillFrames>24||state.shot.time>20){
+    if(state.shot.time>20){
+     // A safety timeout must not leave rolling balls in the next player's shot.
+     for(const b of state.balls)if(!b.pocketed){
+      b.vx=0;b.vy=0;b.wx=0;b.wy=0;b.wz=0;b.motion='stationary';
+     }
+     log('20-second shot limit reached; balls stopped before the next turn.');
+    }
+    accumulator=0;finishShot();break;
+   }
   }
  }
  if(state)draw();
@@ -215,6 +225,10 @@ canvas.addEventListener('pointercancel',()=>{dragging=false;});
 $('caroms-striker').addEventListener('change',e=>{state.shooterBall=Number(e.target.value);update();});
 $('caroms-call-ball').addEventListener('change',e=>{state.calledBall=e.target.value?Number(e.target.value):null;update();});
 $('caroms-call-pocket').addEventListener('change',e=>{state.calledPocket=e.target.value||null;update();});
+$('caroms-undo').addEventListener('click',()=>{
+ if(state.phase!=='aim')return;
+ state.calledBall=null;state.calledPocket=null;update();
+});
 for(const [id,key] of [['caroms-power','power'],['caroms-top','spinTop'],['caroms-side','spinSide']]){
  $(id).addEventListener('input',e=>{state[key]=Number(e.target.value);update();});
 }
