@@ -65,6 +65,9 @@ function update(){
 }
 function newGame(){
  setTableSize(Number($('caroms-size').value));
+ // Share the regulation table-size preference with But Wait across game modes.
+ // Private browsing or disabled storage must never prevent a rack from starting.
+ try{if(typeof localStorage!=='undefined')localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
  canvas.width=Math.round(TABLE.width);canvas.height=Math.round(TABLE.height);
  canvas.style.aspectRatio=String(TABLE.width/TABLE.height);
  const balls=fullRack(),one=balls.find(b=>b.id===1),white=balls.find(b=>b.id===0);
@@ -244,4 +247,11 @@ window.addEventListener('keydown',e=>{
  if(e.key==='ArrowRight'){state.angle+=.025;e.preventDefault();}
  if(e.code==='Space'){hit();e.preventDefault();}
 });
+// Restore the same 7/8/9-ft preference used by the original playable game.
+try{
+ if(typeof localStorage!=='undefined'){
+  const saved=localStorage.getItem('squatch-table-size');
+  if(['7','8','9'].includes(saved))$('caroms-size').value=saved;
+ }
+}catch{}
 initCaromsStats();newGame();requestAnimationFrame(frame);
