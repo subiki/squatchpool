@@ -62,7 +62,9 @@ export function caromsTurn({balls,groups,shooter,shooterBall,shotEvents=[],
  const shooterAllowed=breakShot?shooterBall===1:
   group?(eightEligibleBefore?shooterBall===8:groupOf(shooterBall)===group):
   Boolean(groupOf(shooterBall));
- const foul=!shooterAllowed||scratch||illegalCombo||(!breakShot&&events.foul);
+ // The 1-ball break is still a Caroms stroke: missing the white ball or
+ // failing to reach a rail cannot earn another shot, even if a ball drops.
+ const foul=!shooterAllowed||scratch||illegalCombo||events.foul;
  const madeValidCall=!requiresCall||calledMade;
  const scored=objectPockets.legal.filter(id=>groupOf(id)===group);
  const anyGroupPot=objectPockets.legal.find(id=>Boolean(groupOf(id)));
