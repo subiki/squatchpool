@@ -1,4 +1,4 @@
-import {CURRENT_GAME} from './stats-games.js';
+import {CURRENT_GAME,GAME_CATALOG} from './stats-games.js';
 
 const VISITOR_KEY='squatch-stats-visitor-v1';
 const QUEUE_KEY='squatch-stats-pending-v1';
@@ -12,7 +12,11 @@ export function newStatsId(){
 
 // Small dependency-injectable client so tests can exercise retries, duplicate
 // delivery and rendering without an HTTP server or the Cloudflare account.
-export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{},onStatus=()=>{}}){
+export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{},onStatus=()=>{},gameId=CURRENT_GAME}){
+ const game=GAME_CATALOG.find(g=>g.id===gameId);
+ if(!game)throw new Error('Unknown stats game: '+gameId);
+ // Preserve the original But Wait queue; separate game queues must never discard each other.
+ const queueKey=gameId===CURRENT_GAME?QUEUE_KEY:QUEUE_KEY+'-'+gameId;
  let visitor=null,queue=[],flushing=null;
  const read=key=>{try{return storage?.getItem(key)||null;}catch{return null;}};
  const save=(key,value)=>{try{storage?.setItem(key,value);}catch{}};
@@ -20,12 +24,12 @@ export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{
  visitor=isUuid(savedVisitor)?savedVisitor:uuid();
  if(isUuid(visitor)&&visitor!==savedVisitor)save(VISITOR_KEY,visitor);
  try{
-  const saved=JSON.parse(read(QUEUE_KEY)||'[]');
+  const saved=JSON.parse(read(queueKey)||'[]');
   if(Array.isArray(saved))queue=saved.filter(e=>e&&['rack','balls'].includes(e.type)&&
-   e.game===CURRENT_GAME&&isUuid(e.rackId)&&isUuid(e.visitorId)&&
-   (e.type==='rack'||(isUuid(e.shotId)&&Number.isInteger(e.count)&&e.count>=1&&e.count<=14))).slice(0,LIMIT);
+   e.game===gameId&&isUuid(e.rackId)&&isUuid(e.visitorId)&&
+   (e.type==='rack'||(isUuid(e.shotId)&&Number.isInteger(e.count)&&e.count>=1&&e.count<=game.maxBallsPerRack))).slice(0,LIMIT);
  }catch{}
- const persist=()=>save(QUEUE_KEY,JSON.stringify(queue));
+ const persist=()=>save(queueKey,JSON.stringify(queue));
  async function refresh(){
   if(typeof request!=='function')return;
   try{
@@ -64,12 +68,12 @@ export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{
  function add(event){
   if(!isUuid(visitor)||!isUuid(event.rackId))return;
   if(queue.length>=LIMIT)return; // Never replace the parent rack event with a shot.
-  queue.push({visitorId:visitor,game:CURRENT_GAME,...event});persist();
+  queue.push({visitorId:visitor,game:gameId,...event});persist();
   void flush();
  }
  function rack(rackId){add({type:'rack',rackId});}
  function balls(rackId,shotId,count){
-  if(!isUuid(shotId)||!Number.isInteger(count)||count<1||count>14)return;
+  if(!isUuid(shotId)||!Number.isInteger(count)||count<1||count>game.maxBallsPerRack)return;
   add({type:'balls',rackId,shotId,count});
  }
  return{refresh,flush,rack,balls,pending:()=>queue.length};
