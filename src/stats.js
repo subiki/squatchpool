@@ -105,9 +105,13 @@ let live=null;
 export function initStats(){
  if(typeof document==='undefined')return;
  const status=document.querySelector('#stats-status');
+ // Browser storage access may throw before the client can handle getItem errors.
+ // Missing telemetry storage must not stop the original playable game.
+ let storage=null;
+ try{storage=globalThis.localStorage??null;}catch{}
  const client=createStatsClient({
   request:typeof fetch==='function'?fetch.bind(globalThis):null,
-  storage:typeof localStorage==='undefined'?null:localStorage,
+  storage,
   onStats:renderStats,
   onStatus:state=>{if(status)status.textContent=state==='live'
    ?'Live totals since statistics launched · players = distinct anonymous browsers that played; shared devices count once.'
