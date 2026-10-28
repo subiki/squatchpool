@@ -13,18 +13,21 @@ const format=totals=>['players','racks','balls']
 export function initCaromsStats(){
  if(typeof document==='undefined')return;
  const status=message=>put('caroms-stats-status',message);
+ let hasGame=false;
  tracker=createStatsClient({
   gameId:GAME_ID,
   request:typeof fetch==='function'?fetch.bind(globalThis):null,
   storage:typeof localStorage==='undefined'?null:localStorage,
   onStats:data=>{
    const game=data.games.find(g=>g.id===GAME_ID);
+   hasGame=Boolean(game);
    if(!game){status('Caroms counters are not available on this server yet.');return;}
    put('caroms-stats-game',format(game));
    put('caroms-stats-site',format(data.site));
   },
-  onStatus:state=>status(state==='live'
+  onStatus:state=>status(state==='live'&&hasGame
    ?'Live D1 totals since tracking began. Players means distinct anonymous browsers, not local participants.'
+   :state==='live'?'Caroms counters are not available on this server yet.'
    :'Statistics unavailable; you can still play. Events will retry when the server is ready.'),
  });
  void tracker.refresh();void tracker.flush();
