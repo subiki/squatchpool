@@ -55,6 +55,17 @@ export function findPlacement(balls,preferred={x:TABLE.width/4,y:TABLE.height/2}
  }
  return null;
 }
+/** Full fifteen-ball rack for three-player Cutthroat and other original games. */
+export function fullRack(){
+ const W=TABLE.width,H=TABLE.height,apexX=TABLE.radius+(W-2*TABLE.radius)*.75;
+ const numbers=[1,10,3,12,8,2,9,11,4,13,5,14,6,7,15];
+ const balls=[ball(0,TABLE.radius+(W-2*TABLE.radius)*.18,H/2)];
+ const dy=2*TABLE.radius+.035,dx=dy*Math.sqrt(3)/2;
+ let n=0;
+ for(let row=0;row<5;row++)for(let col=0;col<=row;col++)
+  balls.push(ball(numbers[n++],apexX+row*dx,H/2+(col-row/2)*dy));
+ return balls;
+}
 export function rack(){
  const W=TABLE.width,H=TABLE.height;
  // A physical inch always uses the same number of pixels across table sizes.
@@ -105,8 +116,8 @@ function advance(balls,time){
 }
 const valid=b=>!b.pocketed&&Number.isFinite(b.x+b.y+b.vx+b.vy);
 export function step(balls,dt=1/120){
- const W=TABLE.width,H=TABLE.height,pocketed=[],contacts=[],pocketEvents=[];
- if(!(dt>0))return{pocketed,contacts,pocketEvents};
+ const W=TABLE.width,H=TABLE.height,pocketed=[],contacts=[],pocketEvents=[],railEvents=[];
+ if(!(dt>0))return{pocketed,contacts,pocketEvents,railEvents};
  let remaining=Math.min(dt,1/30),events=0;
  while(remaining>1e-8&&events++<120){
   let best=null;
@@ -167,14 +178,17 @@ export function step(balls,dt=1/120){
     b.x+=ux*(overlap/2+1e-5);b.y+=uy*(overlap/2+1e-5);}
    if(ballCollision(a,b))contacts.push([a.id,b.id]);
   }else if(type==='rail'){
+   railEvents.push({id:a.id,type:'rail'});
    cushionBounce(a,nx,ny);
    // Post-collision project onto the same rail nose used for rendering.
    if(nx)a.x=nx>0?Math.max(a.x,2*R):Math.min(a.x,W-2*R);
    if(ny)a.y=ny>0?Math.max(a.y,2*R):Math.min(a.y,H-2*R);
   }else if(type==='facing'){
+   railEvents.push({id:a.id,type:'facing'});
    cushionBounce(a,nx,ny);
    a.x+=nx*1e-3;a.y+=ny*1e-3;
   }else if(type==='jaw'){
+   railEvents.push({id:a.id,type:'jaw'});
    const dx=a.x-b.x,dy=a.y-b.y,d=Math.hypot(dx,dy)||1;
    const ux=dx/d,uy=dy/d;
    a.x=b.x+ux*(R+b.radius+1e-4);
