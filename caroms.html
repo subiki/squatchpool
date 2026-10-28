@@ -23,6 +23,8 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
 #caroms-score,#caroms-status{font-size:1.08rem}
 #caroms-option{border:2px solid #eec67b;padding:14px;border-radius:10px}
 #caroms-call-controls{background:#293f34;padding:12px;border-radius:10px}
+.pocket-quick{display:grid;grid-template-columns:repeat(3,minmax(105px,1fr));gap:8px;flex:1 1 390px}
+.pocket-quick button[aria-pressed="true"]{background:#efc77c;color:#1a2b22;border-color:#fbe2a7}
 #caroms-log{max-height:210px;overflow:auto;padding-left:22px}
 #caroms-log li{margin:5px 0}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
@@ -54,9 +56,18 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
 <div class="controls" id="caroms-call-controls" hidden>
 <label>Called ball<select id="caroms-call-ball"><option value="">Choose called ball</option></select></label>
 <label>Called pocket<select id="caroms-call-pocket"><option value="">Choose pocket</option></select></label>
+<div class="pocket-quick" role="group" aria-label="Choose a called pocket">
+<button id="caroms-pocket-TL" type="button" aria-pressed="false">Top left</button>
+<button id="caroms-pocket-TM" type="button" aria-pressed="false">Top middle</button>
+<button id="caroms-pocket-TR" type="button" aria-pressed="false">Top right</button>
+<button id="caroms-pocket-BL" type="button" aria-pressed="false">Bottom left</button>
+<button id="caroms-pocket-BM" type="button" aria-pressed="false">Bottom middle</button>
+<button id="caroms-pocket-BR" type="button" aria-pressed="false">Bottom right</button>
+</div>
+<button id="caroms-undo" type="button" disabled>Undo call</button>
 </div>
 <div class="controls"><button class="primary" id="caroms-shoot" type="button">BREAK WITH THE 1</button></div>
-<p>Tap a numbered ball to choose the striker, then drag on the felt to aim from it. Arrow keys fine-tune direction; Space shoots. On a foul the incoming player may move the white ball to center. On a white-ball scratch it returns to center automatically. A player wins by clearing their assigned group and legally pocketing the 8.</p>
+<p>Tap a numbered ball to select the striker and, when a call is required, call that ball. Tap a pocket button, or use the ball and pocket selectors for combination shots. Drag on the felt to aim. Arrow keys fine-tune direction; Space shoots. On a foul the incoming player may move the white ball to center. On a white-ball scratch it returns to center automatically. A player wins by clearing their assigned group and legally pocketing the 8.</p>
 <h2>Shot history</h2><ol id="caroms-log" aria-live="polite"></ol>
 </main>
 <script type="module" src="./src/caroms-game.js"></script>
