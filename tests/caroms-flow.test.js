@@ -12,11 +12,42 @@ const events=(striker=1,pot=2,pocket='TL')=>[
 const turn=(overrides={})=>caromsTurn({balls:balls(),groups:[null,null],
  shooter:0,shooterBall:1,shotEvents:events(),...overrides});
 
-test('break uses 1 ball, does not assign a group, and can continue',()=>{
- const d=turn({breakShot:true,shotEvents:[{type:'pocket',ballId:2,pocketId:'TL'}]});
+test('legal 1-ball break contacts white first and reaches a rail before scoring',()=>{
+ const d=turn({breakShot:true,shotEvents:events(1,2)});
  assert.deepEqual(d.groups,[null,null]);
+ assert.equal(d.foul,false);
  assert.equal(d.keepTurn,true);
  assert.equal(d.winner,null);
+});
+test('a missed white ball on the break is an option foul even if a ball drops',()=>{
+ const d=turn({breakShot:true,shotEvents:[
+  {type:'contact',balls:[1,2]},
+  {type:'rail',ballId:2},
+  {type:'pocket',ballId:2,pocketId:'TL'}
+ ]});
+ assert.equal(d.foul,true);
+ assert.equal(d.keepTurn,false);
+ assert.equal(d.nextPlayer,1);
+ assert.equal(d.cueOption,'leave-or-center');
+ assert.deepEqual(d.groups,[null,null]);
+});
+test('white-ball contact without a later rail is also a break foul',()=>{
+ const d=turn({breakShot:true,shotEvents:[
+  {type:'contact',balls:[1,0]},
+  {type:'pocket',ballId:2,pocketId:'TL'}
+ ]});
+ assert.equal(d.foul,true);
+ assert.equal(d.keepTurn,false);
+ assert.equal(d.cueOption,'leave-or-center');
+});
+test('legal break without a pocket passes the turn without assigning groups',()=>{
+ const d=turn({breakShot:true,shotEvents:[
+  {type:'contact',balls:[1,0]},{type:'rail',ballId:0}
+ ]});
+ assert.equal(d.foul,false);
+ assert.equal(d.keepTurn,false);
+ assert.equal(d.nextPlayer,1);
+ assert.deepEqual(d.groups,[null,null]);
 });
 test('first legal post-break pocket assigns groups',()=>{
  const d=turn();
