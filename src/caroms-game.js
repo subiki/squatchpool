@@ -227,7 +227,14 @@ canvas.addEventListener('pointerdown',e=>{
  if(state.phase!=='aim')return;
  const p=point(e),nearest=eligibleBalls().map(b=>({b,d:Math.hypot(b.x-p.x,b.y-p.y)}))
   .sort((a,b)=>a.d-b.d)[0];
- if(nearest&&nearest.d<TABLE.radius*2.4){
+ // Regulation balls render only ~7px wide on a phone. Keep the real ball
+ // geometry unchanged, but make touch/pen selection forgiving in CSS pixels.
+ // Mouse users retain precise hit testing for aiming on the surrounding felt.
+ const rect=canvas.getBoundingClientRect();
+ const cssHitRadius=e.pointerType==='touch'?22:e.pointerType==='pen'?16:0;
+ const hitRadius=Math.max(TABLE.radius*2.4,
+  cssHitRadius&&rect.width>0?cssHitRadius*TABLE.width/rect.width:0);
+ if(nearest&&nearest.d<hitRadius){
   // Press-and-drag from a ball should select AND aim in one gesture on touch.
   // A simple tap still selects without changing the aim of the same ball.
   if(state.shooterBall!==nearest.b.id)state.angle=0;

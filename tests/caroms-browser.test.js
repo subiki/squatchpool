@@ -83,6 +83,19 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   up({clientX:ballX+80,clientY:ballY+120,pointerId:7});
   tick();
   assert.ok(aimLineEnd?.y>ballY+100,'dragging from ball aims below the striker');
+  // On a narrow phone the 2.25-inch ball is less than 10 CSS pixels wide.
+  // A finger 18px off center must still select the ball rather than aim at
+  // nearby felt. Releasing on its center should preserve the previous aim.
+  const table=el('caroms-table'),originalRect=table.getBoundingClientRect;
+  const cssWidth=320,scale=cssWidth/TABLE.width;
+  table.getBoundingClientRect=()=>({left:0,top:0,width:cssWidth,
+   height:TABLE.height*scale});
+  down({clientX:(ballX+50)*scale,clientY:ballY*scale,pointerId:9,pointerType:'touch'});
+  up({clientX:ballX*scale,clientY:ballY*scale,pointerId:9,pointerType:'touch'});
+  tick();
+  assert.ok(aimLineEnd?.y>ballY+100,
+   'near-ball phone tap must not redirect aim to adjacent felt');
+  table.getBoundingClientRect=originalRect;
   // Return to the original straight break direction for the physics test.
   down({clientX:ballX+80,clientY:ballY,pointerId:8});
   up({clientX:ballX+80,clientY:ballY,pointerId:8});
