@@ -6,7 +6,7 @@ import {setTableSize} from '../src/table-geometry.js';
 // surface. No duplicate game logic or external browser dependency in CI.
 test('Caroms browser: break, reset, advanced call, and regulation table rerack',async()=>{
  const originals=Object.fromEntries(
-  ['document','window','Option','fetch','requestAnimationFrame'].map(k=>[k,globalThis[k]]));
+  ['document','window','Option','fetch','requestAnimationFrame','localStorage'].map(k=>[k,globalThis[k]]));
  const elements=new Map(),listeners=new Map();
  const ctx=new Proxy({},{get:(obj,key)=>key in obj?obj[key]:()=>{},
   set:(obj,key,value)=>{obj[key]=value;return true;}});
@@ -51,15 +51,19 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
  globalThis.requestAnimationFrame=fn=>{frame=fn;};
  globalThis.fetch=async()=>({ok:false,status:503});
+ const saved=new Map([['squatch-table-size','8']]);
+ globalThis.localStorage={getItem:key=>saved.get(key)??null,
+  setItem:(key,value)=>saved.set(key,String(value))};
  try{
   await import('../src/caroms-game.js');
+  assert.equal(el('caroms-size').value,'8','restores size chosen in But Wait');
   assert.equal(el('caroms-shoot').disabled,false,'1-ball break ready');
   assert.equal(el('caroms-striker').value,'1','break striker is 1');
   assert.equal(el('caroms-power').value,'85','break power starts at 85%');
   assert.equal(el('caroms-call-controls').hidden,true,'no break call');
   assert.equal(el('caroms-undo').disabled,true,'undo disabled on no-call break');
-  const w7=el('caroms-table').width,h7=el('caroms-table').height;
-  assert.ok(w7>h7&&w7>0,'rectangular table');
+  const w8=el('caroms-table').width,h8=el('caroms-table').height;
+  assert.ok(w8>h8&&w8>0,'rectangular table');
   change('caroms-power',94,'input');
   change('caroms-top',-35,'input');
   change('caroms-side',50,'input');
@@ -102,17 +106,24 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.equal(el('caroms-side').value,'0','normal English reset');
   assert.equal(el('caroms-shoot').disabled,true,'call locked while rolling');
   assert.equal(el('caroms-undo').disabled,true,'undo blocked after strike');
-  change('caroms-size','8');
-  const w8=el('caroms-table').width,h8=el('caroms-table').height;
-  assert.ok(w8>w7&&h8>h7,'8-foot bed larger than 7-foot');
+  change('caroms-size','7');
+  const w7=el('caroms-table').width,h7=el('caroms-table').height;
+  assert.ok(w8>w7&&h8>h7,'7-foot bed smaller than restored 8-foot');
+  assert.equal(saved.get('squatch-table-size'),'7','7-foot choice persists for But Wait');
   assert.equal(el('caroms-power').value,'85','size change starts new break');
   assert.equal(el('caroms-call-controls').hidden,true,'new rack needs no call');
   change('caroms-size','9');
   assert.ok(el('caroms-table').width>w8&&el('caroms-table').height>h8);
-  change('caroms-size','7');
-  assert.equal(el('caroms-table').width,w7);
-  assert.equal(el('caroms-table').height,h7);
+  assert.equal(saved.get('squatch-table-size'),'9','9-foot choice persists');
+  change('caroms-size','8');
+  assert.equal(el('caroms-table').width,w8);
+  assert.equal(el('caroms-table').height,h8);
+  assert.equal(saved.get('squatch-table-size'),'8','restored size can be selected again');
   assert.equal(el('caroms-shoot').disabled,false,'new rack can break');
+  globalThis.localStorage={getItem(){throw Error('Storage blocked');},
+   setItem(){throw Error('Storage blocked');}};
+  change('caroms-size','7');
+  assert.equal(el('caroms-table').width,w7,'storage denial cannot block a new rack');
  }finally{
   setTableSize(9);
   for(const [key,value] of Object.entries(originals)){
