@@ -81,6 +81,8 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   change('caroms-level-0','advanced');
   change('caroms-level-1','advanced');
   assert.equal(el('caroms-call-controls').hidden,false,'advanced calls visible');
+  assert.equal(el('caroms-call-ball').options.some(o=>o.value==='8'),false,
+   'the 8 cannot be called on an open table');
   assert.equal(el('caroms-shoot').disabled,true,'cannot shoot without a call');
   const called=el('caroms-call-ball').options.find(o=>o.value!=='');
   assert.ok(called,'a target ball remains available');
