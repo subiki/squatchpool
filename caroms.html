@@ -25,6 +25,8 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
 #caroms-call-controls{background:#293f34;padding:12px;border-radius:10px}
 #caroms-log{max-height:210px;overflow:auto;padding-left:22px}
 #caroms-log li{margin:5px 0}
+.stats-panel{margin:12px 0;padding:14px;border:1px solid #728b72;background:#223b2f;border-radius:10px}
+.stats-panel p{margin:5px 0}.stats-panel strong{color:#f7d18b}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
 @media(max-width:650px){main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}}
 </style>
@@ -33,7 +35,7 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
 <header><strong>🌲 SQUATCH POOL · THE 4T'S</strong><nav><a href="./">Original game</a> · <a href="./rules.html">Rules</a> · <a href="./archive.html#episode-3">Episode 3 manuscript</a></nav></header>
 <main>
 <h1>Caroms (Whacky Pool)</h1>
-<p class="notice"><strong>Development playtest, not a released mode.</strong> Two local players share this device. Strike an object ball into the white ball first, then send a ball to a rail and into a pocket. Provisional playtest choices: a struck ball may score after a legal carom, and an 8 made on the break is re-spotted. Original manuscript: <a href="./archive.html#episode-3">Episode 3</a>. This preview does not count toward sitewide statistics.</p>
+<p class="notice"><strong>Development playtest, not a released mode.</strong> Two local players share this device. Strike an object ball into the white ball first, then send a ball to a rail and into a pocket. Provisional playtest choices: a struck ball may score after a legal carom, and an 8 made on the break is re-spotted. Original manuscript: <a href="./archive.html#episode-3">Episode 3</a>. When shared statistics are connected, racks and pocketed balls count toward the live Caroms totals.</p>
 <div class="controls">
 <label>Table size<select id="caroms-size"><option value="7" selected>7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label>
 <label>Player 1 skill<select id="caroms-level-0"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
@@ -43,6 +45,7 @@ canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
 <div id="caroms-turn" aria-live="polite"></div>
 <div id="caroms-score"></div>
 <p id="caroms-status" role="status" aria-live="polite"></p>
+<section class="stats-panel" aria-label="Live Caroms and sitewide statistics"><p><strong>Caroms players · racks · balls</strong></p><p id="caroms-stats-game">Statistics unavailable until connected.</p><p><strong>All Squatch games</strong></p><p id="caroms-stats-site">Statistics unavailable until connected.</p><p id="caroms-stats-status" role="status" aria-live="polite">Checking live statistics…</p></section>
 <div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
 <div id="caroms-option" hidden><strong>Option foul</strong><p>Incoming player: leave the white ball where it is or place it near table center?</p><div class="controls"><button id="caroms-leave" type="button">Leave white ball</button><button id="caroms-center" type="button">Move white ball to center</button></div></div>
 <div class="controls">
