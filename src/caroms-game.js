@@ -1,8 +1,9 @@
 /** Caroms local pass-and-play preview, isolated from But Wait's production game. */
-import {TABLE,pockets,cushions,fullRack,step,stationary,findPlacement,shotSpeed,applyCueSpin,headStringX} from './physics.js';
+import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,headStringX} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
+import {respotCaromsBall} from './caroms-placement.js';
 
 const $=id=>document.getElementById(id);
 const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
@@ -86,13 +87,7 @@ function newGame(){
  update();
 }
 function respot(id){
- const b=state.balls.find(b=>b.id===id);
- if(!b)return false;
- b.pocketed=true;
- const point=findPlacement(state.balls,{x:TABLE.width/2,y:TABLE.height/2});
- if(!point)return false;
- Object.assign(b,{...point,pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});
- return true;
+ return respotCaromsBall(state.balls,id);
 }
 function finishShot(){
  const shot=state.shot;state.shot=null;
