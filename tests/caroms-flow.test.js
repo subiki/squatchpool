@@ -125,14 +125,14 @@ test('intermediate and advanced must call the 8 itself and its actual pocket to 
  const bothPotted=[
   {type:'contact',balls:[8,0]},
   {type:'rail',ballId:0},
-  {type:'contact',balls:[8,2]},
-  {type:'pocket',ballId:2,pocketId:'TL'},
+  {type:'contact',balls:[8,9]},
+  {type:'pocket',ballId:9,pocketId:'TL'},
   {type:'pocket',ballId:8,pocketId:'BR'}
  ];
  const setup={balls:b,groups:['solids','stripes'],shooterBall:8,
   eightEligibleBefore:true,shotEvents:bothPotted};
  for(const level of ['intermediate','advanced']){
-  assert.equal(turn({...setup,level,calledBall:2,calledPocket:'TL'}).winner,1,
+  assert.equal(turn({...setup,level,calledBall:9,calledPocket:'TL'}).winner,1,
    level+': a correctly called different ball cannot make the 8 legal');
   assert.equal(turn({...setup,level,calledBall:8,calledPocket:'TL'}).winner,1,
    level+': the 8 must land in its called pocket');
