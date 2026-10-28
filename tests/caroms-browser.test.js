@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {setTableSize} from '../src/table-geometry.js';
+import {TABLE,setTableSize} from '../src/table-geometry.js';
 
 // Exercise the real Caroms browser module and event handlers with a small DOM
 // surface. No duplicate game logic or external browser dependency in CI.
@@ -8,7 +8,9 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
  const originals=Object.fromEntries(
   ['document','window','Option','fetch','requestAnimationFrame','localStorage'].map(k=>[k,globalThis[k]]));
  const elements=new Map(),listeners=new Map();
- const ctx=new Proxy({},{get:(obj,key)=>key in obj?obj[key]:()=>{},
+ let aimLineEnd=null;
+ const ctx=new Proxy({lineTo(x,y){if(this.strokeStyle==='#fce2a8')aimLineEnd={x,y};}},
+  {get:(obj,key)=>key in obj?obj[key]:()=>{},
   set:(obj,key,value)=>{obj[key]=value;return true;}});
  let frame=()=>{},now=0;
  function el(id){
@@ -64,6 +66,26 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.equal(el('caroms-undo').disabled,true,'undo disabled on no-call break');
   const w8=el('caroms-table').width,h8=el('caroms-table').height;
   assert.ok(w8>h8&&w8>0,'rectangular table');
+  // Touch gesture: start ON the object ball and drag to aim, without a
+  // separate tap elsewhere. The real controller must capture that pointer.
+  const ballX=TABLE.radius+TABLE.width*.11,ballY=TABLE.height/2;
+  const down=listeners.get('caroms-table:pointerdown');
+  const move=listeners.get('caroms-table:pointermove');
+  const up=listeners.get('caroms-table:pointerup');
+  assert.ok(down&&move&&up,'table pointer handlers installed');
+  let captured=null;
+  el('caroms-table').setPointerCapture=id=>{captured=id;};
+  down({clientX:ballX,clientY:ballY,pointerId:7});
+  assert.equal(captured,7,'press on striker captures pointer for one-gesture aim');
+  move({clientX:ballX+80,clientY:ballY+120,pointerId:7});
+  up({clientX:ballX+80,clientY:ballY+120,pointerId:7});
+  tick();
+  assert.ok(aimLineEnd?.y>ballY+100,'dragging from ball aims below the striker');
+  // Return to the original straight break direction for the physics test.
+  down({clientX:ballX+80,clientY:ballY,pointerId:8});
+  up({clientX:ballX+80,clientY:ballY,pointerId:8});
+  tick();
+  assert.ok(Math.abs(aimLineEnd.y-ballY)<3,'tap on felt restores straight aim');
   change('caroms-power',94,'input');
   change('caroms-top',-35,'input');
   change('caroms-side',50,'input');
