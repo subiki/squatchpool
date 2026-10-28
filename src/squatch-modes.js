@@ -66,3 +66,18 @@ export function pressYourLuckScore({opponentBalls=0,eightMade=false,eightBanked=
  return {pending,banked:eightMade?(pending+2)*(eightBanked?2:1):0,
   forfeited:eightMade?0:pending};
 }
+
+/** Interpret one completed Caroms stroke from ordered physics events.
+ * Concatenate step(...).shotEvents across all frames of the stroke.
+ * A rail before the object ball contacts the cue ball does NOT legalize it.
+ */
+export function caromShotFromEvents({shooterBall,shotEvents=[],level='beginner',calledBall=null,calledPocket=null}){
+ const first=shotEvents.find(event=>event.type==='contact'&&event.balls?.includes(shooterBall));
+ const firstContact=first?.balls.find(id=>id!==shooterBall)??null;
+ const pocketEvents=shotEvents.filter(event=>event.type==='pocket')
+  .map(event=>({id:event.ballId,pocketId:event.pocketId}));
+ const pocketed=pocketEvents.map(event=>event.id);
+ const railAfterContact=caromRailAfterContact(shotEvents,shooterBall);
+ return {...caromShot({shooterBall,firstContact,railAfterContact,pocketed,
+  calledBall,calledPocket,pocketEvents,level}),firstContact,railAfterContact};
+}
