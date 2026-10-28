@@ -37,7 +37,15 @@ function update(){
  if(!available.some(b=>b.id===state.shooterBall))state.shooterBall=available[0]?.id??null;
  const canAim=state.phase==='aim',needCall=!state.breakShot&&caromsCallRequired(level(state.turn),
   caromsEligible(state.balls,state.groups[state.turn]));
- const targets=state.balls.filter(b=>!b.pocketed&&b.id!==0);
+ // Only offer legal called targets: any group ball on an open table,
+ // your own group once assigned, or the 8 after clearing that group.
+ const group=state.groups[state.turn];
+ const eightReady=caromsEligible(state.balls,group);
+ const targets=state.balls.filter(b=>!b.pocketed&&
+  (group?(eightReady?b.id===8:groupOf(b.id)===group):Boolean(groupOf(b.id))));
+ if(state.calledBall!==null&&!targets.some(b=>b.id===state.calledBall)){
+  state.calledBall=null;state.calledPocket=null;
+ }
  updateSelect($('caroms-striker'),available.map(b=>[b.id,'Strike ball '+b.id]),state.shooterBall);
  updateSelect($('caroms-call-ball'),targets.map(b=>[b.id,'Ball '+b.id]),state.calledBall,'Choose called ball');
  updateSelect($('caroms-call-pocket'),pockets.map(p=>[p.id,p.label]),state.calledPocket,'Choose pocket');
