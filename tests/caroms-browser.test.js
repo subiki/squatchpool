@@ -121,20 +121,28 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.equal(el('caroms-call-ball').options.some(o=>o.value==='8'),false,
    'the 8 cannot be called on an open table');
   assert.equal(el('caroms-shoot').disabled,true,'cannot shoot without a call');
+  aimLineEnd=null;tick();
+  assert.equal(aimLineEnd,null,'no aim guide or cue stick before an advanced call');
   const called=el('caroms-call-ball').options.find(o=>o.value!=='');
   assert.ok(called,'a target ball remains available');
   change('caroms-call-ball',called.value);
   assert.equal(el('caroms-shoot').disabled,true,'ball alone is not a call');
+  aimLineEnd=null;tick();
+  assert.equal(aimLineEnd,null,'called ball alone must not reveal aiming guide');
   click('caroms-pocket-TL');
   assert.equal(el('caroms-call-pocket').value,'TL','pocket tap updates accessible selector');
   assert.equal(el('caroms-pocket-TL')['aria-pressed'],'true','called pocket announced as selected');
   assert.equal(el('caroms-shoot').disabled,false,'complete call enables shoot');
+  aimLineEnd=null;tick();
+  assert.ok(aimLineEnd,'complete ball and pocket call reveals the aiming guide');
   assert.equal(el('caroms-undo').disabled,false,'pre-strike call can be undone');
   click('caroms-undo');
   assert.equal(el('caroms-call-ball').value,'','undo clears called ball');
   assert.equal(el('caroms-call-pocket').value,'','undo clears called pocket');
   assert.equal(el('caroms-pocket-TL')['aria-pressed'],'false','undo clears pocket button state');
   assert.equal(el('caroms-shoot').disabled,true,'undo locks shot until new call');
+  aimLineEnd=null;tick();
+  assert.equal(aimLineEnd,null,'Undo call hides aiming guide again');
   assert.equal(el('caroms-undo').disabled,true,'no call remains to undo');
   change('caroms-call-ball',called.value);
   click('caroms-pocket-BR');
