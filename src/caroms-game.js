@@ -285,7 +285,12 @@ $('caroms-size').addEventListener('change',newGame);
 $('caroms-center').addEventListener('click',()=>chooseOption(true));
 $('caroms-leave').addEventListener('click',()=>chooseOption(false));
 window.addEventListener('keydown',e=>{
- if(!state||state.phase!=='aim'||/input|select|textarea/i.test(e.target?.tagName))return;
+ // Let focused buttons, links, sliders and other controls handle their own keys.
+ // Space on Undo/New rack must never fire a shot instead of activating the control.
+ const tag=e.target?.tagName?.toLowerCase();
+ if(!state||state.phase!=='aim'||e.target?.isContentEditable||
+  (tag&&!['body','html','canvas'].includes(tag))||
+  e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
  if(e.key==='ArrowLeft'){state.angle-=.025;e.preventDefault();}
  if(e.key==='ArrowRight'){state.angle+=.025;e.preventDefault();}
  if(e.code==='Space'){hit();e.preventDefault();}
