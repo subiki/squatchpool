@@ -5,6 +5,7 @@ import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
 
 const $=id=>document.getElementById(id);
+const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
 const level=i=>$('caroms-level-'+i).value;
 let state,lastTime=0,accumulator=0;
@@ -58,6 +59,12 @@ function update(){
   $(id).disabled=!canAim;
  for(const id of ['caroms-call-ball','caroms-call-pocket'])$(id).disabled=!canAim||!needCall;
  $('caroms-undo').disabled=!canAim||!needCall||(!state.calledBall&&!state.calledPocket);
+ for(const id of POCKET_BUTTONS){
+  const button=$('caroms-pocket-'+id);
+  if(!button)continue; // The older stacked Gameplay preview has no quick-call buttons.
+  button.disabled=!canAim||!needCall;
+  button.setAttribute('aria-pressed',String(state.calledPocket===id));
+ }
  $('caroms-power-value').textContent=state.power+'%';
  $('caroms-top-value').textContent=state.spinTop+'%';
  $('caroms-side-value').textContent=state.spinSide+'%';
@@ -211,7 +218,13 @@ canvas.addEventListener('pointerdown',e=>{
   // Press-and-drag from a ball should select AND aim in one gesture on touch.
   // A simple tap still selects without changing the aim of the same ball.
   if(state.shooterBall!==nearest.b.id)state.angle=0;
-  state.shooterBall=nearest.b.id;update();
+  state.shooterBall=nearest.b.id;
+  // One-touch calling: an advanced player may tap the intended object ball,
+  // then choose a pocket. The selector still supports calling a different ball.
+  if(!state.breakShot&&state.calledBall===null&&
+   caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn])))
+   state.calledBall=nearest.b.id;
+  update();
   dragging=true;canvas.setPointerCapture(e.pointerId);return;
  }
  dragging=true;canvas.setPointerCapture(e.pointerId);aim(p);
@@ -226,6 +239,13 @@ canvas.addEventListener('pointercancel',()=>{dragging=false;});
 $('caroms-striker').addEventListener('change',e=>{state.shooterBall=Number(e.target.value);update();});
 $('caroms-call-ball').addEventListener('change',e=>{state.calledBall=e.target.value?Number(e.target.value):null;update();});
 $('caroms-call-pocket').addEventListener('change',e=>{state.calledPocket=e.target.value||null;update();});
+for(const id of POCKET_BUTTONS){
+ $('caroms-pocket-'+id)?.addEventListener('click',()=>{
+  if(state.phase!=='aim'||state.breakShot||
+   !caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn])))return;
+  state.calledPocket=id;update();
+ });
+}
 $('caroms-undo').addEventListener('click',()=>{
  if(state.phase!=='aim')return;
  state.calledBall=null;state.calledPocket=null;update();
