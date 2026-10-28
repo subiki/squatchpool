@@ -211,3 +211,16 @@ button:disabled{opacity:.4;cursor:not-allowed}
  .game-stats>div{min-width:0}
  .game-stats>div strong{font-size:1.16rem}
 }
+
+/* Original Squatch game collection: responsive, legible and honest about availability. */
+.squatch-catalog{margin:20px 0 26px;padding:22px;border:1px solid #ad895a66;border-radius:18px;background:linear-gradient(140deg,#18392f,#112720)}
+.squatch-catalog h2{font-size:clamp(1.6rem,4vw,2.5rem);margin:6px 0 18px;color:#f8e8c3}
+.squatch-game-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.squatch-game-card{padding:18px;border:1px solid #bd9c704a;border-radius:12px;background:#0b211bbb;color:#f5ebd5}
+.squatch-game-card.current{border-color:#e3bf79;background:#254d3b}
+.squatch-game-card strong{display:block;font-size:1.1rem;line-height:1.35}
+.squatch-game-card p{font-size:1rem;line-height:1.5;margin:10px 0;color:#e0ddcb}
+.squatch-game-card span{display:inline-block;font-size:.78rem;font-weight:800;letter-spacing:.07em;color:#f4d596}
+.catalog-note{margin:16px 0 0;color:#eee1c8;line-height:1.5}
+.catalog-note a{color:#f9d78e}
+@media(max-width:640px){.squatch-catalog{padding:16px}.squatch-game-grid{grid-template-columns:1fr}.squatch-game-card{padding:15px}}
