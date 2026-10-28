@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {GAME_CATALOG} from '../src/stats-games.js';
+import {initCaromsStats} from '../src/caroms-stats.js';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
@@ -29,4 +30,26 @@ test('Caroms has a distinct 16-event cap for the provisional break 8 re-spot',()
  const caroms=GAME_CATALOG.find(g=>g.id==='caroms');
  assert.equal(caroms.maxBallsPerRack,16);
  assert.equal(GAME_CATALOG.find(g=>g.id==='but-wait-theres-more').maxBallsPerRack,14);
+});
+
+
+test('Caroms still initializes when reading localStorage throws SecurityError',()=>{
+ const keys=['localStorage','document','window','fetch'];
+ const original=Object.fromEntries(keys.map(key=>[key,
+  Object.getOwnPropertyDescriptor(globalThis,key)]));
+ try{
+  Object.defineProperty(globalThis,'localStorage',{
+   configurable:true,get(){throw new Error('SecurityError: storage denied');}
+  });
+  globalThis.document={getElementById:()=>null};
+  globalThis.window={addEventListener:()=>{}};
+  globalThis.fetch=undefined;
+  assert.doesNotThrow(()=>initCaromsStats(),
+   'optional telemetry must not block a playable Caroms rack');
+ }finally{
+  for(const key of keys){
+   if(original[key])Object.defineProperty(globalThis,key,original[key]);
+   else delete globalThis[key];
+  }
+ }
 });
