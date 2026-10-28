@@ -22,6 +22,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
    const node={id,value:defaults[id]??'',hidden:false,disabled:false,
     textContent:'',children:[],options:[],style:{},width:0,height:0,
     addEventListener(type,fn){listeners.set(id+':'+type,fn);},
+    setAttribute(name,value){this[name]=String(value);},
     replaceChildren(...items){this.children=items;this.options=[];},
     add(option){this.options.push(option);},
     prepend(child){this.children.unshift(child);},
@@ -64,6 +65,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.equal(el('caroms-power').value,'85','break power starts at 85%');
   assert.equal(el('caroms-call-controls').hidden,true,'no break call');
   assert.equal(el('caroms-undo').disabled,true,'undo disabled on no-call break');
+  assert.equal(el('caroms-pocket-TL').disabled,true,'no pocket quick calls on break');
   const w8=el('caroms-table').width,h8=el('caroms-table').height;
   assert.ok(w8>h8&&w8>0,'rectangular table');
   // Touch gesture: start ON the object ball and drag to aim, without a
@@ -110,16 +112,22 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.ok(called,'a target ball remains available');
   change('caroms-call-ball',called.value);
   assert.equal(el('caroms-shoot').disabled,true,'ball alone is not a call');
-  change('caroms-call-pocket','TL');
+  click('caroms-pocket-TL');
+  assert.equal(el('caroms-call-pocket').value,'TL','pocket tap updates accessible selector');
+  assert.equal(el('caroms-pocket-TL')['aria-pressed'],'true','called pocket announced as selected');
   assert.equal(el('caroms-shoot').disabled,false,'complete call enables shoot');
   assert.equal(el('caroms-undo').disabled,false,'pre-strike call can be undone');
   click('caroms-undo');
   assert.equal(el('caroms-call-ball').value,'','undo clears called ball');
   assert.equal(el('caroms-call-pocket').value,'','undo clears called pocket');
+  assert.equal(el('caroms-pocket-TL')['aria-pressed'],'false','undo clears pocket button state');
   assert.equal(el('caroms-shoot').disabled,true,'undo locks shot until new call');
   assert.equal(el('caroms-undo').disabled,true,'no call remains to undo');
   change('caroms-call-ball',called.value);
+  click('caroms-pocket-BR');
+  assert.equal(el('caroms-call-pocket').value,'BR','second pocket tap changes the call');
   change('caroms-call-pocket','TL');
+  assert.equal(el('caroms-pocket-TL')['aria-pressed'],'true','selector and buttons stay synchronized');
   assert.equal(el('caroms-shoot').disabled,false,'calling again enables shot');
   change('caroms-power',47,'input');
   change('caroms-top',60,'input');
