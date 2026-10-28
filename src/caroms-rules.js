@@ -65,7 +65,12 @@ export function caromsTurn({balls,groups,shooter,shooterBall,shotEvents=[],
  if(!breakShot&&!group&&!foul&&madeValidCall&&anyGroupPot)
   newGroup=groupOf(requiresCall?calledBall:anyGroupPot);
  const legalPot=!foul&&madeValidCall&&(group?scored.length>0:Boolean(newGroup));
- const winner=!breakShot&&eight?(group&&eightEligibleBefore&&!foul&&madeValidCall?shooter:1-shooter):null;
+ // An 8-ball win requires the 8 itself in the called pocket at levels that call it.
+ // Calling another ball correctly cannot launder a slopped 8 into a win.
+ const eightCallMade=!requiresCall||(calledBall===8&&
+  pocketEvents.some(e=>e.ballId===8&&e.pocketId===calledPocket&&
+   objectPockets.legal.includes(8)));
+ const winner=!breakShot&&eight?(group&&eightEligibleBefore&&!foul&&eightCallMade?shooter:1-shooter):null;
  const keepTurn=winner===null&&!foul&&(breakShot?pocketed.some(id=>groupOf(id)):legalPot);
  const reason=winner!==null?(winner===shooter?'Legal 8-ball! Rack won.':'8-ball fell too soon or illegally. Rack lost.'):
   foul?(scratch?'Cue-ball scratch. Re-spot the white ball at center.':
