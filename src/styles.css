@@ -221,6 +221,8 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .squatch-game-card strong{display:block;font-size:1.1rem;line-height:1.35}
 .squatch-game-card p{font-size:1rem;line-height:1.5;margin:10px 0;color:#e0ddcb}
 .squatch-game-card span{display:inline-block;font-size:.78rem;font-weight:800;letter-spacing:.07em;color:#f4d596}
+.squatch-game-action{display:inline-flex;align-items:center;justify-content:center;min-height:48px;padding:10px 15px;margin-top:14px;border-radius:9px;border:2px solid #e3bf79;background:#e3bf79;color:#18291f;font-weight:850;text-decoration:none;font-size:1rem}
+.squatch-game-action:hover,.squatch-game-action:focus-visible{background:#fff0c6;border-color:#fff0c6;outline-offset:3px}
 .catalog-note{margin:16px 0 0;color:#eee1c8;line-height:1.5}
 .catalog-note a{color:#f9d78e}
 @media(max-width:640px){.squatch-catalog{padding:16px}.squatch-game-grid{grid-template-columns:1fr}.squatch-game-card{padding:15px}}
