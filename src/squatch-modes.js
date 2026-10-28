@@ -1,5 +1,5 @@
 /** Original Squatch games, grounded in the recovered Episode 1, 3 and 4 rules.
- * Press Your Luck is deliberately unavailable until its audio rules are recovered.
+ * Press Your Luck has recovered brainstorming notes; detailed rules remain unresolved.
  * This module contains deterministic game setup and shot adjudication primitives;
  * browser integration is a separate step.
  */
@@ -40,4 +40,29 @@ export function caromShot({shooterBall,firstContact,railAfterContact,pocketed=[]
  return {foul,keepTurn:!foul&&!eight&&legalPot,
   eightValid:eight&&!foul&&(level==='beginner'||called),
   cueBallOption:foul?'leave-or-center':null};
+}
+
+/** Ordered event reduction: contact must precede a rail hit for a legal Caroms stroke. */
+export function caromRailAfterContact(events=[],shooterBall){
+ let touchedCue=false;
+ for(const event of events){
+  if(event.type==='contact'&&event.balls?.includes(shooterBall)&&event.balls.includes(0))
+   touchedCue=true;
+  if(touchedCue&&event.type==='rail'&&event.ballId!==undefined)return true;
+ }
+ return false;
+}
+/** Pocketed object balls stay down; never treat the white cue ball as a group ball. */
+export function cutthroatGroupCounts(balls){
+ return CUTTHROAT_GROUPS.map((_,group)=>livingBalls(balls,group).length);
+}
+/** Source-anchored provisional Press Your Luck scoring primitives.
+ * End-of-round/foul details are unresolved in original 2024 notes.
+ */
+export function pressYourLuckScore({opponentBalls=0,eightMade=false,eightBanked=false}){
+ if(!Number.isInteger(opponentBalls)||opponentBalls<0)throw new Error('Invalid opponent ball count');
+ if(eightBanked&&!eightMade)throw new Error('Cannot bank an unmade 8-ball');
+ const pending=opponentBalls;
+ return {pending,banked:eightMade?(pending+2)*(eightBanked?2:1):0,
+  forfeited:eightMade?0:pending};
 }
