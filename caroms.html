@@ -34,7 +34,7 @@ details.panel>summary{cursor:pointer;font-weight:800;padding:13px 16px;min-heigh
 details.panel>summary::marker{color:#f7d18b}
 details.panel>.panel-body{padding:12px 16px}
 details.panel[open]>summary{border-bottom:1px solid #728b72}
-.rules-list{padding-left:24px;margin:10px 0}.rules-list li{margin:6px 0}
+.story-panel blockquote{border-left:3px solid #eec67b;padding-left:16px;margin:14px 0}.story-actions a{display:inline-block;padding:8px 12px;min-height:44px}.rules-list{padding-left:24px;margin:10px 0}.rules-list li{margin:6px 0}
 .gameplay-heading{margin:18px 0 8px;font-size:1.2rem}.stats-panel strong{color:#f7d18b}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
 @media(max-width:650px){main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
@@ -44,6 +44,17 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 <header><strong>🌲 SQUATCH POOL · THE 4T'S</strong><nav><a href="./">Original game</a> · <a href="./rules.html">Rules</a> · <a href="./archive.html#episode-3">Episode 3 manuscript</a></nav></header>
 <main>
 <h1>Caroms (Whacky Pool)</h1>
+<details class="panel story-panel" open id="caroms-story-panel">
+<summary>🌲 The Squatch story · Episode 3 (tap to collapse)</summary>
+<div class="panel-body">
+<p><strong>From J. F. Lynwood's original 2024 Caroms manuscript.</strong></p>
+<p>At The 4T's in the Pacific Northwest rainforest, Big Jim and Giggly Squatch meet over a strange game: they strike numbered balls toward the white cue ball, using it as a backboard. Hudsquatch watches, offering loud commentary.</p>
+<p>Big Jim wins the opening toss and breaks with the 1-ball. Giggly learns that missing the white cue ball is a foul, and that using the white ball to pocket another ball is an illegal shortcut. Across three racks, Big Jim's methodical advanced play meets Giggly's enthusiastic beginner shots. Hudsquatch explains option fouls, center placement, and why their calling rules differ.</p>
+<blockquote>“Ah, Giggly, ya gotta hit the cue ball first!” — Hudsquatch</blockquote>
+<p>Giggly improves as the match unfolds, while Big Jim's patience wins out. Their final handshake leaves J. F. Lynwood looking forward to the next unusual game at The 4T's.</p>
+<p class="story-actions"><a href="#caroms-play-anchor">Skip story · play now</a> · <a href="./archive.html#episode-3">Read the full original story</a></p>
+<p><small>This is a condensed retelling. The complete original manuscript is preserved in the archive.</small></p>
+</div></details>
 <details class="panel" open id="caroms-rules-panel"><summary>How to play · rules &amp; controls</summary><div class="panel-body">
 <p><strong>Two local players.</strong> Caroms is a playable beta. Shoot a numbered object ball into the white cue ball first; after contact, a ball must reach a rail. Pocket balls to clear your group, then legally pocket the 8.</p>
 <ol class="rules-list">
@@ -66,7 +77,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 <div id="caroms-score"></div>
 <p id="caroms-status" role="status" aria-live="polite"></p>
 <details class="panel" aria-label="Live Caroms and sitewide statistics"><summary>Live statistics</summary><div class="panel-body stats-panel"><p><strong>Caroms players · racks · balls</strong></p><p id="caroms-stats-game">Statistics unavailable until connected.</p><p><strong>All Squatch games</strong></p><p id="caroms-stats-site">Statistics unavailable until connected.</p><p id="caroms-stats-status" role="status" aria-live="polite">Checking live statistics…</p></div></details>
-<h2 class="gameplay-heading">Pool table</h2><div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
+<h2 class="gameplay-heading">Pool table</h2><div id="caroms-play-anchor"></div><div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
 <div id="caroms-option" hidden><strong>Option foul</strong><p>Incoming player: leave the white ball where it is or place it near table center?</p><div class="controls"><button id="caroms-leave" type="button">Leave white ball</button><button id="caroms-center" type="button">Move white ball to center</button></div></div>
 <details class="panel" open id="caroms-shot-panel"><summary>Shot controls · power &amp; spin</summary><div class="panel-body"><div class="controls">
 <label>Object ball to strike<select id="caroms-striker" aria-label="Object ball to strike"></select></label>

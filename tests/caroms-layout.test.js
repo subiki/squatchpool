@@ -16,3 +16,14 @@ test('all controller IDs remain unique and shot/call controls accessible',()=>{
   assert.ok(ids.includes(id),id);
  assert.match(html,/id="caroms-shot-panel"[^>]*open|open id="caroms-shot-panel"/);
 });
+
+test('original story precedes rules and can be skipped or collapsed',()=>{
+ const story=html.indexOf('id="caroms-story-panel"');
+ const rules=html.indexOf('id="caroms-rules-panel"');
+ assert.ok(story>0&&story<rules);
+ assert.match(html,/id="caroms-story-panel"/);
+ assert.match(html,/href="#caroms-play-anchor"/);
+ assert.match(html,/id="caroms-play-anchor"/);
+ assert.match(html,/archive.html#episode-3/);
+ assert.match(html,/tap to collapse/);
+});
