@@ -8,6 +8,7 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {groupOf,otherGroup} from './rules.js';
 import {newMatch,validateTargetScore} from './press-your-luck-score.js';
 import {pressEligible,pressTurn} from './press-your-luck-turn.js';
+import {qualifyingBankOrKick} from './press-your-luck-bank.js';
 import {createStatsClient,newStatsId,initStats} from './stats.js';
 import './deployment.js';
 
@@ -88,13 +89,6 @@ function update(){
   $(id).disabled=!canShoot;
   $(id+'-value').textContent=game[key]+'%';
  }
-}
-function qualifyingBankOrKick(events){
- const contactIndex=events.findIndex(e=>e.type==='contact'&&e.balls?.includes(0)&&e.balls?.includes(8));
- const pocketIndex=events.findIndex(e=>e.type==='pocket'&&e.ballId===8);
- if(contactIndex<0||pocketIndex<=contactIndex)return false;
- return events.some((e,i)=>e.type==='rail'&&
-  ((e.ballId===0&&i<contactIndex)||(e.ballId===8&&i>contactIndex&&i<pocketIndex)));
 }
 function respotEight(){
  const eight=game.balls.find(b=>b.id===8);
