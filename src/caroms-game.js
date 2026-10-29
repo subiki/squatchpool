@@ -10,7 +10,7 @@ const $=id=>document.getElementById(id);
 const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
 const level=i=>$('caroms-level-'+i).value;
-let state,lastTime=0,accumulator=0,botTimer=null;
+let state,lastTime=0,accumulator=0,botTimer=null,matchWins=[0,0];
 const solo=()=>$('caroms-mode').value==='bot';
 const isBot=()=>solo()&&state.turn===1;
 const humanTurn=()=>!isBot();
@@ -36,6 +36,7 @@ function scheduleBot(){
  },650);
 }
 const player=i=>i===1&&solo()?'Squatch Bot':'Player '+(i+1);
+const matchWinner=()=>matchWins.findIndex(wins=>wins>=2);
 const cue=()=>state.balls.find(b=>b.id===0);
 const striker=()=>state.balls.find(b=>b.id===state.shooterBall);
 function log(message){
@@ -77,15 +78,18 @@ function update(){
  updateSelect($('caroms-call-pocket'),pockets.map(p=>[p.id,p.label]),state.calledPocket,'Choose pocket');
  $('caroms-call-controls').hidden=!needCall;
  $('caroms-turn').textContent=state.phase==='done'?'Rack complete':player(state.turn)+(state.breakShot?' · 1-ball break':' · '+level(state.turn));
- $('caroms-score').textContent=state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
+ $('caroms-score').textContent='Best of 3 · Racks: '+player(0)+' '+matchWins[0]+' – '+player(1)+' '+matchWins[1]+' · '+
+  state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
   (g?' ('+liveGroupBalls(state.balls,g).length+' left)':'')).join('   ·   ');
  $('caroms-status').textContent=state.phase==='moving'?'Balls rolling…':
   state.phase==='option'?(isBot()?'Squatch Bot is choosing a foul option…':'Foul: incoming player chooses whether to move the white ball to center.'):
-  state.phase==='done'?player(state.winner)+' wins the rack!':
+  state.phase==='done'?(matchWinner()>=0?player(matchWinner())+' wins the best-of-three match!':
+   player(state.winner)+' wins this rack. Start the next rack.'):
   state.breakShot?'Strike the 1-ball toward the white ball to break.':
   needCall?'Select an object ball, call the ball and pocket, then aim and shoot.':
   'Select one of your object balls, aim from it through the white ball, then shoot.';
  $('caroms-option').hidden=state.phase!=='option';
+ $('caroms-new').disabled=matchWinner()>=0;
  $('caroms-shoot').disabled=!canAim||state.shooterBall===null||
   (needCall&&(!state.calledBall||!state.calledPocket));
  $('caroms-shoot').textContent=state.breakShot?'BREAK WITH THE 1':'SHOOT';
@@ -104,6 +108,7 @@ function update(){
  $('caroms-side-value').textContent=state.spinSide+'%';
 }
 function newGame(){
+ if(matchWinner()>=0)return;
  setTableSize(Number($('caroms-size').value));
  // Share the regulation table-size preference with But Wait across game modes.
  // Private browsing or disabled storage must never prevent a rack from starting.
@@ -123,6 +128,10 @@ function newGame(){
  log('Fresh Caroms rack. '+(solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
  scheduleBot();
  update();
+}
+function newMatch(){
+ matchWins=[0,0];newGame();
+ log('New best-of-three match. First to two racks wins.');
 }
 function respot(id){
  return respotCaromsBall(state.balls,id);
@@ -145,7 +154,10 @@ function finishShot(){
  if(decision.newGroup)log(player(shot.player)+' takes '+decision.newGroup+'.');
  state.breakShot=false;
  state.calledBall=null;state.calledPocket=null;
- if(decision.winner!==null){state.winner=decision.winner;state.phase='done';}
+ if(decision.winner!==null){
+  matchWins[decision.winner]++;
+  state.winner=decision.winner;state.phase='done';
+ }
  else{
   state.turn=decision.nextPlayer;
   state.phase=decision.cueOption?'option':'aim';
@@ -317,8 +329,9 @@ for(const [id,key] of [['caroms-power','power'],['caroms-top','spinTop'],['carom
 for(const i of [0,1])$('caroms-level-'+i).addEventListener('change',update);
 $('caroms-shoot').addEventListener('click',hit);
 $('caroms-new').addEventListener('click',newGame);
-$('caroms-size').addEventListener('change',newGame);
-$('caroms-mode').addEventListener('change',newGame);
+$('caroms-match-reset').addEventListener('click',newMatch);
+$('caroms-size').addEventListener('change',newMatch);
+$('caroms-mode').addEventListener('change',newMatch);
 $('caroms-center').addEventListener('click',()=>chooseOption(true));
 $('caroms-leave').addEventListener('click',()=>chooseOption(false));
 window.addEventListener('keydown',e=>{
@@ -339,4 +352,4 @@ try{
   if(['7','8','9'].includes(saved))$('caroms-size').value=saved;
  }
 }catch{}
-initCaromsStats();newGame();requestAnimationFrame(frame);
+initCaromsStats();newMatch();requestAnimationFrame(frame);
