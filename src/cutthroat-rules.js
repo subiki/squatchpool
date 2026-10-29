@@ -17,10 +17,17 @@ export function assignCutthroatGroup(match,player,group){
  if(player!==match.turn||match.groupChoicePlayer!==player||match.owners[player]!==null||!availableGroups(match).includes(group))
   throw new Error('Group choice requires a legal pocket on this turn');
  const owners=match.owners.map((value,i)=>i===player?group:value);
+ // With two groups claimed, the remaining player owns the final group.
+ // Otherwise the match can never finish if that player is eliminated early.
+ const unassigned=owners.findIndex(value=>value===null);
+ const remaining=[0,1,2].filter(g=>!owners.includes(g));
+ if(unassigned>=0&&remaining.length===1)owners[unassigned]=remaining[0];
  const pendingClaim=match.pendingClaim&&match.pendingClaim.scratcher===player?
   {...match.pendingClaim,returnable:remainingCutthroatBalls({...match,owners},group)}:match.pendingClaim;
  const updated={...match,owners,groupChoicePlayer:null,pendingClaim,
   turn:match.pendingTurn===null?match.turn:match.pendingTurn,pendingTurn:null};
+ if(match.pendingTurn!==null&&!activePlayer(updated,updated.turn))
+  updated.turn=nextActivePlayer(updated,updated.turn);
  return {...updated,winner:pendingClaim?null:winningPlayer(updated)};
 }
 export function remainingCutthroatBalls(match,group){
