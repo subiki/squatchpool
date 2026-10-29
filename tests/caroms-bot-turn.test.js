@@ -58,7 +58,9 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   timers.delete(id);fn();
  };
  const breakAwayFromCue=()=>{
-  const x=TABLE.radius+TABLE.width*.11-65,y=TABLE.height/2;
+  // Shoot vertically away from the white ball: a leftward bank can
+  // rebound into the cue ball and accidentally become a legal break.
+  const x=TABLE.radius+TABLE.width*.11,y=TABLE.height/2-65;
   listeners.get('caroms-table:pointerdown')({
    clientX:x,clientY:y,pointerId:3,pointerType:'mouse'});
   listeners.get('caroms-table:pointerup')({
@@ -88,10 +90,25 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   assert.equal(el('caroms-shoot').disabled,true,
    'human shoot button locked during the bot turn');
   assert.equal(timers.size,1,'bot turn is scheduled once');
-  if(!el('caroms-option').hidden){
-   fireTimer(); // Bot resolves its incoming foul option.
-   assert.equal(el('caroms-option').hidden,true);
-  }
+  assert.equal(el('caroms-option').hidden,false,
+   'a missed Caroms break offers the incoming bot a foul decision');
+  assert.equal(el('caroms-leave').disabled,true,
+   'human cannot choose a foul option for Squatch Bot');
+  assert.equal(el('caroms-center').disabled,true);
+  click('caroms-leave'); // Deliberately invoke even though disabled.
+  assert.equal(el('caroms-option').hidden,false,
+   'the handler must also reject programmatic human clicks');
+  assert.equal(timers.size,1,'human click did not replace the bot timer');
+  const staleSameRack=timers.values().next().value;
+  fireTimer(); // Bot resolves its incoming foul option.
+  assert.equal(el('caroms-option').hidden,true);
+  const scheduledShot=timers.values().next().value;
+  staleSameRack(); // Simulate the old timer racing after the phase changed.
+  assert.equal(timers.size,1,'stale callback must not clear the new timer');
+  assert.equal(timers.values().next().value,scheduledShot,
+   'the current bot shot remains queued');
+  assert.notEqual(el('caroms-status').textContent,'Balls rolling…',
+   'stale option callback must not shoot prematurely');
   fireTimer(); // Bot selects an eligible object ball, calls and strikes.
   assert.equal(el('caroms-status').textContent,'Balls rolling…',
    'bot fires a real physics stroke');
