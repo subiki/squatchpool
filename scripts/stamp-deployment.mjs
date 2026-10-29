@@ -10,7 +10,7 @@
 import {writeFileSync} from 'node:fs';
 
 export function createDeploymentManifest(env, now = new Date()) {
- if (env.CF_PAGES !== '1') return null;
+ // Cloudflare Pages may expose CF_PAGES as a boolean-like value or omit it\n // while still supplying its authoritative commit and branch variables.\n // Require BOTH metadata fields; never stamp ordinary local installs.\n if (!env.CF_PAGES_COMMIT_SHA || !env.CF_PAGES_BRANCH) return null;
  const commit = String(env.CF_PAGES_COMMIT_SHA || '');
  if (!/^[0-9a-f]{40}$/i.test(commit)) return null;
  if (!Number.isFinite(now.getTime())) throw new RangeError('Invalid deployment time');
@@ -28,6 +28,6 @@ if (manifest) {
  writeFileSync(new URL('../deployment.json', import.meta.url),
   JSON.stringify(manifest, null, 2) + '\n', 'utf8');
  console.log('Squatch Pool deployment stamp:', manifest.deploymentBuildAt, manifest.commit.slice(0, 7));
-} else if (process.env.CF_PAGES === '1') {
+} else if (process.env.CF_PAGES || process.env.CF_PAGES_COMMIT_SHA) {
  console.warn('Cloudflare commit SHA unavailable; omitting deployment marker rather than inventing a date.');
 }
