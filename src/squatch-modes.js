@@ -5,8 +5,8 @@
  */
 export const SQUATCH_GAMES=Object.freeze([
  {id:'but-wait',name:"But Wait, There's More",players:2,ready:true,episode:1},
- {id:'caroms',name:'Caroms (Whacky Pool)',players:2,ready:false,episode:3},
- {id:'cutthroat',name:'Coin-Op Cutthroat',players:3,ready:false,episode:4},
+ {id:'caroms',name:'Caroms (Whacky Pool)',players:2,ready:true,episode:3},
+ {id:'cutthroat',name:'Coin-Op Cutthroat',players:3,ready:true,episode:4},
  {id:'press-your-luck',name:'Press Your Luck',players:null,ready:false,episode:2}
 ]);
 export const CUTTHROAT_GROUPS=Object.freeze([[1,2,3,4,5],[6,7,8,9,10],[11,12,13,14,15]]);
