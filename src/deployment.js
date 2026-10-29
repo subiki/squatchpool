@@ -36,8 +36,7 @@ export async function updateDeploymentBanner({
   if(note)note.textContent=label+' · '+data.commit.slice(0,7);
   return true;
  }catch{
-  // Keep the last verified deployment timestamp displayed in HTML. Never
-  // replace it with "now" or an unrelated Git commit timestamp.
+  // Never present a stale hardcoded timestamp as the current deployment.
   return false;
  }
 }
