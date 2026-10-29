@@ -41,3 +41,38 @@ test('regulation 7/8/9 ft Cutthroat racks retain 15 object balls and real physic
  }
  setTableSize(9);
 });
+
+
+test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming shooter',()=>{
+ const source=controller.match(/function update\(\)\{[\s\S]*?\n\}\nfunction finishShot\(\)/);
+ assert.ok(source,'real Cutthroat UI update function exists');
+ const nodes=new Map();
+ const $=id=>{
+  if(!nodes.has(id))nodes.set(id,{
+   textContent:'',hidden:false,disabled:false,value:'',
+   replaceChildren(...children){this.children=children;}
+  });
+  return nodes.get(id);
+ };
+ const game={phase:'claim',breakShot:false,power:68,top:0,side:0,placementValid:true,
+  match:{turn:1,winner:null,owners:[0,1,2],pendingClaim:{
+   claimant:2,scratcher:0,returnable:[4]},groupChoicePlayer:null}};
+ const update=new Function('$','game','names','ranges','remainingCutthroatBalls',
+  'availableGroups','Option',source[0].replace(/\nfunction finishShot\(\)$/,'')+
+  '\nreturn update;')($,game,['Player 1','Player 2','Player 3'],
+  ['1–5','6–10','11–15'],()=>[1],()=>[],
+  class Option{constructor(text,value){this.text=text;this.value=value;}});
+ update();
+ assert.match($('cut-turn').textContent,/^Player 3 · scratch claim$/);
+ assert.match($('cut-status').textContent,/Player 3 may claim.*Player 1/);
+ game.match.pendingClaim=null;
+ game.phase='placeCue';
+ update();
+ assert.match($('cut-turn').textContent,/^Player 2 · place the white ball$/);
+ game.match.turn=2;
+ game.match.pendingClaim={claimant:0,scratcher:1,returnable:[8]};
+ game.phase='claim';
+ update();
+ assert.match($('cut-turn').textContent,/^Player 1 · scratch claim$/);
+ assert.match($('cut-status').textContent,/Player 1 may claim.*Player 2/);
+});
