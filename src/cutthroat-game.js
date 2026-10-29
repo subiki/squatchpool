@@ -34,13 +34,14 @@ function update(){
  const m=game.match,placing=game.phase==='placeBreak'||game.phase==='placeCue';
  const canShoot=game.phase==='aim';
  const claim=m.pendingClaim;
- $('cut-turn').textContent=m.winner!==null?names[m.winner]+' wins!':names[m.turn]+' · '+(placing?'place the white ball':game.phase==='moving'?'balls moving':game.phase==='claim'?'scratch claim':game.phase==='chooseGroup'?'choose group':'shooting');
+ const actor=game.phase==='claim'&&claim?claim.claimant:m.turn;
+ $('cut-turn').textContent=m.winner!==null?names[m.winner]+' wins!':names[actor]+' · '+(placing?'place the white ball':game.phase==='moving'?'balls moving':game.phase==='claim'?'scratch claim':game.phase==='chooseGroup'?'choose group':'shooting');
  $('cut-scores').textContent=m.owners.map((group,i)=>names[i]+': '+(group===null?'unassigned':ranges[group])+
   (group===null?'':' · '+remainingCutthroatBalls(m,group).length+' left')).join('  |  ');
  $('cut-status').textContent=m.winner!==null?'Last player with a ball on the table wins. Start a new rack to play again.':
   game.phase==='placeBreak'?'Tap or drag the cue ball behind the head string, then confirm break position.':
   game.phase==='placeCue'?'Scratch: incoming player has ball in hand. Tap an open place on the felt.':
-  game.phase==='claim'?'Third player may claim one on-table ball from the scratcher, or decline.':
+  game.phase==='claim'&&claim?names[claim.claimant]+' may claim one on-table ball from '+names[claim.scratcher]+', or decline.':
   game.phase==='chooseGroup'?'Your turn has ended. Choose your earned group before play passes.':
   game.phase==='moving'?'Balls rolling…':
   m.groupChoicePlayer===m.turn?'You earned a group choice. Select 1–5, 6–10 or 11–15 now, or keep shooting.':
