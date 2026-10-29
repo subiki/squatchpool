@@ -49,3 +49,24 @@ test('an eliminated player waits for a claim instead of receiving a dead turn', 
   assert.equal(missed.turn, 0,
     'Hud has no balls, so play passes from Jim to Speed');
 });
+
+test('group choice expires on a miss and fouled pots do not earn a group', () => {
+  let match=finishCutthroatShot(startCutthroat(), {pocketed:[6]});
+  match=finishCutthroatShot(match);
+  assert.throws(()=>assignCutthroatGroup(match,0,1));
+  const fouled=finishCutthroatShot(startCutthroat(), {pocketed:[6],foul:true});
+  assert.throws(()=>assignCutthroatGroup(fouled,0,1));
+});
+
+test('last on-felt ball claim eliminates scratcher without resurrecting balls', () => {
+  let match={...startCutthroat(),owners:[0,1,2],turn:0,
+    pocketed:[1,2,3,4,6,7,8,9,10]};
+  match=finishCutthroatShot(match,{scratch:true});
+  assert.deepEqual(match.pendingClaim.returnable,[5]);
+  assert.equal(match.pendingClaim.claimant,2);
+  match=resolveCutthroatClaim(match,5);
+  assert.deepEqual(match.pocketed,[1,2,3,4,6,7,8,9,10]);
+  assert.equal(remainingCutthroatBalls(match,0).length,0);
+  assert.ok(remainingCutthroatBalls(match,2).includes(5));
+  assert.equal(match.winner,2);
+});
