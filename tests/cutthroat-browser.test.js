@@ -12,7 +12,10 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
   'cut-place','cut-reposition','cut-shoot','cut-group','cut-group-select','cut-group-confirm',
   'cut-claim','cut-claim-select','cut-claim-confirm','cut-power','cut-top','cut-side'])
   assert.match(html,new RegExp('id="'+id+'"'));
- assert.match(html,/src="\.\/src\/cutthroat-game\.js"/);
+ assert.match(html,/import\('\.\/src\/cutthroat-game\.js'\)\.catch/,
+  'Cutthroat uses a guarded dynamic module import so startup errors are visible');
+ assert.match(html,/Cutthroat could not start:/,
+  'startup failures must explain why the table did not load');
  assert.match(controller,/finishCutthroatShot\(/);
  assert.match(controller,/resolveCutthroatClaim\(/);
  assert.match(controller,/assignCutthroatGroup\(/);
