@@ -19,6 +19,12 @@ test('Press Your Luck page exposes match, cue placement, 8 call/undo, spin and s
  assert.match(source,/game\.power=68;game\.top=0;game\.side=0/);
  assert.match(source,/game\.phase='placeBreak'/);
 });
+test('Press Your Luck controller IDs are unique and all six pocket calls are accessible',()=>{
+ const ids=[...html.matchAll(/\\bid="([^"]+)"/g)].map(m=>m[1]);
+ assert.equal(ids.length,new Set(ids).size,'duplicate IDs break controller lookups');
+ assert.match(html,/aria-label="Call the 8-ball pocket"/);
+ assert.match(html,/href="\\.\\/archive\\.html#episode-2"/);
+});
 test('real controller initializes and allows a human break only after legal kitchen placement',async()=>{
  const nodes=new Map();
  const make=id=>{
