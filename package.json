@@ -7,6 +7,6 @@
     "test": "node --test",
     "check": "node --check src/game.js && node --check src/physics.js && node --check src/rules.js && node --check src/deployment.js && node --check scripts/stamp-deployment.mjs && node --check src/caroms-game.js && node --check src/caroms-rules.js && node --check src/caroms-stats.js && node --check src/stats.js && node --check src/stats-games.js && node --check src/squatch-modes.js && node --check src/cutthroat-game.js && node --check src/cutthroat-rules.js && node --check src/cutthroat-stats.js && node --check src/press-your-luck-score.js && node --check src/press-your-luck-turn.js && node --check src/press-your-luck-bank.js && node --check src/press-your-luck-game.js",
     "postinstall": "node scripts/stamp-deployment.mjs",
-    "build": "find tests -name '[a-m]*.test.js' -print0 | xargs -0 node --test && npm run check && node scripts/stamp-deployment.mjs"
+    "build": "find tests -name '[a-f]*.test.js' -print0 | xargs -0 node --test && npm run check && node scripts/stamp-deployment.mjs"
   }
 }
