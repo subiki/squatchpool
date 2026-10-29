@@ -9,7 +9,7 @@ const controller=readFileSync(new URL('../src/cutthroat-game.js',import.meta.url
 
 test('Cutthroat browser page wires three-seat match, group choice and scratch claim controls',()=>{
  for(const id of ['cut-table','cut-turn','cut-scores','cut-status','cut-new','cut-size',
-  'cut-place','cut-shoot','cut-group','cut-group-select','cut-group-confirm',
+  'cut-place','cut-reposition','cut-shoot','cut-group','cut-group-select','cut-group-confirm',
   'cut-claim','cut-claim-select','cut-claim-confirm','cut-power','cut-top','cut-side'])
   assert.match(html,new RegExp('id="'+id+'"'));
  assert.match(html,/src="\.\/src\/cutthroat-game\.js"/);
@@ -75,4 +75,28 @@ test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming
  update();
  assert.match($('cut-turn').textContent,/^Player 1 · scratch claim$/);
  assert.match($('cut-status').textContent,/Player 1 may claim.*Player 2/);
+});
+
+
+test('Cutthroat break placement rejects out-of-kitchen taps and permits a fresh placement',()=>{
+ const source=controller.match(/function placeCue\\(p\\)\\{[\\s\\S]*?\\n\\}\\nfunction draw\\(\\)/);
+ assert.ok(source,'real Cutthroat placeCue handler exists');
+ const cueBall={x:70,y:120};
+ const game={phase:'placeBreak',balls:[cueBall],placementValid:false};
+ let updates=0;
+ const placeCue=new Function('game','kitchenPoint','headStringX','canPlaceBreakCue',
+  'canPlace','cue','update',source[0].replace(/\\nfunction draw\\(\\)$/,'')+'\\nreturn placeCue;')(
+  game,(x,y)=>({x:Math.max(44,Math.min(x,249)),y}),()=>250,
+  (_balls,x,y)=>x>=44&&x<250&&y>=44&&y<=400,
+  ()=>true,()=>cueBall,()=>updates++);
+ placeCue({x:500,y:120});
+ assert.equal(game.placementValid,false,'tapping beyond head string cannot confirm break');
+ assert.deepEqual(cueBall,{x:70,y:120},'invalid tap cannot move cue');
+ placeCue({x:130,y:140});
+ assert.equal(game.placementValid,true);
+ assert.deepEqual(cueBall,{x:130,y:140});
+ assert.equal(updates,2);
+ assert.match(controller,/placementValid:false/,'break requires an actual placement before confirmation');
+ assert.match(controller,/game\\.phase='placeBreak';game\\.placementValid=false;update\\(\\)/,
+  'reposition control returns to kitchen placement without firing a shot');
 });
