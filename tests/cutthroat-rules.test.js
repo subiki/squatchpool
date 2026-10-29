@@ -23,24 +23,25 @@ test('scratch pauses turn for third player to choose an actual scratcher ball',(
  m=finishCutthroatShot(m,{scratch:true,pocketed:[3]});
  assert.equal(m.turn,1);
  assert.equal(m.pendingClaim.claimant,2);
- assert.deepEqual(m.pendingClaim.returnable,[1,2,3]);
+ assert.deepEqual(m.pendingClaim.returnable,[4,5]);
  assert.throws(()=>finishCutthroatShot(m));
  assert.throws(()=>resolveCutthroatClaim(m,9));
- m=resolveCutthroatClaim(m,2);
- assert.ok(!m.pocketed.includes(2));
+ m=resolveCutthroatClaim(m,4);
+ assert.deepEqual(m.pocketed,[1,2,3]);
+ assert.ok(remainingCutthroatBalls(m,2).includes(4));
  assert.equal(m.pendingClaim,null);
  assert.equal(m.turn,1);
 });
 
-test('scratch claim transfers ownership of a pocketed ball to the third player',()=>{
+test('scratch claim transfers an unpocketed ball to the third player',()=>{
  let m=startCutthroat();
- m={...m,owners:[0,1,2],turn:0,pocketed:[1,2,3,4,5,6,7,8,9,10]};
+ m={...m,owners:[0,1,2],turn:0,pocketed:[1,2,3,4,6,7,8,9,10]};
  m=finishCutthroatShot(m,{scratch:true});
  assert.equal(m.winner,null);
- m=resolveCutthroatClaim(m,1);
+ m=resolveCutthroatClaim(m,5);
  assert.equal(remainingCutthroatBalls(m,0).length,0);
- assert.ok(remainingCutthroatBalls(m,2).includes(1));
- assert.equal(m.winner,null);
+ assert.ok(remainingCutthroatBalls(m,2).includes(5));
+ assert.equal(m.winner,2);
 });
 
 test('last remaining group wins after all groups are assigned',()=>{
@@ -49,8 +50,8 @@ test('last remaining group wins after all groups are assigned',()=>{
  assert.equal(m.winner,2);
 });
 
-test('no automatic claim if the scratcher has no pocketed group ball',()=>{
- let m={...startCutthroat(),owners:[0,1,2],turn:0};
+test('no claim if the scratcher has no ball remaining on the felt',()=>{
+ let m={...startCutthroat(),owners:[0,1,2],turn:0,pocketed:[1,2,3,4,5]};
  m=finishCutthroatShot(m,{scratch:true});
  assert.deepEqual(m.pendingClaim.returnable,[]);
  m=resolveCutthroatClaim(m);
