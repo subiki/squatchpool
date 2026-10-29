@@ -7,16 +7,21 @@ import {CUTTHROAT_GROUPS} from './squatch-modes.js';
 const nextPlayer = p => (p+1)%3;
 const isObjectBall = id => Number.isInteger(id)&&id>=1&&id<=15;
 export function startCutthroat(){
- return {turn:0,owners:[null,null,null],pocketed:[],claimedBalls:{},pendingClaim:null,winner:null,groupChoicePlayer:null};
+ return {turn:0,owners:[null,null,null],pocketed:[],claimedBalls:{},pendingClaim:null,winner:null,groupChoicePlayer:null,pendingTurn:null};
 }
 export function availableGroups(match){
  return [0,1,2].filter(group=>!match.owners.includes(group));
 }
 export function assignCutthroatGroup(match,player,group){
- if(match.pendingClaim||match.winner!==null)throw new Error('Resolve the match first');
+ if((match.pendingClaim&&match.pendingTurn===null)||match.winner!==null)throw new Error('Resolve the match first');
  if(player!==match.turn||match.groupChoicePlayer!==player||match.owners[player]!==null||!availableGroups(match).includes(group))
   throw new Error('Group choice requires a legal pocket on this turn');
- return {...match,owners:match.owners.map((value,i)=>i===player?group:value),groupChoicePlayer:null};
+ const owners=match.owners.map((value,i)=>i===player?group:value);
+ const pendingClaim=match.pendingClaim&&match.pendingClaim.scratcher===player?
+  {...match.pendingClaim,returnable:remainingCutthroatBalls({...match,owners},group)}:match.pendingClaim;
+ const updated={...match,owners,groupChoicePlayer:null,pendingClaim,
+  turn:match.pendingTurn===null?match.turn:match.pendingTurn,pendingTurn:null};
+ return {...updated,winner:pendingClaim?null:winningPlayer(updated)};
 }
 export function remainingCutthroatBalls(match,group){
  return CUTTHROAT_GROUPS[group].filter(id=>!match.pocketed.includes(id)&&match.claimedBalls?.[id]===undefined)
@@ -39,13 +44,14 @@ function winningPlayer(match){
  return alive.length===1?alive[0]:null;
 }
 export function finishCutthroatShot(match,{pocketed=[],scratch=false,foul=false}={}){
- if(match.winner!==null||match.pendingClaim)throw new Error('Match is not ready for a shot');
+ if(match.winner!==null||match.pendingClaim||match.pendingTurn!==null)throw new Error('Match is not ready for a shot');
  if(pocketed.some(id=>!isObjectBall(id)))throw new Error('Unknown object ball');
  const nextPocketed=[...new Set([...match.pocketed,...pocketed])];
  const made=pocketed.some(id=>!match.pocketed.includes(id));
  const legalPot=made&&!scratch&&!foul;
  const updated={...match,pocketed:nextPocketed,
-  groupChoicePlayer:legalPot&&match.owners[match.turn]===null?match.turn:null};
+  groupChoicePlayer:match.owners[match.turn]===null&&
+   (legalPot||match.groupChoicePlayer===match.turn)?match.turn:null};
  // The original allows claiming a scratching player's unpocketed ball, even
  // to revive an eliminated third player. A claim transfers ownership only.
  if(scratch){
@@ -53,18 +59,25 @@ export function finishCutthroatShot(match,{pocketed=[],scratch=false,foul=false}
   // The third seat owns the claim even if the second seat is eliminated.
   const claimant=nextPlayer(nextPlayer(match.turn));
   const group=match.owners[match.turn];
-  return {...updated,turn:next,groupChoicePlayer:null,pendingClaim:{
+  const mustChoose=updated.groupChoicePlayer===match.turn;
+  return {...updated,turn:mustChoose?match.turn:next,pendingTurn:mustChoose?next:null,
+   groupChoicePlayer:mustChoose?match.turn:null,pendingClaim:{
    claimant,scratcher:match.turn,
    returnable:group===null?[]:remainingCutthroatBalls(updated,group)
   },winner:null};
  }
  const winner=winningPlayer(updated);
  const keepTurn=legalPot&&activePlayer(updated,match.turn)&&winner===null;
- return {...updated,turn:keepTurn?match.turn:nextActivePlayer(updated,match.turn),winner};
+ const next=keepTurn?match.turn:nextActivePlayer(updated,match.turn);
+ // Preserve the source's right to choose a group until the end of the
+ // player's turn. A miss pauses the handoff until that choice is made.
+ if(!keepTurn&&updated.groupChoicePlayer===match.turn)
+  return {...updated,turn:match.turn,pendingTurn:next,winner:null};
+ return {...updated,turn:next,winner};
 }
 export function resolveCutthroatClaim(match,ballId=null){
  const claim=match.pendingClaim;
- if(!claim)throw new Error('No scratch claim is pending');
+ if(!claim||match.pendingTurn!==null)throw new Error('Resolve group choice before the scratch claim');
  if(ballId!==null&&!claim.returnable.includes(ballId))throw new Error('Ball cannot be claimed');
  const claimedBalls=ballId===null?match.claimedBalls||{}:{...match.claimedBalls,[ballId]:claim.claimant};
  const updated={...match,claimedBalls,pendingClaim:null};
