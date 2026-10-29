@@ -1,0 +1,21 @@
+/* Shared Squatch identity and compact live stats in every page header. */
+.squatch-unified-header{max-width:1120px!important;margin:0 auto!important;padding:18px 20px!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:12px!important;border-bottom:1px solid #92794e!important;background:linear-gradient(120deg,#17372b,#10261f)!important;color:#f3ebd7!important}
+.squatch-brand-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.squatch-brand-row .brand-mark{display:grid;place-items:center;font-size:30px;width:62px;height:62px;border:2px solid #bd9860;border-radius:10px;transform:rotate(-7deg);color:#eec887}
+.squatch-brand-row h1{font-family:Georgia,serif;font-size:clamp(1.5rem,5vw,2.3rem);margin:0!important;line-height:1.1;color:#fff3d9}
+.squatch-brand-row h1 span{color:#f0c982}
+.squatch-brand-row .eyebrow{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;font-weight:800;margin:0 0 3px;color:#c4d4bd}
+.squatch-release{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.8rem;color:#c4d4bd}
+.squatch-release .prototype{border:1px solid #8b997c;border-radius:30px;padding:5px 10px;font-weight:800;letter-spacing:.08em}
+.squatch-header-nav{display:flex;gap:10px;flex-wrap:wrap}
+.squatch-header-nav a{display:inline-block;padding:8px 12px;border:1px solid #a98b5d;border-radius:8px;color:#f6dfad;text-decoration:none;font-weight:800}
+.squatch-header-stats{padding:10px 14px;background:#284437;border:1px solid #69826a;border-radius:12px}
+.squatch-header-stats summary{cursor:pointer;font-weight:850;color:#f6d59b;padding:5px 0}
+.squatch-stat-numbers{display:flex;gap:20px;flex-wrap:wrap;padding:8px 0}
+.squatch-stat-numbers .stat{display:flex;align-items:baseline;gap:5px}
+.squatch-stat-numbers strong{font-size:1.25rem;color:#f8d48f}
+.squatch-stat-numbers span,.squatch-header-stats small{font-size:.82rem;color:#d2ddcf}
+.squatch-header-stats .stats-game-row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:.85rem}
+.squatch-header-stats .stats-game-row strong{color:#f5d394}
+.squatch-header-stats .stats-footnote{font-size:.78rem;margin:6px 0;color:#c7d8ca}
+@media(max-width:650px){.squatch-unified-header{padding:12px!important}.squatch-brand-row .brand-mark{width:46px;height:46px;font-size:24px}.squatch-release{font-size:.72rem}.squatch-stat-numbers{gap:12px}}
