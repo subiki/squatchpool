@@ -30,3 +30,20 @@ test('early 8 awards opponent provisional points and not 2',()=>{
  const r=pressTurn({match:pocketOpponentBalls(newMatch(),1,2),balls:balls(1),groups,shooter:0,shotEvents:pocket(8)});
  assert.deepEqual(r.match.scores,[0,2]);assert.equal(r.winner,1);
 });
+
+test('legal own-group clearance retains turn before pressing',()=>{
+ const r=pressTurn({match:newMatch(),balls:balls(2),groups,shooter:0,shotEvents:pocket(1)});
+ assert.equal(r.keepTurn,true);
+ assert.equal(r.nextPlayer,0);
+ assert.deepEqual(r.match.bonus,[0,0],'own balls never award opponent-ball bonuses');
+});
+test('open-table legal object ball keeps turn without premature bonus',()=>{
+ const r=pressTurn({match:newMatch(),balls:balls(2),groups:[null,null],shooter:0,shotEvents:pocket(1)});
+ assert.equal(r.keepTurn,true);
+ assert.deepEqual(r.match.bonus,[0,0]);
+});
+test('a legal miss on own group passes turn',()=>{
+ const r=pressTurn({match:newMatch(),balls:balls(2),groups,shooter:0});
+ assert.equal(r.keepTurn,false);
+ assert.equal(r.nextPlayer,1);
+});
