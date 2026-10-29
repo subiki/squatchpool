@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Coin-Op Cutthroat · Squatch Pool</title>
+<meta name="description" content="Play the original three-player Coin-Op Cutthroat with scratch claims and re-entry.">
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#12251e;color:#f4edda}
+*{box-sizing:border-box}*[hidden]{display:none!important}body{margin:0;line-height:1.5}
+header,main{max-width:1120px;margin:auto;padding:14px 20px}header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-bottom:1px solid #617765}
+a{color:#ffe0a0}h1{font-size:clamp(1.7rem,4vw,2.8rem);margin:10px 0}p{max-width:78ch}
+.notice{border-left:4px solid #f3c676;background:#263c30;padding:12px 18px;border-radius:6px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:14px 0}
+.controls label{display:grid;gap:5px;font-weight:650;min-width:135px}
+select,button,input{font:inherit}select,button{padding:12px;border-radius:9px;border:1px solid #b8b78d;background:#2b4638;color:#fff5da;min-height:48px}
+button{cursor:pointer;font-weight:750}button:disabled{opacity:.55;cursor:not-allowed}
+button.primary{background:#efc77c;color:#1a2b22;border-color:#fbe2a7}
+input[type=range]{width:155px;accent-color:#eec67b}
+.table-wrap{background:#553b29;padding:10px;border:7px solid #806344;border-radius:18px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
+#cut-turn{font-size:1.35rem;font-weight:850}#cut-scores,#cut-status{font-size:1.06rem}
+.choice{border:2px solid #eec67b;padding:12px 16px;border-radius:10px;margin:14px 0}
+details{border:1px solid #728b72;border-radius:10px;background:#223b2f;margin:12px 0}
+summary{cursor:pointer;font-weight:800;padding:13px 16px;min-height:48px}
+details>div{padding:12px 16px}li{margin:6px 0}
+:focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
+@media(max-width:650px){main,header{padding:12px}main{padding-bottom:100px}.table-wrap{padding:4px;border-width:5px}
+.controls label{flex:1;min-width:130px}select,button{width:100%}
+#cut-shoot{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 24px);z-index:20;box-shadow:0 5px 24px #000b}}
+</style></head><body>
+<header><strong>🌲 SQUATCH POOL · THE 4T'S</strong><nav><a href="./">All games</a> · <a href="./rules.html">Rules</a></nav></header>
+<main>
+<h1>Coin-Op Cutthroat</h1>
+<p class="notice"><strong>Three local players · pass and play.</strong> Protect your own balls: 1–5, 6–10 or 11–15. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
+<div class="controls"><button id="cut-new" type="button">New rack</button>
+<label>Table size<select id="cut-size"><option value="7">7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label></div>
+<div id="cut-turn" aria-live="polite"></div><p id="cut-scores"></p><p id="cut-status" role="status" aria-live="polite"></p>
+<div class="table-wrap"><canvas id="cut-table" aria-label="Coin-Op Cutthroat pool table. Drag on the felt to aim. Tap to place the white ball when prompted."></canvas></div>
+<div class="controls"><button id="cut-place" class="primary" type="button">Confirm break position</button></div>
+<section class="choice" id="cut-group" hidden><strong>Choose your ball group</strong>
+<p>You earned a group choice by legally pocketing a ball. You can keep playing before choosing, but must choose before your turn ends.</p>
+<div class="controls"><label>Group<select id="cut-group-select"></select></label><button id="cut-group-confirm" type="button">Claim this group</button></div></section>
+<section class="choice" id="cut-claim" hidden><strong>Third player's scratch claim</strong>
+<p>Choose an unpocketed ball from the scratcher's group to make it yours, or decline. No balls are re-spotted.</p>
+<div class="controls"><label>Choice<select id="cut-claim-select"></select></label><button id="cut-claim-confirm" type="button">Resolve claim</button></div></section>
+<details open><summary>Shot controls · power &amp; spin</summary><div class="controls">
+<label>Power <output id="cut-power-value">85%</output><input id="cut-power" type="range" min="10" max="100" value="85"></label>
+<label>Draw / follow <output id="cut-top-value">0%</output><input id="cut-top" type="range" min="-100" max="100" value="0"></label>
+<label>English <output id="cut-side-value">0%</output><input id="cut-side" type="range" min="-100" max="100" value="0"></label>
+</div></details>
+<div class="controls"><button class="primary" id="cut-shoot" type="button">BREAK</button></div>
+<details id="cut-rules"><summary>How to play · source rules &amp; controls</summary><div>
+<ol><li>Three players use all 15 numbered balls. Player 1 breaks; balls pocketed on the break stay down.</li>
+<li>After your first legal pocket, select an available group (1–5, 6–10, or 11–15) by the end of your turn.</li>
+<li>Pocket any object ball, including one you own, to continue shooting. A miss ends your turn. The 8 is not an automatic win.</li>
+<li>On a cue-ball scratch, the next active player gets ball in hand. The third player can claim one of the scratcher's unpocketed balls. A claimed ball changes owner without moving on the table; an eliminated player may re-enter.</li>
+<li>Last player with any ball on the table wins. Eliminated players skip turns unless revived.</li></ol>
+<p><strong>Controls:</strong> Tap the felt to place the cue ball when prompted. Drag or tap to aim from the white ball. Use the power and spin controls, then Shoot. Arrow keys adjust aim; Space shoots.</p>
+<p><strong>Source:</strong> <a href="./archive.html#episode-4">Original Episode 4 rules</a>. <strong>Playtest interpretation:</strong> A non-scratch shot that misses all object balls ends the turn; no additional foul penalty is imposed because the original manuscript does not specify one.</p>
+</div></details>
+<details><summary>Shot history</summary><div><ol id="cut-log" aria-live="polite"></ol></div></details>
+</main><script type="module" src="./src/cutthroat-game.js"></script></body></html>
