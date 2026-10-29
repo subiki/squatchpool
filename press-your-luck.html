@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Press Your Luck · Squatch Pool</title>
+<meta name="description" content="Play Press Your Luck: clear your group, pocket opponent balls for bonuses, then take the 8 to bank your points.">
+<link rel="stylesheet" href="./src/shared-header.css">
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#12251e;color:#f4edda}
+*{box-sizing:border-box}*[hidden]{display:none!important}body{margin:0;line-height:1.5}
+main{max-width:1120px;margin:auto;padding:18px 20px 60px}a{color:#ffe0a0}
+h2{font-size:clamp(1.4rem,4vw,2rem);margin:12px 0}
+.notice{border-left:4px solid #f3c676;background:#263c30;padding:12px 18px;border-radius:6px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:14px 0}
+.controls label{display:grid;gap:5px;font-weight:650;min-width:125px}
+select,button,input{font:inherit}select,button,input[type=number]{padding:10px;border-radius:9px;border:1px solid #b8b78d;background:#2b4638;color:#fff5da;min-height:44px}
+button{cursor:pointer;font-weight:750}button:disabled{opacity:.5;cursor:not-allowed}
+button.primary{background:#efc77c;color:#1a2b22;border-color:#fbe2a7}
+input[type=range]{width:155px;accent-color:#eec67b}
+.table-wrap{background:#553b29;padding:10px;border:7px solid #806344;border-radius:18px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
+#pyl-turn{font-size:1.3rem;font-weight:850}
+#pyl-score,#pyl-status{font-size:1.06rem}
+.panel{border:1px solid #728b72;border-radius:10px;background:#223b2f;padding:12px 16px;margin:12px 0}
+.pocket-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}
+.pocket-buttons button[aria-pressed=true]{background:#efc77c;color:#1a2b22}
+#pyl-log{max-height:200px;overflow:auto}
+:focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
+@media(max-width:650px){main{padding:12px 12px 110px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:130px}select,button{min-height:48px}#pyl-shoot{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 24px);z-index:20;box-shadow:0 5px 24px #000b}}
+</style></head><body>
+<header class="squatch-unified-header">
+<div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
+<div class="squatch-release"><span class="prototype">FIRST BREAK / v0.1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
+<nav class="squatch-header-nav" aria-label="Explore Squatch Pool"><a href="./">🎱 Play</a><a href="./rules.html">📜 Games &amp; Rules</a><a href="./archive.html">🌲 Field Notes</a></nav>
+<details class="squatch-header-stats" open><summary>Across Squatch Pool · Live statistics</summary>
+<div class="squatch-stat-numbers"><div class="stat"><strong id="site-stats-players">—</strong><span>Players</span></div><div class="stat"><strong id="site-stats-racks">—</strong><span>Racks</span></div><div class="stat"><strong id="site-stats-balls">—</strong><span>Balls made</span></div></div>
+<div id="site-stats-breakdown">Awaiting live totals</div>
+<p><strong>Press Your Luck:</strong> <span id="pyl-stats-game">Awaiting live totals</span></p>
+<p id="stats-status" class="stats-footnote" aria-live="polite">Connecting to statistics…</p><small id="pyl-stats-status"></small></details></header>
+<main><h2>🎲 Press Your Luck</h2>
+<p class="notice"><strong>Two-player local beta.</strong> Clear your own solids or stripes, then pocket opponent balls for +1 each. Call the 8 to bank your provisional points plus 2; a declared and successful bank/kick 8 doubles the rack payout. Only the rack winner scores. <a href="#pyl-rules">Rules &amp; provisional interpretations</a></p>
+<div class="controls"><label>Race to points<input id="pyl-target" type="number" min="1" max="10000" value="15"></label>
+<label>Table size<select id="pyl-size"><option value="7">7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label>
+<button id="pyl-new-match" type="button">New match</button><button id="pyl-next" type="button" hidden>Next rack</button></div>
+<div id="pyl-turn" aria-live="polite"></div><div id="pyl-score"></div><p id="pyl-status" role="status" aria-live="polite"></p>
+<div class="panel" id="pyl-eight-panel" hidden><strong>Call the 8-ball pocket</strong><p>Select a pocket to attempt the 8. A missed 8 forfeits your unbanked bonus. You may instead shoot opponent balls without calling the 8.</p>
+<div class="pocket-buttons" id="pyl-pockets" role="group" aria-label="Call the 8-ball pocket">
+<button type="button" data-pocket="TL">Top left</button><button type="button" data-pocket="TM">Top middle</button><button type="button" data-pocket="TR">Top right</button>
+<button type="button" data-pocket="BL">Bottom left</button><button type="button" data-pocket="BM">Bottom middle</button><button type="button" data-pocket="BR">Bottom right</button></div>
+<div class="controls"><label><input type="checkbox" id="pyl-bank"> Declare bank or kick 8 (2× if actually made)</label><button id="pyl-undo" type="button">Undo 8 call</button></div></div>
+<div class="table-wrap"><canvas id="pyl-table" aria-label="Press Your Luck pool table. Tap or drag to place the white ball when prompted, then aim from the white ball."></canvas></div>
+<div class="controls"><button id="pyl-place" class="primary" type="button">Confirm break position</button><button id="pyl-reposition" type="button" hidden>Reposition break cue</button></div>
+<details class="panel" open><summary>Shot controls · power and spin</summary><div class="controls">
+<label>Power <output id="pyl-power-value">85%</output><input id="pyl-power" type="range" min="10" max="100" value="85"></label>
+<label>Draw / follow <output id="pyl-top-value">0%</output><input id="pyl-top" type="range" min="-100" max="100" value="0"></label>
+<label>English <output id="pyl-side-value">0%</output><input id="pyl-side" type="range" min="-100" max="100" value="0"></label></div></details>
+<button class="primary" id="pyl-shoot" type="button">BREAK</button>
+<details class="panel" id="pyl-rules"><summary>Full rules, sources, and provisional decisions</summary>
+<p>Owner-approved rules: clear your group before pressing opponent balls (+1 each); called 8 earns 2 plus bonus; declared and completed bank/kick 8 doubles rack payout; missed 8 and scratches forfeit that shooter's provisional bonus. Early 8 or 8+scratch forfeits rack; opponent earns only their own provisional points. Race defaults to 15; winner breaks next. Eight on break is respotted.</p>
+<p><strong>Playtest interpretations (not original historical rules):</strong> First legally pocketed ball after the break assigns solids/stripes; mixed pots assign by the first pocket event. Legal own-group pots retain turn. No called shots required except the 8. First object-ball contact must be own group until cleared, then opponent group or 8. Other fouls give ball in hand. A declared bank/kick only doubles when cue hits a cushion before contacting the 8, or the 8 hits a cushion after contact and before entering the called pocket. Uncalled or wrong-pocket 8 loses the rack. Break scratches grant ball in hand. These choices remain subject to owner approval.</p>
+<p><a href="./archive.html#episode-2">Original Episode 2 archive</a> · <a href="https://docs.google.com/document/d/19FfvNqea7VoHx04AgKFQz-dGiWHq8gDVcz3rcklUqy0/edit">2024 concept source</a></p></details>
+<details class="panel"><summary>Rack log</summary><ol id="pyl-log" aria-live="polite"></ol></details>
+</main>
+<script type="module" src="./src/press-your-luck-game.js"></script>
+
+</body></html>
