@@ -11,16 +11,21 @@ const $=id=>document.getElementById(id);
 const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
 const level=i=>$('caroms-level-'+i).value;
-let state,lastTime=0,accumulator=0,botTimer=null,matchWins=[0,0];
+let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0];
 const solo=()=>$('caroms-mode').value==='bot';
 const isBot=()=>solo()&&state.turn===1;
 const humanTurn=()=>!isBot();
-function cancelBot(){if(botTimer!==null)clearTimeout(botTimer);botTimer=null;}
+// Invalidate callbacks even when clearTimeout races an already-queued callback.
+function cancelBot(){botActionId++;if(botTimer!==null)clearTimeout(botTimer);botTimer=null;}
 function scheduleBot(){
  cancelBot();if(!isBot()||!['aim','option'].includes(state.phase))return;
- const generation=state.generation;
+ const generation=state.generation,actionId=botActionId;
  botTimer=setTimeout(()=>{
-  botTimer=null;if(state.generation!==generation||!isBot())return;
+  // A stale callback must not clear the newer timer or act on a later bot turn
+  // in the same rack (the rack generation alone cannot distinguish turns).
+  if(state.generation!==generation||botActionId!==actionId||!isBot()||
+   !['aim','option'].includes(state.phase))return;
+  botTimer=null;
   if(state.phase==='option'){chooseOption(false);return;}
   const candidates=eligibleBalls(),white=cue();if(!candidates.length||!white||white.pocketed)return;
   // Bounded deterministic geometric baseline. All strokes use the real physics engine.
