@@ -32,13 +32,13 @@ test('scratch pauses turn for third player to choose an actual scratcher ball',(
  assert.equal(m.turn,1);
 });
 
-test('claim can revive a player after their last group ball was pocketed',()=>{
+test('scratch claim transfers ownership of a pocketed ball to the third player',()=>{
  let m=startCutthroat();
  m={...m,owners:[0,1,2],turn:0,pocketed:[1,2,3,4,5,6,7,8,9,10]};
  m=finishCutthroatShot(m,{scratch:true});
  assert.equal(m.winner,null);
  m=resolveCutthroatClaim(m,1);
- assert.equal(remainingCutthroatBalls(m,0).length,1);
+ assert.equal(remainingCutthroatBalls(m,0).length,0);\n assert.ok(remainingCutthroatBalls(m,2).includes(1));
  assert.equal(m.winner,null);
 });
 
