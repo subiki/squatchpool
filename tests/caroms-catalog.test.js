@@ -4,15 +4,19 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
-test('Caroms playable beta is discoverable with source and local play controls',()=>{
+test('Caroms beta catalog offers both solo bot and local pass-and-play',()=>{
  const catalog=read('index.html');
  const caroms=read('caroms.html');
  assert.match(catalog,/href="\.\/caroms\.html"/);
- assert.match(catalog,/PLAYABLE BETA · TWO LOCAL PLAYERS/);
+ assert.match(catalog,/PLAYABLE BETA · SOLO OR LOCAL/);
  assert.match(catalog,/Caroms uses provisional rule interpretations/);
  assert.match(caroms,/id="caroms-table"/);
  assert.match(caroms,/src="\.\/src\/caroms-game\.js"/);
- assert.match(caroms,/Playable local beta/);
+ assert.match(caroms,/<option value="bot" selected>Squatch Bot · solo<\/option>/);
+ assert.match(caroms,/<option value="local">Local player · pass and play<\/option>/);
+ assert.match(caroms,/Solo bot or two local players/);
+ assert.match(caroms,/First to two racks wins this playtest match/);
+ assert.match(caroms,/content="Play original Caroms.*solo against Squatch Bot/);
  const rules=read('rules.html');
  assert.match(rules,/href="\.\/caroms\.html">Play Caroms/);
 });
