@@ -7,7 +7,7 @@ import {CUTTHROAT_GROUPS,groupForBall} from './squatch-modes.js';
 const nextPlayer = p => (p+1)%3;
 const isObjectBall = id => Number.isInteger(id)&&id>=1&&id<=15;
 export function startCutthroat(){
- return {turn:0,owners:[null,null,null],pocketed:[],pendingClaim:null,winner:null};
+ return {turn:0,owners:[null,null,null],pocketed:[],claimedBalls:{},pendingClaim:null,winner:null};
 }
 export function availableGroups(match){
  return [0,1,2].filter(group=>!match.owners.includes(group));
@@ -19,7 +19,7 @@ export function assignCutthroatGroup(match,player,group){
  return {...match,owners:match.owners.map((value,i)=>i===player?group:value)};
 }
 export function remainingCutthroatBalls(match,group){
- return CUTTHROAT_GROUPS[group].filter(id=>!match.pocketed.includes(id));
+ return CUTTHROAT_GROUPS[group].filter(id=>!match.pocketed.includes(id)&&match.claimedBalls?.[id]===undefined)\n  .concat(Object.entries(match.claimedBalls||{}).filter(([id,owner])=>owner===match.owners.indexOf(group)&&!match.pocketed.includes(Number(id))).map(([id])=>Number(id)));
 }
 function winningPlayer(match){
  if(match.owners.some(group=>group===null))return null;
@@ -49,6 +49,6 @@ export function resolveCutthroatClaim(match,ballId=null){
  if(!claim)throw new Error('No scratch claim is pending');
  if(ballId!==null&&!claim.returnable.includes(ballId))throw new Error('Ball cannot be claimed');
  const pocketed=ballId===null?match.pocketed:match.pocketed.filter(id=>id!==ballId);
- const updated={...match,pocketed,pendingClaim:null};
+ const claimedBalls=ballId===null?match.claimedBalls||{}:{...match.claimedBalls,[ballId]:claim.claimant};\n const updated={...match,pocketed,claimedBalls,pendingClaim:null};
  return {...updated,winner:winningPlayer(updated)};
 }
