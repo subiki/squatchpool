@@ -11,6 +11,7 @@ test('three players take turns and may pocket their own balls to continue',()=>{
  assert.equal(m.turn,0);
  m=finishCutthroatShot(m);
  assert.equal(m.turn,1);
+ m=finishCutthroatShot(m,{pocketed:[6]});
  m=assignCutthroatGroup(m,1,1);
  assert.deepEqual(remainingCutthroatBalls(m,0),[3,4,5]);
  assert.throws(()=>assignCutthroatGroup(m,1,0));
@@ -18,8 +19,8 @@ test('three players take turns and may pocket their own balls to continue',()=>{
 
 test('scratch pauses turn for third player to choose an actual scratcher ball',()=>{
  let m=startCutthroat();
- m=assignCutthroatGroup(m,0,0);
  m=finishCutthroatShot(m,{pocketed:[1,2]});
+ m=assignCutthroatGroup(m,0,0);
  m=finishCutthroatShot(m,{scratch:true,pocketed:[3]});
  assert.equal(m.turn,1);
  assert.equal(m.pendingClaim.claimant,2);
@@ -28,7 +29,7 @@ test('scratch pauses turn for third player to choose an actual scratcher ball',(
  assert.throws(()=>resolveCutthroatClaim(m,9));
  m=resolveCutthroatClaim(m,4);
  assert.deepEqual(m.pocketed,[1,2,3]);
- assert.ok(remainingCutthroatBalls(m,2).includes(4));
+ assert.equal(m.claimedBalls[4],2); // claimant has not yet selected a group
  assert.equal(m.pendingClaim,null);
  assert.equal(m.turn,1);
 });
