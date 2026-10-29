@@ -33,15 +33,16 @@ function update(){
  const m=game.match,placing=game.phase==='placeBreak'||game.phase==='placeCue';
  const canShoot=game.phase==='aim';
  const claim=m.pendingClaim;
- $('cut-turn').textContent=m.winner!==null?names[m.winner]+' wins!':names[m.turn]+' · '+(placing?'place the white ball':game.phase==='moving'?'balls moving':game.phase==='claim'?'scratch claim':'shooting');
+ $('cut-turn').textContent=m.winner!==null?names[m.winner]+' wins!':names[m.turn]+' · '+(placing?'place the white ball':game.phase==='moving'?'balls moving':game.phase==='claim'?'scratch claim':game.phase==='chooseGroup'?'choose group':'shooting');
  $('cut-scores').textContent=m.owners.map((group,i)=>names[i]+': '+(group===null?'unassigned':ranges[group])+
   (group===null?'':' · '+remainingCutthroatBalls(m,group).length+' left')).join('  |  ');
  $('cut-status').textContent=m.winner!==null?'Last player with a ball on the table wins. Start a new rack to play again.':
   game.phase==='placeBreak'?'Tap or drag the cue ball behind the head string, then confirm break position.':
   game.phase==='placeCue'?'Scratch: incoming player has ball in hand. Tap an open place on the felt.':
   game.phase==='claim'?'Third player may claim one on-table ball from the scratcher, or decline.':
+  game.phase==='chooseGroup'?'Your turn has ended. Choose your earned group before play passes.':
   game.phase==='moving'?'Balls rolling…':
-  m.groupChoicePlayer===m.turn?'You earned a group choice. Select 1–5, 6–10 or 11–15 now, or continue your turn.':
+  m.groupChoicePlayer===m.turn?'You earned a group choice. Select 1–5, 6–10 or 11–15 now, or keep shooting.':
   game.breakShot?'Break the rack; balls pocketed on the break stay down.':
   'Aim from the white ball, then shoot. Any object ball may be pocketed, including your own.';
  $('cut-place').hidden=!placing;
@@ -49,7 +50,7 @@ function update(){
  $('cut-place').textContent=game.phase==='placeBreak'?'Confirm break position':'Confirm ball in hand';
  $('cut-shoot').disabled=!canShoot;
  $('cut-shoot').textContent=game.breakShot?'BREAK':'SHOOT';
- $('cut-group').hidden=!(m.groupChoicePlayer===m.turn&&game.phase==='aim');
+ $('cut-group').hidden=!(m.groupChoicePlayer===m.turn&&['aim','chooseGroup'].includes(game.phase));
  const choices=availableGroups(m);
  $('cut-group-select').replaceChildren(...choices.map(g=>new Option(ranges[g],String(g))));
  $('cut-claim').hidden=game.phase!=='claim';
@@ -72,6 +73,7 @@ function finishShot(){
  say(names[before]+': '+(pocketed.length?'pocketed '+pocketed.join(', '):'no ball pocketed')+
   (scratch?' · scratch. Third player decides a claim.':'.'));
  if(game.match.winner!==null){game.phase='done';say(names[game.match.winner]+' wins the rack.');}
+ else if(game.match.pendingTurn!==null){game.phase='chooseGroup';}
  else if(game.match.pendingClaim){game.phase='claim';}
  else game.phase='aim';
  update();
@@ -177,10 +179,14 @@ $('cut-shoot').addEventListener('click',shoot);
 $('cut-new').addEventListener('click',newGame);
 $('cut-size').addEventListener('change',newGame);
 $('cut-group-confirm').addEventListener('click',()=>{
- if(game.phase!=='aim'||game.match.groupChoicePlayer!==game.match.turn)return;
+ if(!['aim','chooseGroup'].includes(game.phase)||game.match.groupChoicePlayer!==game.match.turn)return;
  const g=Number($('cut-group-select').value);
  game.match=assignCutthroatGroup(game.match,game.match.turn,g);
- say(names[game.match.turn]+' chose '+ranges[g]+'.');update();
+ say(names[game.match.turn]+' chose '+ranges[g]+'.');
+ if(game.match.winner!==null)game.phase='done';
+ else if(game.match.pendingClaim)game.phase='claim';
+ else if(game.phase==='chooseGroup')game.phase='aim';
+ update();
 });
 $('cut-claim-confirm').addEventListener('click',()=>{
  if(game.phase!=='claim'||!game.match.pendingClaim)return;
