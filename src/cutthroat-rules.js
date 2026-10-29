@@ -2,7 +2,7 @@
  * Source: archive.html Episode 4. Unspecified foul/contact details are
  * intentionally left to the eventual browser adapter, not called canonical.
  */
-import {CUTTHROAT_GROUPS,groupForBall} from './squatch-modes.js';
+import {CUTTHROAT_GROUPS} from './squatch-modes.js';
 
 const nextPlayer = p => (p+1)%3;
 const isObjectBall = id => Number.isInteger(id)&&id>=1&&id<=15;
@@ -19,7 +19,8 @@ export function assignCutthroatGroup(match,player,group){
  return {...match,owners:match.owners.map((value,i)=>i===player?group:value)};
 }
 export function remainingCutthroatBalls(match,group){
- return CUTTHROAT_GROUPS[group].filter(id=>!match.pocketed.includes(id)&&match.claimedBalls?.[id]===undefined)\n  .concat(Object.entries(match.claimedBalls||{}).filter(([id,owner])=>owner===match.owners.indexOf(group)&&!match.pocketed.includes(Number(id))).map(([id])=>Number(id)));
+ return CUTTHROAT_GROUPS[group].filter(id=>!match.pocketed.includes(id)&&match.claimedBalls?.[id]===undefined)
+  .concat(Object.entries(match.claimedBalls||{}).filter(([id,owner])=>owner===match.owners.indexOf(group)&&!match.pocketed.includes(Number(id))).map(([id])=>Number(id)));
 }
 function winningPlayer(match){
  if(match.owners.some(group=>group===null))return null;
@@ -38,7 +39,7 @@ export function finishCutthroatShot(match,{pocketed=[],scratch=false,foul=false}
  if(scratch){
   return {...updated,turn:next,pendingClaim:{
    claimant:(match.turn+2)%3,scratcher:match.turn,returnable:match.owners[match.turn]===null?[]:
-    CUTTHROAT_GROUPS[match.owners[match.turn]].filter(id=>nextPocketed.includes(id))
+    CUTTHROAT_GROUPS[match.owners[match.turn]].filter(id=>nextPocketed.includes(id)&&match.claimedBalls?.[id]===undefined).concat(Object.entries(match.claimedBalls||{}).filter(([id,owner])=>owner===match.turn&&nextPocketed.includes(Number(id))).map(([id])=>Number(id)))
   },winner:null};
  }
  const winner=winningPlayer(updated);
@@ -49,6 +50,7 @@ export function resolveCutthroatClaim(match,ballId=null){
  if(!claim)throw new Error('No scratch claim is pending');
  if(ballId!==null&&!claim.returnable.includes(ballId))throw new Error('Ball cannot be claimed');
  const pocketed=ballId===null?match.pocketed:match.pocketed.filter(id=>id!==ballId);
- const claimedBalls=ballId===null?match.claimedBalls||{}:{...match.claimedBalls,[ballId]:claim.claimant};\n const updated={...match,pocketed,claimedBalls,pendingClaim:null};
+ const claimedBalls=ballId===null?match.claimedBalls||{}:{...match.claimedBalls,[ballId]:claim.claimant};
+ const updated={...match,pocketed,claimedBalls,pendingClaim:null};
  return {...updated,winner:winningPlayer(updated)};
 }
