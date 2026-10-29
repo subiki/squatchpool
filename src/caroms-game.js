@@ -4,6 +4,7 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
 import {respotCaromsBall} from './caroms-placement.js';
+import {caromsBreaker} from './caroms-match.js';
 import {initCaromsStats,newCaromsStatsId,reportCaromsRack,reportCaromsBalls} from './caroms-stats.js';
 
 const $=id=>document.getElementById(id);
@@ -85,7 +86,7 @@ function update(){
   state.phase==='option'?(isBot()?'Squatch Bot is choosing a foul option…':'Foul: incoming player chooses whether to move the white ball to center.'):
   state.phase==='done'?(matchWinner()>=0?player(matchWinner())+' wins the best-of-three match!':
    player(state.winner)+' wins this rack. Start the next rack.'):
-  state.breakShot?'Strike the 1-ball toward the white ball to break.':
+  state.breakShot?(isBot()?'Squatch Bot is lining up the 1-ball break.':'Strike the 1-ball toward the white ball to break.'):
   needCall?'Select an object ball, call the ball and pocket, then aim and shoot.':
   'Select one of your object balls, aim from it through the white ball, then shoot.';
  $('caroms-option').hidden=state.phase!=='option';
@@ -119,13 +120,13 @@ function newGame(){
  one.x=TABLE.radius+TABLE.width*.11;one.y=TABLE.height/2;
  white.x=headStringX()+TABLE.radius*3;white.y=TABLE.height/2;
  cancelBot();
- state={balls,groups:[null,null],turn:0,phase:'aim',breakShot:true,shooterBall:1,generation:(state?.generation||0)+1,
+ state={balls,groups:[null,null],turn:caromsBreaker(matchWins),phase:'aim',breakShot:true,shooterBall:1,generation:(state?.generation||0)+1,
   angle:0,power:85,spinTop:0,spinSide:0,calledBall:null,calledPocket:null,
   shot:null,shotNumber:0,winner:null,statsRackId:newCaromsStatsId()};
  accumulator=0;
  $('caroms-power').value='85';$('caroms-top').value='0';$('caroms-side').value='0';
  $('caroms-log').replaceChildren();
- log('Fresh Caroms rack. '+(solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
+ log('Fresh Caroms rack. '+player(state.turn)+' breaks. '+(solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
  scheduleBot();
  update();
 }
