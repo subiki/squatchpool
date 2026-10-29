@@ -132,7 +132,7 @@ function newGame(){
 }
 function newMatch(){
  matchWins=[0,0];newGame();
- log('New best-of-three match. First to two racks wins.');
+ log('New best-of-three match. First to two racks wins. Breaks alternate each rack (playtest rule).');
 }
 function respot(id){
  return respotCaromsBall(state.balls,id);
