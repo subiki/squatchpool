@@ -21,9 +21,10 @@ test('Caroms beta catalog offers both solo bot and local pass-and-play',()=>{
  assert.match(rules,/href="\.\/caroms\.html">Play Caroms/);
 });
 
-test('But Wait remains the primary table and Caroms is a playable beta',()=>{
+test('But Wait remains the primary table with Caroms and Press Your Luck playable betas',()=>{
  const catalog=read('index.html');
  assert.equal((catalog.match(/PLAYABLE NOW/g)||[]).length,1);
  assert.match(catalog,/🎱 But Wait, There's More/);
- assert.match(catalog,/IN DEVELOPMENT/);
+ assert.match(catalog,/href="\.\/press-your-luck\.html"/);
+ assert.match(catalog,/PLAYABLE BETA · TWO LOCAL PLAYERS/);
 });
