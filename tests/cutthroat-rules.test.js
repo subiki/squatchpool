@@ -38,7 +38,8 @@ test('scratch claim transfers ownership of a pocketed ball to the third player',
  m=finishCutthroatShot(m,{scratch:true});
  assert.equal(m.winner,null);
  m=resolveCutthroatClaim(m,1);
- assert.equal(remainingCutthroatBalls(m,0).length,0);\n assert.ok(remainingCutthroatBalls(m,2).includes(1));
+ assert.equal(remainingCutthroatBalls(m,0).length,0);
+ assert.ok(remainingCutthroatBalls(m,2).includes(1));
  assert.equal(m.winner,null);
 });
 
