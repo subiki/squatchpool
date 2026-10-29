@@ -45,6 +45,7 @@ test('real controller initializes and allows a human break only after legal kitc
  canvas.setPointerCapture=()=>{};
  globalThis.document={
   getElementById:$,
+  createElement:tag=>make('created-'+tag),
   querySelector:selector=>selector.startsWith('#')?$(selector.slice(1)):null,
   querySelectorAll:selector=>selector==='#pyl-pockets button'?pockets:[]
  };
