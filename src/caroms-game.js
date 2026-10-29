@@ -227,7 +227,9 @@ function aim(p){
  if(Math.hypot(dx,dy)>radiansToPixels())state.angle=Math.atan2(dy,dx);
 }
 const radiansToPixels=()=>TABLE.radius;
-let dragging=false;
+let dragging=false,startedOnBall=false,dragStart=null;
+const movedFromStart=e=>dragStart&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY)&&
+ Math.hypot(e.clientX-dragStart.x,e.clientY-dragStart.y)>=6;
 canvas.addEventListener('pointerdown',e=>{
  if(state.phase!=='aim')return;
  const p=point(e),nearest=eligibleBalls().map(b=>({b,d:Math.hypot(b.x-p.x,b.y-p.y)}))
@@ -239,9 +241,11 @@ canvas.addEventListener('pointerdown',e=>{
  const cssHitRadius=e.pointerType==='touch'?22:e.pointerType==='pen'?16:0;
  const hitRadius=Math.max(TABLE.radius*2.4,
   cssHitRadius&&rect.width>0?cssHitRadius*TABLE.width/rect.width:0);
- if(nearest&&nearest.d<hitRadius){
-  // Press-and-drag from a ball should select AND aim in one gesture on touch.
-  // A simple tap still selects without changing the aim of the same ball.
+ dragStart={x:e.clientX,y:e.clientY};
+ startedOnBall=Boolean(nearest&&nearest.d<hitRadius);
+ if(startedOnBall){
+  // Tapping a ball selects it without rotating the cue. A deliberate drag
+  // (6 CSS pixels) selects and aims in one gesture, even on a small phone.
   if(state.shooterBall!==nearest.b.id)state.angle=0;
   state.shooterBall=nearest.b.id;
   // One-touch calling: an advanced player may tap the intended object ball,
@@ -254,13 +258,19 @@ canvas.addEventListener('pointerdown',e=>{
  }
  dragging=true;canvas.setPointerCapture(e.pointerId);aim(p);
 });
-canvas.addEventListener('pointermove',e=>{if(dragging)aim(point(e));});
+canvas.addEventListener('pointermove',e=>{
+ if(dragging&&(!startedOnBall||movedFromStart(e)))aim(point(e));
+});
 canvas.addEventListener('pointerup',e=>{
  // Some touch devices deliver the final position only with pointerup.
- if(dragging&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY))aim(point(e));
- dragging=false;
+ // Do not reinterpret a stationary finger tap as an aim command.
+ if(dragging&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY)&&
+  (!startedOnBall||movedFromStart(e)))aim(point(e));
+ dragging=false;startedOnBall=false;dragStart=null;
 });
-canvas.addEventListener('pointercancel',()=>{dragging=false;});
+canvas.addEventListener('pointercancel',()=>{
+ dragging=false;startedOnBall=false;dragStart=null;
+});
 $('caroms-striker').addEventListener('change',e=>{state.shooterBall=Number(e.target.value);update();});
 $('caroms-call-ball').addEventListener('change',e=>{state.calledBall=e.target.value?Number(e.target.value):null;update();});
 $('caroms-call-pocket').addEventListener('change',e=>{state.calledPocket=e.target.value||null;update();});
