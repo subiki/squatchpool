@@ -33,6 +33,11 @@ details>div{padding:12px 16px}li{margin:6px 0}
 <div class="controls"><button id="cut-new" type="button">New rack</button>
 <label>Table size<select id="cut-size"><option value="7">7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label></div>
 <div id="cut-turn" aria-live="polite"></div><p id="cut-scores"></p><p id="cut-status" role="status" aria-live="polite"></p>
+<div class="notice" aria-label="Live Cutthroat and sitewide statistics">
+<strong>Cutthroat:</strong> <span id="cut-stats-game">Statistics unavailable until connected.</span>
+<p><strong>All games:</strong> <span id="cut-stats-site">Statistics unavailable until connected.</span></p>
+<small id="cut-stats-status" role="status" aria-live="polite">Checking live statistics…</small>
+</div>
 <div class="table-wrap"><canvas id="cut-table" aria-label="Coin-Op Cutthroat pool table. Drag on the felt to aim. Tap to place the white ball when prompted."></canvas></div>
 <div class="controls"><button id="cut-place" class="primary" type="button">Confirm break position</button></div>
 <section class="choice" id="cut-group" hidden><strong>Choose your ball group</strong>
