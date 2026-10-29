@@ -5,7 +5,7 @@ import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
-import {planCaromsBotShot} from './caroms-bot-aim.js';
+import {chooseCaromsBotShot} from './caroms-bot-physics.js';
 import {initCaromsStats,newCaromsStatsId,reportCaromsRack,reportCaromsBalls} from './caroms-stats.js';
 
 const $=id=>document.getElementById(id);
@@ -32,8 +32,9 @@ function scheduleBot(){
   // Bounded deterministic geometric baseline. All strokes use the real physics engine.
   // Seek an unobstructed glancing white-ball contact that sends the struck
   // object toward a pocket. Keep the 1-ball break and a deterministic fallback.
-  const planned=!state.breakShot&&planCaromsBotShot({
-   balls:state.balls,eligible:candidates,cueBall:white,pockets,radius:TABLE.radius
+  const planned=!state.breakShot&&chooseCaromsBotShot({
+   balls:state.balls,eligible:candidates,cueBall:white,pockets,radius:TABLE.radius,
+   groups:state.groups,turn:state.turn,level:level(state.turn)
   });
   const b=planned?candidates.find(ball=>ball.id===planned.ballId):
    candidates.slice().sort((a,z)=>Math.hypot(a.x-white.x,a.y-white.y)-Math.hypot(z.x-white.x,z.y-white.y))[0];
