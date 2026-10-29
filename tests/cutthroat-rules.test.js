@@ -93,3 +93,13 @@ test('balls pocketed on a foul stay down and no illegal group is awarded',()=>{
  assert.equal(m.groupChoicePlayer,null);
  assert.throws(()=>assignCutthroatGroup(m,1,0));
 });
+
+test('third group is assigned automatically when the first two groups are chosen',()=>{
+ let m=finishCutthroatShot(startCutthroat(),{pocketed:[1]});
+ m=assignCutthroatGroup(m,0,0);
+ m=finishCutthroatShot(m);
+ m=finishCutthroatShot(m,{pocketed:[6]});
+ m=assignCutthroatGroup(m,1,1);
+ assert.deepEqual(m.owners,[0,1,2]);
+ assert.equal(remainingCutthroatBalls(m,2).length,5);
+});
