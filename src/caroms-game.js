@@ -10,8 +10,32 @@ const $=id=>document.getElementById(id);
 const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
 const level=i=>$('caroms-level-'+i).value;
-let state,lastTime=0,accumulator=0;
-const player=i=>'Player '+(i+1);
+let state,lastTime=0,accumulator=0,botTimer=null;
+const solo=()=>$('caroms-mode').value==='bot';
+const isBot=()=>solo()&&state.turn===1;
+const humanTurn=()=>!isBot();
+function cancelBot(){if(botTimer!==null)clearTimeout(botTimer);botTimer=null;}
+function scheduleBot(){
+ cancelBot();if(!isBot()||!['aim','option'].includes(state.phase))return;
+ const generation=state.generation;
+ botTimer=setTimeout(()=>{
+  botTimer=null;if(state.generation!==generation||!isBot())return;
+  if(state.phase==='option'){chooseOption(false);return;}
+  const candidates=eligibleBalls(),white=cue();if(!candidates.length||!white||white.pocketed)return;
+  // Bounded deterministic geometric baseline. All strokes use the real physics engine.
+  const b=candidates.slice().sort((a,z)=>Math.hypot(a.x-white.x,a.y-white.y)-Math.hypot(z.x-white.x,z.y-white.y))[0];
+  state.shooterBall=b.id;state.angle=Math.atan2(white.y-b.y,white.x-b.x);
+  state.power=78;state.spinTop=0;state.spinSide=0;
+  const required=!state.breakShot&&caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn]));
+  if(required){
+   state.calledBall=b.id;
+   const p=pockets.slice().sort((a,z)=>Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(z.x-b.x,z.y-b.y))[0];
+   state.calledPocket=p?.id??null;
+  }
+  update();hit();
+ },650);
+}
+const player=i=>i===1&&solo()?'Squatch Bot':'Player '+(i+1);
 const cue=()=>state.balls.find(b=>b.id===0);
 const striker=()=>state.balls.find(b=>b.id===state.shooterBall);
 function log(message){
@@ -37,7 +61,7 @@ function updateSelect(select,options,selected,placeholder){
 function update(){
  const available=eligibleBalls();
  if(!available.some(b=>b.id===state.shooterBall))state.shooterBall=available[0]?.id??null;
- const canAim=state.phase==='aim',needCall=!state.breakShot&&caromsCallRequired(level(state.turn),
+ const canAim=state.phase==='aim'&&humanTurn(),needCall=!state.breakShot&&caromsCallRequired(level(state.turn),
   caromsEligible(state.balls,state.groups[state.turn]));
  // Only offer legal called targets: any group ball on an open table,
  // your own group once assigned, or the 8 after clearing that group.
@@ -56,7 +80,7 @@ function update(){
  $('caroms-score').textContent=state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
   (g?' ('+liveGroupBalls(state.balls,g).length+' left)':'')).join('   ·   ');
  $('caroms-status').textContent=state.phase==='moving'?'Balls rolling…':
-  state.phase==='option'?'Foul: incoming player chooses whether to move the white ball to center.':
+  state.phase==='option'?(isBot()?'Squatch Bot is choosing a foul option…':'Foul: incoming player chooses whether to move the white ball to center.'):
   state.phase==='done'?player(state.winner)+' wins the rack!':
   state.breakShot?'Strike the 1-ball toward the white ball to break.':
   needCall?'Select an object ball, call the ball and pocket, then aim and shoot.':
@@ -89,13 +113,15 @@ function newGame(){
  const balls=fullRack(),one=balls.find(b=>b.id===1),white=balls.find(b=>b.id===0);
  one.x=TABLE.radius+TABLE.width*.11;one.y=TABLE.height/2;
  white.x=headStringX()+TABLE.radius*3;white.y=TABLE.height/2;
- state={balls,groups:[null,null],turn:0,phase:'aim',breakShot:true,shooterBall:1,
+ cancelBot();
+ state={balls,groups:[null,null],turn:0,phase:'aim',breakShot:true,shooterBall:1,generation:(state?.generation||0)+1,
   angle:0,power:85,spinTop:0,spinSide:0,calledBall:null,calledPocket:null,
   shot:null,shotNumber:0,winner:null,statsRackId:newCaromsStatsId()};
  accumulator=0;
  $('caroms-power').value='85';$('caroms-top').value='0';$('caroms-side').value='0';
  $('caroms-log').replaceChildren();
- log('Fresh Caroms rack. Player 1 breaks with the 1-ball. Two-player local play.');
+ log('Fresh Caroms rack. '+(solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
+ scheduleBot();
  update();
 }
 function respot(id){
@@ -124,7 +150,7 @@ function finishShot(){
   state.turn=decision.nextPlayer;
   state.phase=decision.cueOption?'option':'aim';
  }
- update();
+ update();scheduleBot();
 }
 function hit(){
  if(state.phase!=='aim')return;
@@ -150,7 +176,7 @@ function chooseOption(center){
  if(state.phase!=='option')return;
  if(center&&!respot(0)){log('No clear center placement; white ball stays put.');}
  else if(center)log(player(state.turn)+' moved the white ball near table center.');
- state.phase='aim';update();
+ state.phase='aim';update();scheduleBot();
 }
 function draw(){
  const w=TABLE.width,h=TABLE.height,r=TABLE.radius;
@@ -231,7 +257,7 @@ let dragging=false,startedOnBall=false,dragStart=null;
 const movedFromStart=e=>dragStart&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY)&&
  Math.hypot(e.clientX-dragStart.x,e.clientY-dragStart.y)>=6;
 canvas.addEventListener('pointerdown',e=>{
- if(state.phase!=='aim')return;
+ if(state.phase!=='aim'||!humanTurn())return;
  const p=point(e),nearest=eligibleBalls().map(b=>({b,d:Math.hypot(b.x-p.x,b.y-p.y)}))
   .sort((a,b)=>a.d-b.d)[0];
  // Regulation balls render only ~7px wide on a phone. Keep the real ball
@@ -292,13 +318,14 @@ for(const i of [0,1])$('caroms-level-'+i).addEventListener('change',update);
 $('caroms-shoot').addEventListener('click',hit);
 $('caroms-new').addEventListener('click',newGame);
 $('caroms-size').addEventListener('change',newGame);
+$('caroms-mode').addEventListener('change',newGame);
 $('caroms-center').addEventListener('click',()=>chooseOption(true));
 $('caroms-leave').addEventListener('click',()=>chooseOption(false));
 window.addEventListener('keydown',e=>{
  // Let focused buttons, links, sliders and other controls handle their own keys.
  // Space on Undo/New rack must never fire a shot instead of activating the control.
  const tag=e.target?.tagName?.toLowerCase();
- if(!state||state.phase!=='aim'||e.target?.isContentEditable||
+ if(!state||state.phase!=='aim'||!humanTurn()||e.target?.isContentEditable||
   (tag&&!['body','html','canvas'].includes(tag))||
   e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
  if(e.key==='ArrowLeft'){state.angle-=.025;e.preventDefault();}
