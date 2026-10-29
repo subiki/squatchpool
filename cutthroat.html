@@ -25,19 +25,23 @@ details>div{padding:12px 16px}li{margin:6px 0}
 @media(max-width:650px){main,header{padding:12px}main{padding-bottom:100px}.table-wrap{padding:4px;border-width:5px}
 .controls label{flex:1;min-width:130px}select,button{width:100%}
 #cut-shoot{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 24px);z-index:20;box-shadow:0 5px 24px #000b}}
-</style></head><body>
-<header><strong>🌲 SQUATCH POOL · THE 4T'S</strong><nav><a href="./">All games</a> · <a href="./rules.html">Rules</a></nav></header>
+</style><link rel="stylesheet" href="./src/shared-header.css"></head><body>
+<header class="squatch-unified-header">
+<div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
+<div class="squatch-release" aria-label="Version and deployment"><span class="prototype">FIRST BREAK / v0.1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
+<nav class="squatch-header-nav" aria-label="Explore Squatch Pool"><a href="./" >🎱 Play</a><a href="./rules.html" >📜 Games &amp; Rules</a><a href="./archive.html" >🌲 Field Notes</a></nav>
+<details class="squatch-header-stats" open><summary>Across Squatch Pool · Live statistics</summary>
+<div class="squatch-stat-numbers" aria-label="Site-wide statistics"><div class="stat"><strong id="site-stats-players">—</strong><span>Players</span></div><div class="stat"><strong id="site-stats-racks">—</strong><span>Racks</span></div><div class="stat"><strong id="site-stats-balls">—</strong><span>Balls made</span></div></div>
+<div class="stats-breakdown"><strong>By game</strong><div id="site-stats-breakdown">Awaiting live totals</div></div>
+<p><strong>Cutthroat:</strong> <span id="cut-stats-game">Awaiting live totals</span></p><span id="cut-stats-site" hidden></span><small id="cut-stats-status"></small>
+<p class="stats-footnote" id="stats-status" aria-live="polite">Connecting to live statistics…</p></details></header>
 <main>
 <h1>Coin-Op Cutthroat</h1>
 <p class="notice"><strong>Three local players · pass and play.</strong> Protect your own balls: 1–5, 6–10 or 11–15. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
 <div class="controls"><button id="cut-new" type="button">New rack</button>
 <label>Table size<select id="cut-size"><option value="7">7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label></div>
 <div id="cut-turn" aria-live="polite"></div><p id="cut-scores"></p><p id="cut-status" role="status" aria-live="polite"></p>
-<div class="notice" aria-label="Live Cutthroat and sitewide statistics">
-<strong>Cutthroat:</strong> <span id="cut-stats-game">Statistics unavailable until connected.</span>
-<p><strong>All games:</strong> <span id="cut-stats-site">Statistics unavailable until connected.</span></p>
-<small id="cut-stats-status" role="status" aria-live="polite">Checking live statistics…</small>
-</div>
+
 <div class="table-wrap"><canvas id="cut-table" aria-label="Coin-Op Cutthroat pool table. Drag on the felt to aim. Tap to place the white ball when prompted."></canvas></div>
 <div class="controls"><button id="cut-place" class="primary" type="button">Confirm break position</button><button id="cut-reposition" type="button" hidden>Reposition break cue ball</button></div>
 <section class="choice" id="cut-group" hidden><strong>Choose your ball group</strong>
@@ -71,4 +75,4 @@ import('./src/cutthroat-game.js').catch(error=>{
   if(stats)stats.textContent='Cutthroat game script failed to load; statistics could not initialize.';
   console.error('Cutthroat startup failed',error);
 });
-</script></body></html>
+</script><script type="module" src="./src/shared-header.js"></script></body></html>
