@@ -16,8 +16,8 @@ for (const [name,path] of [
   let onKey=null,shots=0;
   const state={phase:'aim',turn:0,angle:0};
   const window={addEventListener(type,fn){if(type==='keydown')onKey=fn;}};
-  if(name==='Caroms')new Function('window','state','hit',handler[0])(
-   window,state,()=>{shots++;});
+  if(name==='Caroms')new Function('window','state','humanTurn','hit',handler[0])(
+   window,state,()=>true,()=>{shots++;});
   else new Function('window','state','human','hit',handler[0])(
    window,state,()=>true,()=>{shots++;});
   assert.equal(typeof onKey,'function');

@@ -4,6 +4,8 @@ import {createStatsClient,newStatsId} from './stats.js';
 let tracker=null;
 const GAME_ID='caroms';
 const put=(id,value)=>{
+ // Stats responses may finish after navigation or a headless DOM teardown.
+ if(typeof document==='undefined')return;
  const el=document.getElementById(id);
  if(el)el.textContent=value;
 };
