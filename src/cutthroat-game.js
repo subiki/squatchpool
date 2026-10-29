@@ -180,9 +180,9 @@ $('cut-new').addEventListener('click',newGame);
 $('cut-size').addEventListener('change',newGame);
 $('cut-group-confirm').addEventListener('click',()=>{
  if(!['aim','chooseGroup'].includes(game.phase)||game.match.groupChoicePlayer!==game.match.turn)return;
- const g=Number($('cut-group-select').value);
- game.match=assignCutthroatGroup(game.match,game.match.turn,g);
- say(names[game.match.turn]+' chose '+ranges[g]+'.');
+ const g=Number($('cut-group-select').value),chooser=game.match.turn;
+ game.match=assignCutthroatGroup(game.match,chooser,g);
+ say(names[chooser]+' chose '+ranges[g]+'.');
  if(game.match.winner!==null)game.phase='done';
  else if(game.match.pendingClaim)game.phase='claim';
  else if(game.phase==='chooseGroup')game.phase='aim';
