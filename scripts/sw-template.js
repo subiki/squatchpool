@@ -21,8 +21,20 @@ self.addEventListener('fetch', event => {
       url.pathname.startsWith('/api/')) return; // Stats/API must never be cached.
   const path = url.pathname === '/' ? '/index.html' : url.pathname;
   if (PRECACHE_SET.has(path)) {
-    event.respondWith(caches.open(CACHE_NAME).then(cache => cache.match(path))
-      .then(cached => cached || fetch(request)));
+    event.respondWith(caches.open(CACHE_NAME).then(async cache => {
+      const cached = await cache.match(path);
+      if (cached) return cached;
+      // Browser storage eviction can remove a cache while its worker remains
+      // active. Repair allowlisted assets during online play, without caching
+      // errors or touching the network-only /api/ endpoint.
+      const response = await fetch(request);
+      if (response.ok && response.type !== 'opaque') {
+        try { await cache.put(path, response.clone()); } catch {
+          // Storage quota errors must not break otherwise playable online games.
+        }
+      }
+      return response;
+    }));
   } else if (request.mode === 'navigate') {
     // New routes not in this installed edition still fail gracefully without internet.
     event.respondWith(fetch(request).catch(() => caches.open(CACHE_NAME)
