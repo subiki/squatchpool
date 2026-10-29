@@ -58,7 +58,9 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   timers.delete(id);fn();
  };
  const breakAwayFromCue=()=>{
-  const x=TABLE.radius+TABLE.width*.11-65,y=TABLE.height/2;
+  // Shoot vertically away from the white ball: a leftward bank can
+  // rebound into the cue ball and accidentally become a legal break.
+  const x=TABLE.radius+TABLE.width*.11,y=TABLE.height/2-65;
   listeners.get('caroms-table:pointerdown')({
    clientX:x,clientY:y,pointerId:3,pointerType:'mouse'});
   listeners.get('caroms-table:pointerup')({
