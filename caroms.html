@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Caroms · Squatch Pool Playable Beta</title>
-<meta name="description" content="Play original Caroms (Whacky Pool), a two-player local Squatch house game in beta.">
+<meta name="description" content="Play original Caroms (Whacky Pool) solo against Squatch Bot or locally with a friend in beta.">
 <style>
 :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#12251e;color:#f4edda}
 *[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;line-height:1.5}main,header{max-width:1120px;margin:auto;padding:16px 22px}
@@ -37,54 +37,29 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 .story-panel blockquote{border-left:3px solid #eec67b;padding-left:16px;margin:14px 0}.story-actions a{display:inline-block;padding:8px 12px;min-height:44px}.rules-list{padding-left:24px;margin:10px 0}.rules-list li{margin:6px 0}
 .gameplay-heading{margin:18px 0 8px;font-size:1.2rem}.stats-panel strong{color:#f7d18b}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
-@media(max-width:650px){main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
+@media(max-width:650px){main{padding-bottom:100px}#caroms-shoot{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 24px);z-index:20;box-shadow:0 5px 24px #000b}main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
 </style>
 </head>
 <body>
-<header><strong>🌲 SQUATCH POOL · THE 4T'S</strong><nav><a href="./">Original game</a> · <a href="./rules.html">Rules</a> · <a href="./archive.html#episode-3">Episode 3 manuscript</a></nav></header>
+<header><strong>🌲 SQUATCH POOL · THE 4T'S</strong><nav><a href="./">All games</a> · <a href="./rules.html">Rules</a></nav></header>
 <main>
 <h1>Caroms (Whacky Pool)</h1>
-<details class="panel story-panel" open id="caroms-story-panel">
-<summary>🌲 The Squatch story · Episode 3 (tap to collapse)</summary>
-<div class="panel-body">
-<p><strong>From J. F. Lynwood's original 2024 Caroms manuscript.</strong></p>
-<p>At The 4T's in the Pacific Northwest rainforest, Big Jim and Giggly Squatch meet over a strange game: they strike numbered balls toward the white cue ball, using it as a backboard. Hudsquatch watches, offering loud commentary.</p>
-<p>Big Jim wins the opening toss and breaks with the 1-ball. Giggly learns that missing the white cue ball is a foul, and that using the white ball to pocket another ball is an illegal shortcut. Across three racks, Big Jim's methodical advanced play meets Giggly's enthusiastic beginner shots. Hudsquatch explains option fouls, center placement, and why their calling rules differ.</p>
-<blockquote>“Ah, Giggly, ya gotta hit the cue ball first!” — Hudsquatch</blockquote>
-<p>Giggly improves as the match unfolds, while Big Jim's patience wins out. Their final handshake leaves J. F. Lynwood looking forward to the next unusual game at The 4T's.</p>
-<p class="story-actions"><a href="#caroms-play-anchor">Skip story · play now</a> · <a href="./archive.html#episode-3">Read the full original story</a></p>
-<p><small>This is a condensed retelling. The complete original manuscript is preserved in the archive.</small></p>
-</div></details>
-<details class="panel" open id="caroms-rules-panel"><summary>How to play · rules &amp; controls</summary><div class="panel-body">
-<p><strong>Two local players.</strong> Caroms is a playable beta. Shoot a numbered object ball into the white cue ball first; after contact, a ball must reach a rail. Pocket balls to clear your group, then legally pocket the 8.</p>
-<ol class="rules-list">
-<li>Break with the 1-ball. On each turn, select a numbered object ball to strike, then aim and shoot.</li>
-<li>First contact must be with the white ball. After that contact, a ball must touch a rail or it is a foul.</li>
-<li>Beginners play slop, intermediate players call the 8, and advanced players call every shot. Each player can choose their own level.</li>
-<li>When a call is required, tap the ball and pocket or use the selectors; Undo call clears the choice.</li>
-<li>Tap a ball, then drag on the felt to aim. Arrow keys adjust aim; Space shoots. On an option foul, the incoming player chooses whether to leave the white ball or move it to center. A scratched white ball returns to center.</li>
-</ol>
-<p><strong>Playtest interpretations:</strong> A struck ball can score after a legal carom; an 8 pocketed on the break is re-spotted. See the <a href="./archive.html#episode-3">original Episode 3 manuscript</a>.</p>
-</div></details>
+<p class="notice"><strong>Play Caroms:</strong> Play solo against Squatch Bot or pass and play with a friend. First to two racks wins this playtest match. Strike a numbered ball into the white ball first; after contact, a ball must reach a rail. <a href="#caroms-rules-panel">More rules</a></p>
+<div class="controls"><button id="caroms-new" type="button">Next / restart rack</button><button id="caroms-match-reset" type="button">New match</button></div>
 <details class="panel" id="caroms-setup-panel"><summary>Table &amp; player settings</summary><div class="panel-body">
 <div class="controls">
+<label>Opponent<select id="caroms-mode"><option value="bot" selected>Squatch Bot · solo</option><option value="local">Local player · pass and play</option></select></label>
 <label>Table size<select id="caroms-size"><option value="7" selected>7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label>
 <label>Player 1 skill<select id="caroms-level-0"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
 <label>Player 2 skill<select id="caroms-level-1"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
-<button id="caroms-new" type="button">New rack</button>
+
 </div></div></details>
 <div id="caroms-turn" aria-live="polite"></div>
 <div id="caroms-score"></div>
 <p id="caroms-status" role="status" aria-live="polite"></p>
-<details class="panel" aria-label="Live Caroms and sitewide statistics"><summary>Live statistics</summary><div class="panel-body stats-panel"><p><strong>Caroms players · racks · balls</strong></p><p id="caroms-stats-game">Statistics unavailable until connected.</p><p><strong>All Squatch games</strong></p><p id="caroms-stats-site">Statistics unavailable until connected.</p><p id="caroms-stats-status" role="status" aria-live="polite">Checking live statistics…</p></div></details>
+<div class="stats-panel" aria-label="Live Caroms and sitewide statistics"><p><strong>Caroms:</strong> <span id="caroms-stats-game">Statistics unavailable until connected.</span></p><p><strong>All games:</strong> <span id="caroms-stats-site">Statistics unavailable until connected.</span></p><p id="caroms-stats-status" role="status" aria-live="polite">Checking live statistics…</p></div>
 <h2 class="gameplay-heading">Pool table</h2><div id="caroms-play-anchor"></div><div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
 <div id="caroms-option" hidden><strong>Option foul</strong><p>Incoming player: leave the white ball where it is or place it near table center?</p><div class="controls"><button id="caroms-leave" type="button">Leave white ball</button><button id="caroms-center" type="button">Move white ball to center</button></div></div>
-<details class="panel" open id="caroms-shot-panel"><summary>Shot controls · power &amp; spin</summary><div class="panel-body"><div class="controls">
-<label>Object ball to strike<select id="caroms-striker" aria-label="Object ball to strike"></select></label>
-<label>Power <output id="caroms-power-value">85%</output><input id="caroms-power" type="range" min="10" max="100" value="85"></label>
-<label>Draw / follow <output id="caroms-top-value">0%</output><input id="caroms-top" type="range" min="-100" max="100" value="0"></label>
-<label>English <output id="caroms-side-value">0%</output><input id="caroms-side" type="range" min="-100" max="100" value="0"></label>
-</div></div></details>
 <div class="controls" id="caroms-call-controls" hidden>
 <label>Called ball<select id="caroms-call-ball"><option value="">Choose called ball</option></select></label>
 <label>Called pocket<select id="caroms-call-pocket"><option value="">Choose pocket</option></select></label>
@@ -98,8 +73,36 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 </div>
 <button id="caroms-undo" type="button" disabled>Undo call</button>
 </div>
+<details class="panel" open id="caroms-shot-panel"><summary>Shot controls · power &amp; spin</summary><div class="panel-body"><div class="controls">
+<label>Object ball to strike<select id="caroms-striker" aria-label="Object ball to strike"></select></label>
+<label>Power <output id="caroms-power-value">85%</output><input id="caroms-power" type="range" min="10" max="100" value="85"></label>
+<label>Draw / follow <output id="caroms-top-value">0%</output><input id="caroms-top" type="range" min="-100" max="100" value="0"></label>
+<label>English <output id="caroms-side-value">0%</output><input id="caroms-side" type="range" min="-100" max="100" value="0"></label>
+</div></div></details>
 <div class="controls"><button class="primary" id="caroms-shoot" type="button">BREAK WITH THE 1</button></div>
 <details class="panel" id="caroms-history-panel"><summary>Shot history</summary><div class="panel-body"><ol id="caroms-log" aria-live="polite"></ol></div></details>
+<details class="panel" id="caroms-rules-panel"><summary>How to play · rules &amp; controls</summary><div class="panel-body">
+<p><strong>Solo bot or two local players.</strong> Caroms is a playable beta. Shoot a numbered object ball into the white cue ball first; after contact, a ball must reach a rail. Pocket balls to clear your group, then legally pocket the 8.</p>
+<ol class="rules-list">
+<li>Break with the 1-ball. On each turn, select a numbered object ball to strike, then aim and shoot.</li>
+<li>First contact must be with the white ball. After that contact, a ball must touch a rail or it is a foul.</li>
+<li>Beginners play slop, intermediate players call the 8, and advanced players call every shot. Each player can choose their own level.</li>
+<li>When a call is required, tap the ball and pocket or use the selectors; Undo call clears the choice.</li>
+<li>Tap a ball, then drag on the felt to aim. Arrow keys adjust aim; Space shoots. On an option foul, the incoming player chooses whether to leave the white ball or move it to center. A scratched white ball returns to center.</li>
+</ol>
+<p><strong>Playtest interpretations:</strong> A struck ball can score after a legal carom; an 8 pocketed on the break is re-spotted. See the <a href="./archive.html#episode-3">original Episode 3 manuscript</a>.</p>
+</div></details>
+<details class="panel story-panel" id="caroms-story-panel">
+<summary>Optional original story · Episode 3 (tap to expand)</summary>
+<div class="panel-body">
+<p><strong>From J. F. Lynwood's original 2024 Caroms manuscript.</strong></p>
+<p>At The 4T's in the Pacific Northwest rainforest, Big Jim and Giggly Squatch meet over a strange game: they strike numbered balls toward the white cue ball, using it as a backboard. Hudsquatch watches, offering loud commentary.</p>
+<p>Big Jim wins the opening toss and breaks with the 1-ball. Giggly learns that missing the white cue ball is a foul, and that using the white ball to pocket another ball is an illegal shortcut. Across three racks, Big Jim's methodical advanced play meets Giggly's enthusiastic beginner shots. Hudsquatch explains option fouls, center placement, and why their calling rules differ.</p>
+<blockquote>“Ah, Giggly, ya gotta hit the cue ball first!” — Hudsquatch</blockquote>
+<p>Giggly improves as the match unfolds, while Big Jim's patience wins out. Their final handshake leaves J. F. Lynwood looking forward to the next unusual game at The 4T's.</p>
+<p class="story-actions"><a href="#caroms-play-anchor">Skip story · play now</a> · <a href="./archive.html#episode-3">Read the full original story</a></p>
+<p><small>This is a condensed retelling. The complete original manuscript is preserved in the archive.</small></p>
+</div></details>
 </main>
 <script type="module" src="./src/caroms-game.js"></script>
 </body></html>
