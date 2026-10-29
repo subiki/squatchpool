@@ -225,4 +225,20 @@ window.addEventListener('keydown',e=>{
  if(e.code==='Space'){shoot();e.preventDefault();}
 });
 try{const saved=localStorage.getItem('squatch-table-size');if(['7','8','9'].includes(saved))$('cut-size').value=saved;}catch{}
-initCutthroatStats();newGame();requestAnimationFrame(frame);
+// A telemetry exception must never prevent the table from starting.
+try {
+ newGame();
+ draw(); // Paint immediately, even if animation frames are delayed.
+ requestAnimationFrame(frame);
+} catch (error) {
+ console.error('Cutthroat game startup failed', error);
+ const status=$('cut-status');
+ if(status)status.textContent='Cutthroat table could not initialize: '+(error?.message||String(error));
+}
+try {
+ initCutthroatStats();
+} catch (error) {
+ console.error('Cutthroat statistics startup failed', error);
+ const status=$('cut-stats-status');
+ if(status)status.textContent='Statistics failed to initialize; gameplay remains available.';
+}
