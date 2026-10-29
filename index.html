@@ -7,6 +7,7 @@
  <meta name="description" content="Play But Wait, There's More — a Squatch Pool house-rules game from The 4T's.">
  <title>Squatch Pool · The 4T's</title>
  <link rel="stylesheet" href="./src/styles.css">
+ <link rel="stylesheet" href="./src/aim-preference.css">
  <link rel="stylesheet" href="./src/world.css">
  <script type="module" src="./src/game.js"></script>
  <script type="module" src="./src/deployment.js"></script>
@@ -84,6 +85,7 @@
      </div>
      <div class="table-bottomline"><span>★ PACIFIC NORTHWEST ★</span><span>THE FOUR T’S</span></div>
     </div>
+    <div class="aim-toggle-bar" role="group" aria-label="Touch aiming preference"><button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Invert aim: OFF</button><span class="aim-toggle-caption">ON = hold a finger behind the cue to aim away from it. Tap again for normal aim. Saved across games.</span></div>
     <div class="announcer" aria-live="polite"><span class="announcer-avatar" aria-hidden="true">🌲</span><div><div class="eyebrow">FROM THE BOOTH</div><p id="announcer-text">Welcome to The 4T's. Break 'em like you mean it.</p></div></div>
     <div class="call-panel" id="call-panel" aria-label="Called shot">
      <div class="call-instructions"><strong>CALL YOUR SHOT</strong><small id="call-hint">After the break, tap a ball, then a pocket.</small></div>

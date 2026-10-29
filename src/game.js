@@ -2,9 +2,11 @@ import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {initStats,newStatsId,reportRack,reportBalls} from './stats.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
+import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
+const invertAim=bindInvertAim($('#invert-aim'));
 const person=i=>i===0?(state.mode==='bot'?'You':'Player 1'):(state.mode==='bot'?'Speed Squatch':'Player 2');
 const human=i=>state.mode==='local'||i===0;
 const cue=()=>state.balls.find(b=>b.id===0);
@@ -183,8 +185,8 @@ function placeStash({x,y}){
 }
 function aimFrom(p){
  if(state.phase!=='aim'||!human(state.turn)||!callReady())return;
- const b=cue(),dx=p.x-b.x,dy=p.y-b.y;
- if(Math.hypot(dx,dy)>8)state.angle=Math.atan2(dy,dx);
+ const angle=angleFromPointer(cue(),p,invertAim(),8);
+ if(angle!==null)state.angle=angle;
 }
 function resetShotControls(){
  // Each stroke consumes its own power/draw/English settings. Restore neutral
@@ -371,7 +373,7 @@ canvas.addEventListener('pointerdown',e=>{
  if(!state)return;
  const p=eventPoint(e);
  if(state.isBreak&&human(state.turn)&&
-    (state.phase==='placeBreak'||state.phase==='aim')&&p.x<=headStringX()+TABLE.radius){
+    (state.phase==='placeBreak'||(state.phase==='aim'&&!invertAim()))&&p.x<=headStringX()+TABLE.radius){
   // Placing anywhere inside the kitchen is direct: no cue-ball hit target.
   if(state.phase==='aim')state.phase='placeBreak';
   draggingBreak=true;breakPositionValid=placeBreakCue(p);

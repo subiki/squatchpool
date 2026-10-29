@@ -1,0 +1,30 @@
+/** Browser-local aiming preference shared by every playable Squatch Pool game. */
+export const INVERT_AIM_KEY = 'squatch-invert-aim';
+
+export function readInvertAim() {
+  try { return typeof localStorage !== 'undefined' && localStorage.getItem(INVERT_AIM_KEY) === 'true'; }
+  catch { return false; }
+}
+
+/** Standard: point towards finger; inverted: point away from finger behind cue. */
+export function angleFromPointer(striker, point, inverted = false, threshold = 8) {
+  const dx = point.x - striker.x, dy = point.y - striker.y;
+  if (Math.hypot(dx, dy) <= threshold) return null;
+  return Math.atan2(inverted ? -dy : dy, inverted ? -dx : dx);
+}
+
+export function bindInvertAim(button) {
+  let inverted = readInvertAim();
+  function render() {
+    if (!button) return;
+    button.setAttribute('aria-pressed', String(inverted));
+    button.textContent = inverted ? '↔ Invert aim: ON' : '↔ Invert aim: OFF';
+  }
+  if (button) button.addEventListener('click', () => {
+    inverted = !inverted;
+    try { if (typeof localStorage !== 'undefined') localStorage.setItem(INVERT_AIM_KEY, String(inverted)); } catch {}
+    render();
+  });
+  render();
+  return () => inverted;
+}

@@ -1,0 +1,7 @@
+/* A reachable, persistent touch-aim preference directly beneath each table. */
+.aim-toggle-bar{display:flex;align-items:center;flex-wrap:wrap;gap:10px 14px;margin:10px 0 16px;padding:10px 12px;border:1px solid #b8a76d80;border-radius:12px;background:#203c30;color:#fff0d4}
+.aim-toggle-bar .aim-toggle{font:inherit;font-size:1rem;font-weight:850;line-height:1.2;min-height:48px;padding:10px 15px;min-width:185px;border:2px solid #e1bd79;border-radius:10px;background:#2c4b38;color:#fff3d9;cursor:pointer;touch-action:manipulation;flex:0 0 auto}
+.aim-toggle-bar .aim-toggle[aria-pressed="true"]{background:#efc77c;border-color:#ffe0a0;color:#192b23}
+.aim-toggle-bar .aim-toggle:focus-visible{outline:3px solid #ffe8b1;outline-offset:3px}
+.aim-toggle-caption{font-size:.94rem;font-weight:600;line-height:1.4;color:#f2dfba}
+@media(max-width:650px){.aim-toggle-bar{margin:8px 0 12px;gap:8px;padding:9px}.aim-toggle-bar .aim-toggle{width:auto;max-width:100%;min-width:160px}}
