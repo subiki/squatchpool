@@ -2,6 +2,7 @@
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,finishCutthroatShot,resolveCutthroatClaim} from './cutthroat-rules.js';
+import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
 const $=id=>document.getElementById(id);
 const canvas=$('cut-table'),ctx=canvas.getContext('2d');
 const names=['Player 1','Player 2','Player 3'];
@@ -21,7 +22,7 @@ function newGame(){
  const p=kitchenPoint(TABLE.width*.18,TABLE.height/2);
  Object.assign(balls[0],p);
  game={balls,match:startCutthroat(),phase:'placeBreak',breakShot:true,
-  angle:0,power:85,top:0,side:0,shot:null,placementValid:canPlaceBreakCue(balls,p.x,p.y)};
+  angle:0,power:85,top:0,side:0,shot:null,statsRackId:newCutthroatStatsId(),placementValid:canPlaceBreakCue(balls,p.x,p.y)};
  accumulator=0;
  $('cut-log').replaceChildren();
  $('cut-power').value='85';$('cut-top').value='0';$('cut-side').value='0';
@@ -64,6 +65,7 @@ function finishShot(){
  const shot=game.shot;game.shot=null;
  const pocketed=[...new Set(shot.events.filter(e=>e.type==='pocket'&&e.ballId!==0).map(e=>e.ballId))];
  const scratch=shot.events.some(e=>e.type==='pocket'&&e.ballId===0);
+ if(pocketed.length)reportCutthroatBalls(game.statsRackId,shot.statsShotId,pocketed.length);
  const contacted=shot.events.some(e=>e.type==='contact'&&e.balls?.includes(0));
  // The manuscript does not specify non-scratch fouls. Missing all object
  // balls is treated as a turn-ending miss, not a speculative penalty.
@@ -83,7 +85,8 @@ function shoot(){
  const b=cue(),speed=shotSpeed(game.power,game.breakShot);
  b.vx=Math.cos(game.angle)*speed;b.vy=Math.sin(game.angle)*speed;
  applyCueSpin(b,game.top/100,game.side/100);
- game.shot={events:[],time:0,stillFrames:0,breakShot:game.breakShot};
+ game.shot={events:[],time:0,stillFrames:0,breakShot:game.breakShot,statsShotId:newCutthroatStatsId()};
+ if(game.breakShot)reportCutthroatRack(game.statsRackId);
  game.phase='moving';game.power=68;game.top=0;game.side=0;
  $('cut-power').value='68';$('cut-top').value='0';$('cut-side').value='0';
  update();
@@ -214,4 +217,4 @@ window.addEventListener('keydown',e=>{
  if(e.code==='Space'){shoot();e.preventDefault();}
 });
 try{const saved=localStorage.getItem('squatch-table-size');if(['7','8','9'].includes(saved))$('cut-size').value=saved;}catch{}
-newGame();requestAnimationFrame(frame);
+initCutthroatStats();newGame();requestAnimationFrame(frame);
