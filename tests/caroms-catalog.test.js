@@ -4,18 +4,20 @@ import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
-test('Caroms development playtest is discoverable without being called released',()=>{
+test('Caroms playable beta is discoverable with source and local play controls',()=>{
  const catalog=read('index.html');
  const caroms=read('caroms.html');
  assert.match(catalog,/href="\.\/caroms\.html"/);
- assert.match(catalog,/DEVELOPMENT PLAYTEST · NOT RELEASED/);
- assert.match(catalog,/Caroms is an unfinished two-player playtest/);
+ assert.match(catalog,/PLAYABLE BETA · TWO LOCAL PLAYERS/);
+ assert.match(catalog,/Caroms uses provisional rule interpretations/);
  assert.match(caroms,/id="caroms-table"/);
  assert.match(caroms,/src="\.\/src\/caroms-game\.js"/);
- assert.match(caroms,/Development playtest, not a released mode/);
+ assert.match(caroms,/Playable local beta/);
+ const rules=read('rules.html');
+ assert.match(rules,/href="\.\/caroms\.html">Play Caroms/);
 });
 
-test('But Wait remains the only catalog card labeled PLAYABLE NOW',()=>{
+test('But Wait remains the primary table and Caroms is a playable beta',()=>{
  const catalog=read('index.html');
  assert.equal((catalog.match(/PLAYABLE NOW/g)||[]).length,1);
  assert.match(catalog,/🎱 But Wait, There's More/);
