@@ -1,5 +1,5 @@
 /** Three-seat Coin-Op Cutthroat: original Episode 4 rules, shared 120 Hz table physics. */
-import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,findPlacement} from './physics.js';
+import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,finishCutthroatShot,resolveCutthroatClaim} from './cutthroat-rules.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
@@ -22,7 +22,7 @@ function newGame(){
  const p=kitchenPoint(TABLE.width*.18,TABLE.height/2);
  Object.assign(balls[0],p);
  game={balls,match:startCutthroat(),phase:'placeBreak',breakShot:true,
-  angle:0,power:85,top:0,side:0,shot:null,statsRackId:newCutthroatStatsId(),placementValid:canPlaceBreakCue(balls,p.x,p.y)};
+  angle:0,power:85,top:0,side:0,shot:null,statsRackId:newCutthroatStatsId(),placementValid:false};
  accumulator=0;
  $('cut-log').replaceChildren();
  $('cut-power').value='85';$('cut-top').value='0';$('cut-side').value='0';
@@ -47,6 +47,7 @@ function update(){
   m.groupChoicePlayer===m.turn?'You earned a group choice. Select 1–5, 6–10 or 11–15 now, or keep shooting.':
   game.breakShot?'Break the rack; balls pocketed on the break stay down.':
   'Aim from the white ball, then shoot. Any object ball may be pocketed, including your own.';
+ $('cut-reposition').hidden=!(game.phase==='aim'&&game.breakShot);
  $('cut-place').hidden=!placing;
  $('cut-place').disabled=!placing||!game.placementValid;
  $('cut-place').textContent=game.phase==='placeBreak'?'Confirm break position':'Confirm ball in hand';
@@ -94,7 +95,9 @@ function shoot(){
 }
 function placeCue(p){
  if(game.phase==='placeBreak'){
-  const q=kitchenPoint(p.x,p.y);
+  // Touches past the head string must not silently teleport the cue into the kitchen.
+  // Keep near-rail clamping for finger placement at the cushion edge.
+  const q=p.x>=headStringX()?p:kitchenPoint(p.x,p.y);
   game.placementValid=canPlaceBreakCue(game.balls,q.x,q.y);
   if(game.placementValid)Object.assign(cue(),q);
  }else if(game.phase==='placeCue'){
@@ -180,6 +183,10 @@ $('cut-place').addEventListener('click',()=>{
  game.phase='aim';update();
 });
 $('cut-shoot').addEventListener('click',shoot);
+$('cut-reposition').addEventListener('click',()=>{
+ if(game.phase!=='aim'||!game.breakShot)return;
+ game.phase='placeBreak';game.placementValid=false;update();
+});
 $('cut-new').addEventListener('click',newGame);
 $('cut-size').addEventListener('change',newGame);
 $('cut-group-confirm').addEventListener('click',()=>{
