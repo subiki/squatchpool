@@ -95,6 +95,27 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   tick();
   assert.ok(aimLineEnd?.y>ballY+100,
    'near-ball phone tap must not redirect aim to adjacent felt');
+  // Regression: a stationary finger tap near the edge of the 44px hit target
+  // previously changed the aim on pointerup, even without any drag.
+  const tapX=(ballX+50)*scale,tapY=ballY*scale;
+  down({clientX:tapX,clientY:tapY,pointerId:10,pointerType:'touch'});
+  up({clientX:tapX,clientY:tapY,pointerId:10,pointerType:'touch'});
+  tick();
+  assert.ok(aimLineEnd?.y>ballY+100,
+   'stationary off-center finger tap must select without rotating the cue');
+  down({clientX:tapX,clientY:tapY,pointerId:11,pointerType:'touch'});
+  move({clientX:tapX+4,clientY:tapY,pointerId:11,pointerType:'touch'});
+  up({clientX:tapX+4,clientY:tapY,pointerId:11,pointerType:'touch'});
+  tick();
+  assert.ok(aimLineEnd?.y>ballY+100,
+   '4px touch jitter must not change the current aim');
+  // A device may send the final drag position only on pointerup; that
+  // deliberate gesture must still aim without a pointermove event.
+  down({clientX:tapX,clientY:tapY,pointerId:12,pointerType:'touch'});
+  up({clientX:tapX+50,clientY:tapY-65,pointerId:12,pointerType:'touch'});
+  tick();
+  assert.ok(aimLineEnd?.y<ballY-100,
+   'a deliberate touch drag must aim even with pointerup as the only move');
   table.getBoundingClientRect=originalRect;
   // Return to the original straight break direction for the physics test.
   down({clientX:ballX+80,clientY:ballY,pointerId:8});
