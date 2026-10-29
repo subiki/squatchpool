@@ -38,7 +38,8 @@ function scheduleBot(){
    const p=pockets.slice().sort((a,z)=>Math.hypot(a.x-b.x,a.y-b.y)-Math.hypot(z.x-b.x,z.y-b.y))[0];
    state.calledPocket=p?.id??null;
   }
-  update();hit();
+  // The scheduled bot action is the only authorized shooter on bot turns.
+  update();hit(true);
  },650);
 }
 const player=i=>i===1&&solo()?'Squatch Bot':'Player '+(i+1);
@@ -173,8 +174,10 @@ function finishShot(){
  }
  update();scheduleBot();
 }
-function hit(){
- if(state.phase!=='aim')return;
+function hit(fromBot=false){
+ // A disabled button is a UI hint, not a turn-ownership check. Reject even
+ // synthetic clicks on the human Shoot control while Squatch Bot is aiming.
+ if(state.phase!=='aim'||(isBot()&&fromBot!==true))return;
  const needCall=!state.breakShot&&caromsCallRequired(level(state.turn),
   caromsEligible(state.balls,state.groups[state.turn]));
  if(needCall&&(!state.calledBall||!state.calledPocket))return;
