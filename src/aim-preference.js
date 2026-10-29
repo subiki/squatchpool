@@ -10,7 +10,8 @@ export function readInvertAim() {
 export function angleFromPointer(striker, point, inverted = false, threshold = 8) {
   const dx = point.x - striker.x, dy = point.y - striker.y;
   if (Math.hypot(dx, dy) <= threshold) return null;
-  return Math.atan2(inverted ? -dy : dy, inverted ? -dx : dx);
+  const angle = Math.atan2(inverted ? -dy : dy, inverted ? -dx : dx);
+  return angle === 0 ? 0 : angle;
 }
 
 export function bindInvertAim(button) {
