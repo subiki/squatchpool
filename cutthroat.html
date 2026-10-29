@@ -62,4 +62,13 @@ details>div{padding:12px 16px}li{margin:6px 0}
 <p><strong>Source:</strong> <a href="./archive.html#episode-4">Original Episode 4 rules</a>. <strong>Playtest interpretation:</strong> A non-scratch shot that misses all object balls ends the turn; no additional foul penalty is imposed because the original manuscript does not specify one.</p>
 </div></details>
 <details><summary>Shot history</summary><div><ol id="cut-log" aria-live="polite"></ol></div></details>
-</main><script type="module" src="./src/cutthroat-game.js"></script></body></html>
+</main><script type="module">
+import('./src/cutthroat-game.js').catch(error=>{
+  const message=error instanceof Error?error.message:String(error);
+  const status=document.getElementById('cut-status');
+  if(status)status.textContent='Cutthroat could not start: '+message+'. Reload the page; if it persists, report this message.';
+  const stats=document.getElementById('cut-stats-status');
+  if(stats)stats.textContent='Cutthroat game script failed to load; statistics could not initialize.';
+  console.error('Cutthroat startup failed',error);
+});
+</script></body></html>
