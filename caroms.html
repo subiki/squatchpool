@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Caroms · Squatch Pool Local Playtest</title>
+<meta name="description" content="Playtest original Caroms (Whacky Pool), a two-player Squatch house game.">
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#12251e;color:#f4edda}
+*[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;line-height:1.5}main,header{max-width:1120px;margin:auto;padding:16px 22px}
+header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-bottom:1px solid #617765}
+a{color:#ffe0a0}h1{margin:10px 0;font-size:clamp(1.8rem,4vw,3rem)}
+p{max-width:72ch}.notice{border-left:4px solid #f3c676;background:#263c30;padding:12px 18px;border-radius:6px}
+.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:16px 0}
+.controls label{display:grid;gap:5px;font-weight:650;min-width:125px}
+select,button,input{font:inherit}select,button{padding:12px;border-radius:9px;border:1px solid #b8b78d;background:#2b4638;color:#fff5da;min-height:48px}
+button{cursor:pointer;font-weight:750}button:disabled,select:disabled{opacity:.55;cursor:not-allowed}
+button.primary{background:#efc77c;color:#1a2b22;border-color:#fbe2a7}
+input[type=range]{width:155px;accent-color:#eec67b}
+.table-wrap{background:#553b29;padding:12px;border:8px solid #806344;border-radius:18px;overflow:hidden}
+canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
+#caroms-turn{font-weight:850;font-size:1.35rem}
+#caroms-score,#caroms-status{font-size:1.08rem}
+#caroms-option{border:2px solid #eec67b;padding:14px;border-radius:10px}
+#caroms-call-controls{background:#293f34;padding:12px;border-radius:10px}
+.pocket-quick{display:grid;grid-template-columns:repeat(3,minmax(105px,1fr));gap:8px;flex:1 1 390px}
+.pocket-quick button[aria-pressed="true"]{background:#efc77c;color:#1a2b22;border-color:#fbe2a7}
+#caroms-log{max-height:210px;overflow:auto;padding-left:22px}
+#caroms-log li{margin:5px 0}
+.stats-panel{margin:12px 0;padding:14px;border:1px solid #728b72;background:#223b2f;border-radius:10px}
+.stats-panel p{margin:5px 0}.stats-panel strong{color:#f7d18b}
+:focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
+@media(max-width:650px){main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
+</style>
+</head>
+<body>
+<header><strong>🌲 SQUATCH POOL · THE 4T'S</strong><nav><a href="./">Original game</a> · <a href="./rules.html">Rules</a> · <a href="./archive.html#episode-3">Episode 3 manuscript</a></nav></header>
+<main>
+<h1>Caroms (Whacky Pool)</h1>
+<p class="notice"><strong>Development playtest, not a released mode.</strong> Two local players share this device. Strike an object ball into the white ball first, then send a ball to a rail and into a pocket. Provisional playtest choices: a struck ball may score after a legal carom, and an 8 made on the break is re-spotted. Original manuscript: <a href="./archive.html#episode-3">Episode 3</a>. When shared statistics are connected, racks and pocketed balls count toward the live Caroms totals.</p>
+<div class="controls">
+<label>Table size<select id="caroms-size"><option value="7" selected>7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label>
+<label>Player 1 skill<select id="caroms-level-0"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
+<label>Player 2 skill<select id="caroms-level-1"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
+<button id="caroms-new" type="button">New rack</button>
+</div>
+<div id="caroms-turn" aria-live="polite"></div>
+<div id="caroms-score"></div>
+<p id="caroms-status" role="status" aria-live="polite"></p>
+<section class="stats-panel" aria-label="Live Caroms and sitewide statistics"><p><strong>Caroms players · racks · balls</strong></p><p id="caroms-stats-game">Statistics unavailable until connected.</p><p><strong>All Squatch games</strong></p><p id="caroms-stats-site">Statistics unavailable until connected.</p><p id="caroms-stats-status" role="status" aria-live="polite">Checking live statistics…</p></section>
+<div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
+<div id="caroms-option" hidden><strong>Option foul</strong><p>Incoming player: leave the white ball where it is or place it near table center?</p><div class="controls"><button id="caroms-leave" type="button">Leave white ball</button><button id="caroms-center" type="button">Move white ball to center</button></div></div>
+<div class="controls">
+<label>Object ball to strike<select id="caroms-striker" aria-label="Object ball to strike"></select></label>
+<label>Power <output id="caroms-power-value">85%</output><input id="caroms-power" type="range" min="10" max="100" value="85"></label>
+<label>Draw / follow <output id="caroms-top-value">0%</output><input id="caroms-top" type="range" min="-100" max="100" value="0"></label>
+<label>English <output id="caroms-side-value">0%</output><input id="caroms-side" type="range" min="-100" max="100" value="0"></label>
+</div>
+<div class="controls" id="caroms-call-controls" hidden>
+<label>Called ball<select id="caroms-call-ball"><option value="">Choose called ball</option></select></label>
+<label>Called pocket<select id="caroms-call-pocket"><option value="">Choose pocket</option></select></label>
+<div class="pocket-quick" role="group" aria-label="Choose a called pocket">
+<button id="caroms-pocket-TL" type="button" aria-pressed="false">Top left</button>
+<button id="caroms-pocket-TM" type="button" aria-pressed="false">Top middle</button>
+<button id="caroms-pocket-TR" type="button" aria-pressed="false">Top right</button>
+<button id="caroms-pocket-BL" type="button" aria-pressed="false">Bottom left</button>
+<button id="caroms-pocket-BM" type="button" aria-pressed="false">Bottom middle</button>
+<button id="caroms-pocket-BR" type="button" aria-pressed="false">Bottom right</button>
+</div>
+<button id="caroms-undo" type="button" disabled>Undo call</button>
+</div>
+<div class="controls"><button class="primary" id="caroms-shoot" type="button">BREAK WITH THE 1</button></div>
+<p>Tap a numbered ball to select the striker and, when a call is required, call that ball. Tap a pocket button, or use the ball and pocket selectors for combination shots. Drag on the felt to aim. Arrow keys fine-tune direction; Space shoots. On a foul the incoming player may move the white ball to center. On a white-ball scratch it returns to center automatically. A player wins by clearing their assigned group and legally pocketing the 8.</p>
+<h2>Shot history</h2><ol id="caroms-log" aria-live="polite"></ol>
+</main>
+<script type="module" src="./src/caroms-game.js"></script>
+</body></html>

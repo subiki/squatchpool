@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequestGet,onRequestPost} from '../functions/api/stats.js';
-import {createStatsClient} from '../src/stats.js';
+import {createStatsClient,initStats} from '../src/stats.js';
 
 const A='55555555-5555-4555-8555-555555555555';
 const B='66666666-6666-4666-8666-666666666666';
@@ -154,4 +154,65 @@ test('client queues unavailable events, retries later and never generates a play
  assert.equal(seen.at(-1).site.balls,2);
  assert.deepEqual((await (await onRequestGet({env:{STATS_DB:db}})).json()).site,
   {players:1,racks:1,balls:2});
+});
+
+
+test('Caroms uses its own game totals and permits one re-spotted 8-ball',async()=>{
+ const db=fakeD1();
+ const cr=payload=>({...payload,game:'caroms'});
+ assert.equal((await onRequestPost(context(db,cr(rack(A,R1))))).status,200);
+ assert.equal((await onRequestPost(context(db,cr(pot(A,R1,S1,16))))).status,200,
+  'fifteen objects plus one 8 re-spotted after the break');
+ assert.equal((await onRequestPost(context(db,cr(pot(A,R1,S2,1))))).status,409,
+  'rack cap prevents inflated counts');
+ assert.equal((await onRequestPost(context(db,cr(pot(A,R2,S2,17))))).status,400,
+  'single-shot count cannot exceed game limit');
+ const data=await (await onRequestGet({env:{STATS_DB:db}})).json();
+ const caroms=data.games.find(g=>g.id==='caroms');
+ assert.equal(caroms.players,1);
+ assert.equal(caroms.racks,1);
+ assert.equal(caroms.balls,16);
+ assert.deepEqual(data.site,{players:1,racks:1,balls:16});
+ assert.equal(data.games.find(g=>g.id===game).racks,0);
+});
+
+test('Caroms and But Wait retain independent retry queues on one browser',async()=>{
+ const memory=new Map();
+ const storage={getItem:key=>memory.get(key)||null,setItem:(key,value)=>memory.set(key,value)};
+ const request=async()=>({ok:false,status:503});
+ const butWait=createStatsClient({request,storage,uuid:()=>A});
+ const caroms=createStatsClient({request,storage,uuid:()=>A,gameId:'caroms'});
+ butWait.rack(R1);caroms.rack(R2);
+ await Promise.all([butWait.flush(),caroms.flush()]);
+ assert.equal(butWait.pending(),1);
+ assert.equal(caroms.pending(),1);
+ assert.equal(JSON.parse(memory.get('squatch-stats-pending-v1'))[0].game,game);
+ assert.equal(JSON.parse(memory.get('squatch-stats-pending-v1-caroms'))[0].game,'caroms');
+ const butWaitReload=createStatsClient({request,storage,uuid:()=>B});
+ const caromsReload=createStatsClient({request,storage,uuid:()=>B,gameId:'caroms'});
+ assert.equal(butWaitReload.pending(),1);
+ assert.equal(caromsReload.pending(),1);
+ assert.throws(()=>createStatsClient({request,storage,gameId:'not-a-game'}),/Unknown stats game/);
+});
+
+
+test('But Wait still initializes when localStorage getter denies access',()=>{
+ const keys=['localStorage','document','window','fetch'];
+ const original=Object.fromEntries(keys.map(key=>[key,
+  Object.getOwnPropertyDescriptor(globalThis,key)]));
+ try{
+  Object.defineProperty(globalThis,'localStorage',{
+   configurable:true,get(){throw new Error('SecurityError: storage denied');}
+  });
+  globalThis.document={querySelector:()=>null};
+  globalThis.window={addEventListener:()=>{}};
+  globalThis.fetch=undefined;
+  assert.doesNotThrow(()=>initStats(),
+   'stats initialization must never prevent But Wait from starting');
+ }finally{
+  for(const key of keys){
+   if(original[key])Object.defineProperty(globalThis,key,original[key]);
+   else delete globalThis[key];
+  }
+ }
 });

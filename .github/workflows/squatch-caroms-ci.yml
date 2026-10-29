@@ -1,0 +1,39 @@
+name: Squatch Caroms release checks
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'package.json'
+      - 'caroms.html'
+      - 'index.html'
+      - '.github/workflows/squatch-caroms-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  node-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Node tests (capture diagnostic output)
+        shell: bash
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee node-test-results.log
+      - name: Syntax checks
+        run: npm run check
+      - name: Build
+        run: npm run build
+      - name: Preserve test failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: caroms-node-test-results
+          path: node-test-results.log
+          if-no-files-found: warn
+          retention-days: 7
