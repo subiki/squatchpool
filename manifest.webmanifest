@@ -1,0 +1,25 @@
+{
+  "name": "Squatch Pool",
+  "short_name": "Squatch Pool",
+  "description": "Original Sasquatch house-rule pool games from the Pacific Northwest rainforest. Play offline.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#101d19",
+  "theme_color": "#101d19",
+  "icons": [
+    {
+      "src": "/app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

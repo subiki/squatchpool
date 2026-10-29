@@ -19,3 +19,8 @@
 .squatch-header-stats .stats-game-row strong{color:#f5d394}
 .squatch-header-stats .stats-footnote{font-size:.78rem;margin:6px 0;color:#c7d8ca}
 @media(max-width:650px){.squatch-unified-header{padding:12px!important}.squatch-brand-row .brand-mark{width:46px;height:46px;font-size:24px}.squatch-release{font-size:.72rem}.squatch-stat-numbers{gap:12px}}
+
+/* Install/offline awareness stays compact across all game and lore pages. */
+.squatch-offline-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.84rem;color:#cce2c9;padding:5px 0}
+.squatch-offline-tools button{background:#e4bc75;color:#17271d;border:0;border-radius:6px;padding:7px 12px;font-weight:800;cursor:pointer}
+.squatch-offline-tools button[hidden]{display:none}

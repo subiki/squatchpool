@@ -1,0 +1,5 @@
+# Generated only by the Pages npm install/build stage.
+service-worker.js
+app-icon-192.png
+app-icon-512.png
+deployment.json
