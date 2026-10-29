@@ -3,8 +3,10 @@ import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,c
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,finishCutthroatShot,resolveCutthroatClaim} from './cutthroat-rules.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
+import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 const $=id=>document.getElementById(id);
 const canvas=$('cut-table'),ctx=canvas.getContext('2d');
+const invertAim=bindInvertAim($('invert-aim'));
 const names=['Player 1','Player 2','Player 3'];
 const ranges=['1–5','6–10','11–15'];
 let game,lastTime=0,accumulator=0,dragging=false;
@@ -156,8 +158,8 @@ function point(e){
   y:(e.clientY-rect.top)*TABLE.height/rect.height};
 }
 function aim(p){
- const b=cue(),dx=p.x-b.x,dy=p.y-b.y;
- if(Math.hypot(dx,dy)>TABLE.radius)game.angle=Math.atan2(dy,dx);
+ const angle=angleFromPointer(cue(),p,invertAim(),TABLE.radius);
+ if(angle!==null)game.angle=angle;
 }
 canvas.addEventListener('pointerdown',e=>{
  if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));

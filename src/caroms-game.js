@@ -6,10 +6,12 @@ import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
 import {initCaromsStats,newCaromsStatsId,reportCaromsRack,reportCaromsBalls} from './caroms-stats.js';
+import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 
 const $=id=>document.getElementById(id);
 const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
+const invertAim=bindInvertAim($('invert-aim'));
 const level=i=>$('caroms-level-'+i).value;
 let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0];
 const solo=()=>$('caroms-mode').value==='bot';
@@ -273,8 +275,8 @@ function point(e){
 }
 function aim(p){
  const b=striker();if(!b||state.phase!=='aim')return;
- const dx=p.x-b.x,dy=p.y-b.y;
- if(Math.hypot(dx,dy)>radiansToPixels())state.angle=Math.atan2(dy,dx);
+ const angle=angleFromPointer(b,p,invertAim(),radiansToPixels());
+ if(angle!==null)state.angle=angle;
 }
 const radiansToPixels=()=>TABLE.radius;
 let dragging=false,startedOnBall=false,dragStart=null;
