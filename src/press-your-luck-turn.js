@@ -36,7 +36,15 @@ export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=fa
  const opponent=groups[1-shooter];
  const count=eligible?pocketed.filter(id=>groupOf(id)===opponent).length:0;
  if(count)next=pocketOpponentBalls(next,shooter,count);
- keepTurn=count>0;
+ // Before pressing, standard 8-ball play must continue when the shooter
+ // legally pockets their own group. The earlier adapter passed the turn even
+ // on a successful clearance shot, making a complete match unplayable.
+ const ownPots=!eligible?pocketed.filter(id=>groupOf(id)===groups[shooter]).length:0;
+ // On an open table, any legal non-eight object ball pot keeps the turn;
+ // the controller handles group assignment from the shot's pocket events.
+ const openTable=!groups[shooter]&&!groups[1-shooter];
+ const openPots=openTable?pocketed.filter(id=>Boolean(groupOf(id))).length:0;
+ keepTurn=count>0||ownPots>0||openPots>0;
  return {match:next,finish:null,winner:null,keepTurn,nextPlayer:keepTurn?shooter:1-shooter,scratch:false,
   unresolvedOwnGroupShot:!eligible};
 }
