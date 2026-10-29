@@ -109,6 +109,14 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
    'the current bot shot remains queued');
   assert.notEqual(el('caroms-status').textContent,'Balls rolling…',
    'stale option callback must not shoot prematurely');
+  // A disabled Shoot button must not be the sole security boundary: synthetic
+  // click dispatch and a browser event object must not steal Squatch Bot's shot.
+  const botAimStatus=el('caroms-status').textContent;
+  click('caroms-shoot');
+  listeners.get('caroms-shoot:click')({type:'click'});
+  assert.equal(el('caroms-status').textContent,botAimStatus,
+   'human Shoot handler cannot fire while bot is aiming');
+  assert.equal(timers.size,1,'bot shot remains scheduled after rejected clicks');
   fireTimer(); // Bot selects an eligible object ball, calls and strikes.
   assert.equal(el('caroms-status').textContent,'Balls rolling…',
    'bot fires a real physics stroke');
