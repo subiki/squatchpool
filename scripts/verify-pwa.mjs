@@ -34,10 +34,32 @@ assert.ok(!worker.includes('__CACHE_VERSION__')&&!worker.includes('__PRECACHE_LI
 const match=worker.match(/const PRECACHE = (\[[^\n]+\]);/);
 assert.ok(match,'generated worker precache list');
 const assets=JSON.parse(match[1]);
-for(const path of essentials){
-  assert.ok(assets.includes(path),'offline precache missing '+path);
+assert.ok(Array.isArray(assets),'worker precache must be an array');
+assert.equal(new Set(assets).size,assets.length,'duplicate worker precache paths');
+
+// Check the ENTIRE offline edition, not only a few known entry points.
+// A missing CSS/JS/lore asset would otherwise pass the build verifier and
+// cause Cache.addAll to fail during installation on a real device.
+const expected=new Set([...essentials,'/LICENSE','/THIRD_PARTY.md']);
+function collect(dir){
+  const folder=join(root,dir);
+  if(!existsSync(folder))return;
+  for(const entry of readdirSync(folder,{withFileTypes:true})){
+    const path=dir+'/'+entry.name;
+    if(entry.isDirectory())collect(path);
+    else if(/\\.(?:js|css|html|svg|png|jpg|jpeg|webp|woff2?|txt)$/i.test(entry.name))
+      expected.add('/'+path);
+  }
+}
+collect('src');
+collect('archive/source');
+if(existsSync(join(root,'deployment.json')))expected.add('/deployment.json');
+for(const path of assets){
+  assert.match(path,/^\\/[^/?#]+(?:\\/[^/?#]+)*$/,'invalid worker asset path: '+path);
+  assert.ok(!path.startsWith('/api/'),'API must not be precached: '+path);
   assert.ok(existsSync(join(root,path.slice(1))),'offline source missing '+path);
 }
-assert.ok(!assets.some(path=>path.startsWith('/api/')),'API must not be precached');
+assert.deepEqual([...assets].sort(),[...expected].sort(),
+  'worker precache must include every local playable/source asset, with no stale entries');
 assert.ok(worker.includes("url.pathname.startsWith('/api/')"),'API bypass must remain network-only');
 console.log('Offline bundle verified: '+assets.length+' assets, '+pages.length+' pages, both launcher icons; API network-only');
