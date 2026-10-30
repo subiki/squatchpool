@@ -45,7 +45,7 @@ function endShot(){
  if(assignment){groups[turn]=groupOf(called);groups[1-turn]=groups[turn]==='solids'?'stripes':'solids';}
  const eligible=pressEligible(preBalls,groups[turn]);
  const legalFirst=breakShot?firstContact!==null:!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||groupOf(firstContact)===groups[1-turn]:groupOf(firstContact)===groups[turn];
- const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:shotBank,calledShotMade:made});
+ const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:shotBank&&events.some(e=>e.type==='rail'&&e.ballId===8)||shotBank&&events.some(e=>e.type==='rail'&&e.ballId===0&&events.indexOf(e)<events.findIndex(h=>h.type==='contact'&&h.balls.includes(0))),calledShotMade:made});
  match=result.match;
  if(result.respotEight){const b=balls.find(b=>b.id===8);b.pocketed=false;const p=findPlacement(balls.filter(other=>other.id!==8));if(p)Object.assign(b,p);}
  if(result.finish){
