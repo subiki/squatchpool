@@ -52,7 +52,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   window.addEventListener('offline', render);
   // serviceWorker.ready only proves activation, not that every offline asset
   // survived browser storage eviction. Ask the active worker to inspect its cache.
-  function verifyCache(reg) {
+  function verifyCache(reg, repair = false) {
     return new Promise((resolve, reject) => {
       if (!reg.active || typeof MessageChannel === 'undefined') {
         reject(new Error('Offline worker not active')); return;
@@ -61,14 +61,14 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const timeout = setTimeout(() => {
         channel.port1.close();
         reject(new Error('Offline worker did not respond'));
-      }, 5000);
+      }, repair ? 20000 : 5000);
       channel.port1.onmessage = event => {
         if (event.data?.type !== 'SQUATCH_OFFLINE_STATUS') return;
         clearTimeout(timeout);
         channel.port1.close();
         resolve(event.data.ready === true);
       };
-      try { reg.active.postMessage({type:'SQUATCH_OFFLINE_STATUS'}, [channel.port2]); }
+      try { reg.active.postMessage({type:repair ? 'SQUATCH_OFFLINE_REPAIR' : 'SQUATCH_OFFLINE_STATUS'}, [channel.port2]); }
       catch (error) { clearTimeout(timeout); channel.port1.close(); reject(error); }
     });
   }
@@ -76,6 +76,10 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     try {
       await navigator.serviceWorker.ready;
       ready = await verifyCache(reg);
+      if (!ready && navigator.onLine) {
+        status.textContent = 'Restoring missing offline game files…';
+        ready = await verifyCache(reg, true);
+      }
       offlineCheckFailed = !ready;
     } catch {
       ready = false;

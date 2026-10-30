@@ -44,15 +44,29 @@ self.addEventListener('fetch', event => {
 
 // The UI only claims offline readiness after the active edition's entire cache
 // has been verified, not merely because a service worker registered.
+// If storage evicted files, an explicit online repair restores ALL missing
+// allowlisted assets before claiming that offline play is ready again.
 self.addEventListener('message', event => {
-  if (event.data?.type !== 'SQUATCH_OFFLINE_STATUS' || !event.ports?.[0]) return;
+  const type = event.data?.type;
+  if ((type !== 'SQUATCH_OFFLINE_STATUS' && type !== 'SQUATCH_OFFLINE_REPAIR') ||
+      !event.ports?.[0]) return;
   event.waitUntil((async () => {
     let ready = false;
     try {
       const cache = await caches.open(CACHE_NAME);
-      const entries = await Promise.all(PRECACHE.map(path => cache.match(path)));
-      ready = entries.every(Boolean);
-    } catch { /* CacheStorage can be unavailable or evicted. */ }
+      const missing = async () => {
+        const entries = await Promise.all(PRECACHE.map(path => cache.match(path)));
+        return PRECACHE.filter((_, index) => !entries[index]);
+      };
+      let absent = await missing();
+      if (type === 'SQUATCH_OFFLINE_REPAIR' && absent.length) {
+        // Cache.addAll rejects failed responses. Never touch /api/ or other
+        // origins: every repair URL comes from the static precache allowlist.
+        await cache.addAll(absent);
+        absent = await missing();
+      }
+      ready = absent.length === 0;
+    } catch { /* Offline, quota errors and failed downloads are not success. */ }
     event.ports[0].postMessage({type:'SQUATCH_OFFLINE_STATUS',ready,assetCount:PRECACHE.length});
   })());
 });

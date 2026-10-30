@@ -15,7 +15,10 @@ function workerHarness() {
   const cache = {
     match: async key => stored.get(key),
     put: async (key, value) => {stored.set(key, value);},
-    addAll: async urls => {for (const url of urls) stored.set(url, {ok:true,body:'preloaded '+url});}
+    addAll: async urls => {
+      if (offline || !response.ok || response.type === 'opaque') throw Error('precache fetch failed');
+      for (const url of urls) stored.set(url, {ok:true,body:'preloaded '+url});
+    }
   };
   const context = {
     URL, Set, Promise,
@@ -44,9 +47,9 @@ function workerHarness() {
     events.get(name)({waitUntil(p){pending=p;}});
     await pending;
   }
-  async function offlineStatus() {
+  async function offlineStatus(type='SQUATCH_OFFLINE_STATUS') {
     let pending,reply;
-    events.get('message')({data:{type:'SQUATCH_OFFLINE_STATUS'},
+    events.get('message')({data:{type},
       ports:[{postMessage(value){reply=value;}}],waitUntil(p){pending=p;}});
     await pending;
     return reply;
@@ -116,4 +119,33 @@ test('offline-ready handshake refuses to claim readiness after cache eviction',a
   assert.equal(complete.assetCount,assets.length);
   h.stored.delete('/caroms.html');
   assert.equal((await h.offlineStatus()).ready,false);
+});
+
+test('repair handshake restores every evicted asset before reporting ready',async () => {
+  const h=workerHarness();
+  await h.lifecycle('install');
+  h.stored.delete('/caroms.html');
+  h.stored.delete('/archive.html');
+  assert.equal((await h.offlineStatus()).ready,false);
+  const repaired=await h.offlineStatus('SQUATCH_OFFLINE_REPAIR');
+  assert.equal(repaired.ready,true);
+  assert.ok(h.stored.has('/caroms.html'));
+  assert.ok(h.stored.has('/archive.html'));
+  assert.equal(h.fetches,0);
+  h.setOffline(true);
+  assert.equal((await h.request('/caroms.html')).ok,true);
+  assert.equal(await h.request('/api/stats'),undefined);
+});
+
+test('offline or failed repair never falsely reports readiness',async () => {
+  const h=workerHarness();
+  await h.lifecycle('install');
+  h.stored.delete('/rules.html');
+  h.setOffline(true);
+  assert.equal((await h.offlineStatus('SQUATCH_OFFLINE_REPAIR')).ready,false);
+  assert.equal(h.stored.has('/rules.html'),false);
+  h.setOffline(false);
+  h.setResponse({ok:false,type:'basic',clone(){return {...this};}});
+  assert.equal((await h.offlineStatus('SQUATCH_OFFLINE_REPAIR')).ready,false);
+  assert.equal(h.stored.has('/rules.html'),false);
 });
