@@ -32,7 +32,10 @@ export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=fa
   next=forfeitBonus(next,shooter);
   return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false};
  }
- if(!legalShot)return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false,unresolvedFoul:true};
+ if(!legalShot){
+  next=forfeitBonus(next,shooter);
+  return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false,ballInHand:true};
+ }
  const opponent=groups[1-shooter];
  const count=eligible?pocketed.filter(id=>groupOf(id)===opponent).length:0;
  if(count)next=pocketOpponentBalls(next,shooter,count);
