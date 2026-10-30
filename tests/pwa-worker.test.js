@@ -44,7 +44,14 @@ function workerHarness() {
     events.get(name)({waitUntil(p){pending=p;}});
     await pending;
   }
-  return {request,lifecycle,stored,deleted,cache,setOffline(value){offline=value;},setResponse(value){response=value;},get fetches(){return fetches;}};
+  async function offlineStatus() {
+    let pending,reply;
+    events.get('message')({data:{type:'SQUATCH_OFFLINE_STATUS'},
+      ports:[{postMessage(value){reply=value;}}],waitUntil(p){pending=p;}});
+    await pending;
+    return reply;
+  }
+  return {request,lifecycle,offlineStatus,stored,deleted,cache,setOffline(value){offline=value;},setResponse(value){response=value;},get fetches(){return fetches;}};
 }
 
 test('install preloads playable pages and activation retains only new offline edition',async () => {
@@ -96,4 +103,17 @@ test('failed responses and offline misses never pollute the cache',async () => {
   h.setOffline(true);
   await assert.rejects(h.request('/cutthroat.html'),/offline/);
   assert.equal(h.stored.size,0);
+});
+
+
+test('offline-ready handshake refuses to claim readiness after cache eviction',async () => {
+  const h=workerHarness();
+  assert.equal((await h.offlineStatus()).ready,false);
+  await h.lifecycle('install');
+  const complete=await h.offlineStatus();
+  assert.equal(complete.type,'SQUATCH_OFFLINE_STATUS');
+  assert.equal(complete.ready,true);
+  assert.equal(complete.assetCount,assets.length);
+  h.stored.delete('/caroms.html');
+  assert.equal((await h.offlineStatus()).ready,false);
 });
