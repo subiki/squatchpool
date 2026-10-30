@@ -1,6 +1,6 @@
 // Runs on every Squatch page. Installing is optional; the game never depends on the worker.
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  const header = document.querySelector('.squatch-unified-header');
+  const header = document.querySelector('.squatch-unified-header') || document.querySelector('header') || document.body;
   let ready = false;
   let pendingInstall = null;
   let updateWaiting = false;
