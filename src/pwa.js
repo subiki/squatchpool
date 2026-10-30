@@ -15,19 +15,24 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   install.type = 'button';
   install.textContent = 'Install game';
   install.hidden = true;
-  bar.append(status, install);
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.textContent = 'Retry offline download';
+  retry.hidden = true;
+  bar.append(status, install, retry);
   header?.append(bar);
   function render() {
     if (!navigator.onLine) {
       status.textContent = ready ? 'Offline · Play locally; site stats sync when connected' : 'Offline · Download not verified; reconnect to finish';
     } else if (offlineCheckFailed) {
-      status.textContent = 'Online play available · Offline files not verified; reload to retry';
+      status.textContent = 'Online play available · Offline files not verified';
     } else if (updateWaiting) {
       status.textContent = 'New version downloaded · Reopen the app to update';
     } else {
       status.textContent = ready ? 'Ready to play offline' : 'Downloading offline game…';
     }
     install.hidden = !pendingInstall || window.matchMedia('(display-mode: standalone)').matches;
+    retry.hidden = !offlineCheckFailed || !navigator.onLine;
   }
   install.addEventListener('click', () => {
     if (!pendingInstall) return;
@@ -35,6 +40,16 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     pendingInstall = null;
     render();
     void prompt.prompt();
+  });
+  retry.addEventListener('click', () => {
+    // A transient 404 or interrupted first install can leave no active worker.
+    // Retry the actual registration instead of trapping players in a failed
+    // download state until they manually reload the page.
+    if (!registration) { window.location.reload(); return; }
+    offlineCheckFailed = false;
+    ready = false;
+    render();
+    void registration.update().then(() => checkReady(registration), () => checkReady(registration));
   });
   window.addEventListener('beforeinstallprompt', event => {
     event.preventDefault();
