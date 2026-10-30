@@ -49,13 +49,13 @@ function endShot(){
   message(match.finished?'Player '+(match.winner+1)+' wins the match!':'Rack over. Player '+(result.winner+1)+' breaks next.');update();return;
  }
  turn=result.nextPlayer;breakShot=false;
- if(scratch||result.ballInHand){cue().pocketed=false;cue().vx=cue().vy=0;const p=findPlacement(balls);if(p)Object.assign(cue(),p);phase='place';message('Player '+(turn+1)+' has ball in hand. Tap a clear position and confirm.');}
+ if(scratch||result.ballInHand){cue().pocketed=false;cue().vx=cue().vy=0;const p=findPlacement(balls.filter(b=>b.id!==0));if(p)Object.assign(cue(),p);phase='place';message('Player '+(turn+1)+' has ball in hand. Tap a clear position and confirm.');}
  else{phase='aim';message('Player '+(turn+1)+' to shoot. '+(result.match.bonus[turn]?'Pressing bonus at risk.':''));}
  $('bank').checked=false;callPocket.value='';update();
 }
 function frame(t){
  const elapsed=previous?Math.min(.08,(t-previous)/1000):0;previous=t;
- if(phase==='moving'){acc+=elapsed;let n=0;while(acc>=1/120&&n++<12){const outcome=step(balls,1/120);events.push(...outcome.shotEvents);if(firstContact===null){const hit=outcome.shotEvents.find(e=>e.type==='ball'&& (e.a===0||e.b===0));if(hit)firstContact=hit.a===0?hit.b:hit.a;}acc-=1/120;shotElapsed+=1/120;still=stationary(balls)?still+1:0;if(still>20||shotElapsed>20){endShot();break;}}}
+ if(phase==='moving'){acc+=elapsed;let n=0;while(acc>=1/120&&n++<12){const outcome=step(balls,1/120);events.push(...outcome.shotEvents);if(firstContact===null){const hit=outcome.shotEvents.find(e=>e.type==='contact'&& e.balls.includes(0));if(hit)firstContact=hit.balls.find(id=>id!==0);}acc-=1/120;shotElapsed+=1/120;still=stationary(balls)?still+1:0;if(still>20||shotElapsed>20){endShot();break;}}}
  draw();requestAnimationFrame(frame);
 }
 canvas.addEventListener('pointerdown',e=>{if(!['aim','place'].includes(phase))return;const box=canvas.getBoundingClientRect(),x=(e.clientX-box.left)*canvas.width/box.width,y=(e.clientY-box.top)*canvas.height/box.height;if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();}return;}const b=cue();angle=Math.atan2(y-b.y,x-b.x)+($('invert-aim').checked?Math.PI:0);});
