@@ -1,3 +1,4 @@
+import {readInvertAim,angleFromPointer} from './aim-preference.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,canPlace,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {groupOf} from './rules.js';
@@ -58,11 +59,13 @@ function frame(t){
  if(phase==='moving'){acc+=elapsed;let n=0;while(acc>=1/120&&n++<12){const outcome=step(balls,1/120);events.push(...outcome.shotEvents);if(firstContact===null){const hit=outcome.shotEvents.find(e=>e.type==='contact'&& e.balls.includes(0));if(hit)firstContact=hit.balls.find(id=>id!==0);}acc-=1/120;shotElapsed+=1/120;still=stationary(balls)?still+1:0;if(still>20||shotElapsed>20){endShot();break;}}}
  draw();requestAnimationFrame(frame);
 }
-canvas.addEventListener('pointerdown',e=>{if(!['aim','place'].includes(phase))return;const box=canvas.getBoundingClientRect(),x=(e.clientX-box.left)*canvas.width/box.width,y=(e.clientY-box.top)*canvas.height/box.height;if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();}return;}const b=cue();angle=Math.atan2(y-b.y,x-b.x)+($('invert-aim').checked?Math.PI:0);});
+function aimPointer(e){if(!['aim','place'].includes(phase))return;const box=canvas.getBoundingClientRect(),x=(e.clientX-box.left)*canvas.width/box.width,y=(e.clientY-box.top)*canvas.height/box.height;if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();}return;}const b=cue();const next=angleFromPointer(b,{x,y},$('invert-aim').checked,TABLE.radius);if(next!==null)angle=next;}
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);aimPointer(e);});
+canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e);});
 $('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){message('Call a ball and pocket first.');return;}preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{if(phase==='place'){phase='aim';message('Player '+(turn+1)+' to shoot.');update();}};
 $('next').onclick=rack;$('start').onclick=begin;
-try{$('invert-aim').checked=localStorage.getItem('squatch-invert-aim')==='true';$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
+try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 $('invert-aim').onchange=()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}};
 $('size').onchange=()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}};
 begin();requestAnimationFrame(frame);
