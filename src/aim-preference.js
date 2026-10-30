@@ -19,12 +19,16 @@ export function bindInvertAim(button) {
   function render() {
     if (!button) return;
     button.setAttribute('aria-pressed', String(inverted));
-    button.textContent = inverted ? '↔ Invert aim: ON' : '↔ Invert aim: OFF';
+    button.textContent = inverted ? '↔ Reverse aim: ON · drag behind cue' : '↔ Reverse aim: OFF';
+    button.setAttribute('aria-label', inverted ? 'Reverse aim on. Drag behind the cue ball to aim away from your finger.' : 'Reverse aim off. Drag toward the target to aim.');
   }
   if (button) button.addEventListener('click', () => {
     inverted = !inverted;
     try { if (typeof localStorage !== 'undefined') localStorage.setItem(INVERT_AIM_KEY, String(inverted)); } catch {}
     render();
+  });
+  if (button && typeof window !== 'undefined') window.addEventListener('storage', event => {
+    if (event.key === INVERT_AIM_KEY) { inverted = event.newValue === 'true'; render(); }
   });
   render();
   return () => inverted;
