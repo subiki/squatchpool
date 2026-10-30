@@ -106,3 +106,8 @@ Diagnose routine failures and try bounded fixes. Preserve last known playable st
 
 ## Session handoff
 Report: current deployed URL and verified status; issue/PR worked; tests and browser evidence; remaining release gates; next concrete action; blockers. Instructions do not themselves schedule background agents.
+
+## Installable offline PWA
+- New pages/games must include `/manifest.webmanifest` and `/src/pwa.js` in the HTML head; `scripts/build-pwa.mjs` automatically bundles root HTML, source JS/CSS, archive text and launcher icons for offline play. Static Pages root remains `.`.
+- Cloudflare's existing npm postinstall and npm build generate a versioned `service-worker.js`, without an alternate deployment pipeline. Keep the old working cache until a full new asset preload succeeds. Never cache `/api/` or pretend server statistics are available offline.
+- Run `npm run build` before local offline testing. Test install, reload in airplane mode, open each game/rules/archive, and reconnect on an actual Android browser before claiming a release verified. Offline racks are playable but not persisted across reloads yet.

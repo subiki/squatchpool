@@ -25,5 +25,10 @@ test('But Wait remains the primary table and Caroms is a playable beta',()=>{
  const catalog=read('index.html');
  assert.equal((catalog.match(/PLAYABLE NOW/g)||[]).length,1);
  assert.match(catalog,/🎱 But Wait, There's More/);
- assert.match(catalog,/IN DEVELOPMENT/);
+ // The original placeholder was retired when Cutthroat and Press Your Luck shipped.
+ // Guard the actual playable catalog instead of requiring stale IN DEVELOPMENT copy.
+ assert.match(catalog,/href="\.\/cutthroat\.html"/);
+ assert.match(catalog,/PLAYABLE BETA · THREE LOCAL PLAYERS/);
+ assert.match(catalog,/href="\.\/press-your-luck\.html"/);
+ assert.match(catalog,/PLAYABLE BETA · TWO LOCAL PLAYERS/);
 });

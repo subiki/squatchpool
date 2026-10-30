@@ -101,3 +101,11 @@ The game uses dynamically selected pool-table playing surfaces modeled in `src/t
 6. [ ] Deploy a publicly reachable preview, then confirm mobile controls there.
 
 **Don't build the community platform until a full match can be played comfortably.** See [docs/BACKLOG.md](docs/BACKLOG.md) for the ideas explicitly deferred.
+
+## Install and play offline (Android, desktop)
+
+Squatch Pool is built as a Progressive Web App. After visiting the site online and letting the **Ready to play offline** indicator appear, Android Chrome users can use **⋮ → Add to Home screen / Install app**. Desktop Chrome/Edge users can choose **Install** from the browser menu. A small **Install game** button also appears when the browser offers its installation prompt.
+
+The install saves each current HTML game, all local physics/scripts/styles, rules, archive and app icons. Reopen from the device launcher and play in airplane mode. Local two-player and the bundled bot need no network. Site-wide D1 statistics are online-only; the existing small browser event queue retries on reconnection. An offline match is not persisted between app restarts yet; don't assume automatic saved-game recovery. External archive source links still need internet.
+
+A new Cloudflare Pages build automatically generates a content-versioned service worker and launcher icons via `scripts/build-pwa.mjs`; incomplete new downloads leave the previous offline edition intact. To preview offline behavior locally, run `npm run build` first, then serve the root over `localhost` (service workers require localhost or HTTPS). The generated `service-worker.js` and `app-icon-*.png` are build outputs, not manually maintained files. Do not cache `/api/stats` or assume the browser will preserve CacheStorage forever if the user clears site data or storage is evicted.
