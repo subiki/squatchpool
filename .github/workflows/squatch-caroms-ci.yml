@@ -1,4 +1,4 @@
-name: Squatch Caroms release checks
+name: Squatch release checks
 on:
   pull_request:
     paths:
@@ -7,6 +7,14 @@ on:
       - 'package.json'
       - 'caroms.html'
       - 'index.html'
+      - 'cutthroat.html'
+      - 'rules.html'
+      - 'archive.html'
+      - 'manifest.webmanifest'
+      - 'service-worker.js'
+      - 'app-icon-*.png'
+      - '_headers'
+      - 'scripts/**'
       - '.github/workflows/squatch-caroms-ci.yml'
   workflow_dispatch:
 permissions:

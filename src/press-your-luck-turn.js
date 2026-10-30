@@ -17,7 +17,7 @@ export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=fa
  // pocketed by this shot must not make an early 8 suddenly legal.
  // Caller must supply balls representing the pre-shot layout.
  let next=match,finish=null,winner=null,keepTurn=false;
- if(breakShot&&eight)return {match:next,respotEight:true,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch};
+ if(breakShot&&eight)return {match:next,respotEight:true,finish:null,winner:null,keepTurn:!scratch,nextPlayer:scratch?1-shooter:shooter,scratch,ballInHand:scratch};
  if(eight){
   winner=!scratch&&legalShot&&eligible?shooter:1-shooter;
   finish=winner===shooter?'eight':scratch?'eight-scratch':'early-eight';
