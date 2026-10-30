@@ -5,7 +5,7 @@ import {groupOf} from './rules.js';
 import {newMatch,validateTargetScore} from './press-your-luck-score.js';
 import {pressTurn,pressEligible} from './press-your-luck-turn.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
-let match,balls=[],turn=0,groups=[null,null],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,breakShot=true;
+let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,breakShot=true;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
 function message(s){$('status').textContent=s;}
 function rack(){
@@ -36,14 +36,18 @@ function draw(){
 function endShot(){
  const ids=events.filter(e=>e.type==='pocket').map(e=>e.ballId);
  const scratch=ids.includes(0);
- const called=Number(callBall.value),pocket=callPocket.value;
+ const called=shotCall,pocket=shotPocket;
  const made=events.some(e=>e.type==='pocket'&&e.ballId===called&&e.pocketId===pocket);
- if(!groups[turn]&&!breakShot&&made&&groupOf(called)){groups[turn]=groupOf(called);groups[1-turn]=groups[turn]==='solids'?'stripes':'solids';}
+ const eightMade=events.some(e=>e.type==='pocket'&&e.ballId===8&&e.pocketId===pocket);
+ const illegalEight=ids.includes(8)&&(!eightMade||called!==8);
+ const legalCall=breakShot||made||!ids.length;
+ const assignment=!groups[turn]&&!breakShot&&made&&groupOf(called)&&!scratch&&firstContact!==null&&groupOf(firstContact)===groupOf(called);
+ if(assignment){groups[turn]=groupOf(called);groups[1-turn]=groups[turn]==='solids'?'stripes':'solids';}
  const eligible=pressEligible(preBalls,groups[turn]);
- const legalFirst=breakShot||(!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||groupOf(firstContact)===groups[turn]||groupOf(firstContact)===groups[1-turn]:groupOf(firstContact)===groups[turn]);
- const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst),eightAttempt:called===8&&!ids.includes(8),bankOrKick:$('bank').checked,calledShotMade:made});
+ const legalFirst=breakShot?firstContact!==null:!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||groupOf(firstContact)===groups[1-turn]:groupOf(firstContact)===groups[turn];
+ const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:shotBank,calledShotMade:made});
  match=result.match;
- if(result.respotEight){const b=balls.find(b=>b.id===8);b.pocketed=false;const p=findPlacement(balls);if(p)Object.assign(b,p);}
+ if(result.respotEight){const b=balls.find(b=>b.id===8);b.pocketed=false;const p=findPlacement(balls.filter(other=>other.id!==8));if(p)Object.assign(b,p);}
  if(result.finish){
   const li=document.createElement('li');li.textContent='Rack '+(match.finished?match.rack:match.rack-1)+': Player '+(result.winner+1)+' wins '+match.lastRack.awarded+' points';$('history').prepend(li);
   phase='done';$('next').hidden=match.finished;
@@ -62,7 +66,7 @@ function frame(t){
 function aimPointer(e){if(!['aim','place'].includes(phase))return;const box=canvas.getBoundingClientRect(),x=(e.clientX-box.left)*canvas.width/box.width,y=(e.clientY-box.top)*canvas.height/box.height;if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();}return;}const b=cue();const next=angleFromPointer(b,{x,y},$('invert-aim').checked,TABLE.radius);if(next!==null)angle=next;}
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);aimPointer(e);});
 canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e);});
-$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){message('Call a ball and pocket first.');return;}preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;phase='moving';$('shoot').disabled=true;};
+$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){message('Call a ball and pocket first.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{if(phase==='place'){phase='aim';message('Player '+(turn+1)+' to shoot.');update();}};
 $('next').onclick=rack;$('start').onclick=begin;
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
