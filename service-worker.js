@@ -20,7 +20,20 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || url.origin !== self.location.origin ||
       url.pathname.startsWith('/api/')) return; // Stats/API must never be cached.
   const path = url.pathname === '/' ? '/index.html' : url.pathname;
-  if (PRECACHE_SET.has(path)) {
+  // Always refresh navigations when online. Cached HTML can otherwise trap users
+  // on a broken release after the first visit; cache remains the offline fallback.
+  if (request.mode === 'navigate' && PRECACHE_SET.has(path)) {
+    event.respondWith(fetch(request).then(async response => {
+      if (response.ok && response.type !== 'opaque') {
+        try { await (await caches.open(CACHE_NAME)).put(path, response.clone()); } catch {}
+      }
+      return response;
+    }).catch(async error => {
+      const cached = await (await caches.open(CACHE_NAME)).match(path);
+      if (cached) return cached;
+      throw error;
+    }));
+  } else if (PRECACHE_SET.has(path)) {
     event.respondWith(caches.open(CACHE_NAME).then(async cache => {
       const cached = await cache.match(path);
       if (cached) return cached;
