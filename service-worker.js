@@ -20,14 +20,7 @@ self.addEventListener('fetch', event => {
   if (request.method !== 'GET' || url.origin !== self.location.origin ||
       url.pathname.startsWith('/api/')) return; // Stats/API must never be cached.
   const path = url.pathname === '/' ? '/index.html' : url.pathname;
-  // Prefer fresh HTML online; retain cache as offline fallback.
-  if (request.mode === 'navigate' && PRECACHE_SET.has(path)) {
-    event.respondWith(fetch(request).then(response => {
-      if (response.ok) { const copy = response.clone();
-        void caches.open(CACHE_NAME).then(cache => cache.put(path, copy)).catch(() => {}); }
-      return response;
-    }).catch(() => caches.open(CACHE_NAME).then(cache => cache.match(path))));
-  } else if (PRECACHE_SET.has(path)) {
+  if (PRECACHE_SET.has(path)) {
     event.respondWith(caches.open(CACHE_NAME).then(async cache => {
       const cached = await cache.match(path);
       if (cached) return cached;
