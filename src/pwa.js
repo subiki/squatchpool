@@ -4,6 +4,8 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   let ready = false;
   let pendingInstall = null;
   let updateWaiting = false;
+  let offlineCheckFailed = false;
+  let registration = null;
   const bar = document.createElement('div');
   bar.className = 'squatch-offline-tools';
   const status = document.createElement('span');
@@ -17,7 +19,9 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   header?.append(bar);
   function render() {
     if (!navigator.onLine) {
-      status.textContent = ready ? 'Offline · Play locally; site stats sync when connected' : 'Offline · Open the app online once to download';
+      status.textContent = ready ? 'Offline · Play locally; site stats sync when connected' : 'Offline · Download not verified; reconnect to finish';
+    } else if (offlineCheckFailed) {
+      status.textContent = 'Online play available · Offline files not verified; reload to retry';
     } else if (updateWaiting) {
       status.textContent = 'New version downloaded · Reopen the app to update';
     } else {
@@ -41,10 +45,47 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     pendingInstall = null;
     render();
   });
-  window.addEventListener('online', render);
+  window.addEventListener('online', () => {
+    render();
+    if (registration) void checkReady(registration);
+  });
   window.addEventListener('offline', render);
+  // serviceWorker.ready only proves activation, not that every offline asset
+  // survived browser storage eviction. Ask the active worker to inspect its cache.
+  function verifyCache(reg) {
+    return new Promise((resolve, reject) => {
+      if (!reg.active || typeof MessageChannel === 'undefined') {
+        reject(new Error('Offline worker not active')); return;
+      }
+      const channel = new MessageChannel();
+      const timeout = setTimeout(() => {
+        channel.port1.close();
+        reject(new Error('Offline worker did not respond'));
+      }, 5000);
+      channel.port1.onmessage = event => {
+        if (event.data?.type !== 'SQUATCH_OFFLINE_STATUS') return;
+        clearTimeout(timeout);
+        channel.port1.close();
+        resolve(event.data.ready === true);
+      };
+      try { reg.active.postMessage({type:'SQUATCH_OFFLINE_STATUS'}, [channel.port2]); }
+      catch (error) { clearTimeout(timeout); channel.port1.close(); reject(error); }
+    });
+  }
+  async function checkReady(reg) {
+    try {
+      await navigator.serviceWorker.ready;
+      ready = await verifyCache(reg);
+      offlineCheckFailed = !ready;
+    } catch {
+      ready = false;
+      offlineCheckFailed = true;
+    }
+    render();
+  }
   render();
   navigator.serviceWorker.register('/service-worker.js', {updateViaCache: 'none'}).then(reg => {
+    registration = reg;
     function watchWaiting() {
       if (reg.waiting && navigator.serviceWorker.controller) {
         updateWaiting = true;
@@ -56,11 +97,14 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       const worker = reg.installing;
       worker?.addEventListener('statechange', watchWaiting);
     });
-    return navigator.serviceWorker.ready;
-  }).then(() => {
-    ready = true;
-    render();
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      updateWaiting = false;
+      ready = false;
+      void checkReady(reg);
+    });
+    return checkReady(reg);
   }).catch(() => {
-    status.textContent = navigator.onLine ? 'Online play available · Offline download unavailable' : 'Offline download unavailable';
+    offlineCheckFailed = true;
+    render();
   });
 }
