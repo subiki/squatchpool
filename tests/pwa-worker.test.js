@@ -65,7 +65,7 @@ test('install preloads playable pages and activation retains only new offline ed
   assert.deepEqual(h.deleted,['squatch-offline-old']);
 });
 
-test('cached homepage, rules and games load offline without a network request',async () => {
+test('cached homepage, rules and games load offline after network fallback',async () => {
   const h=workerHarness();
   await h.lifecycle('install');
   h.setOffline(true);
@@ -73,7 +73,7 @@ test('cached homepage, rules and games load offline without a network request',a
     const response=await h.request(path);
     assert.ok(response?.ok,path);
   }
-  assert.equal(h.fetches,0);
+  assert.equal(h.fetches,5); // Network-first navigation tries online, then uses cached HTML.
 });
 
 test('evicted allowlisted assets are repaired online, then served offline',async () => {
@@ -84,7 +84,7 @@ test('evicted allowlisted assets are repaired online, then served offline',async
   h.setOffline(true);
   const offline=await h.request('/caroms.html');
   assert.equal(offline.body,'from network');
-  assert.equal(h.fetches,1);
+  assert.equal(h.fetches,2);
 });
 
 test('API requests, cross-origin and writes are never intercepted or cached',async () => {
