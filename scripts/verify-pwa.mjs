@@ -47,7 +47,7 @@ function collect(dir){
   for(const entry of readdirSync(folder,{withFileTypes:true})){
     const path=dir+'/'+entry.name;
     if(entry.isDirectory())collect(path);
-    else if(/\\.(?:js|css|html|svg|png|jpg|jpeg|webp|woff2?|txt)$/i.test(entry.name))
+    else if(/\.(?:js|css|html|svg|png|jpg|jpeg|webp|woff2?|txt)$/i.test(entry.name))
       expected.add('/'+path);
   }
 }
@@ -55,7 +55,7 @@ collect('src');
 collect('archive/source');
 if(existsSync(join(root,'deployment.json')))expected.add('/deployment.json');
 for(const path of assets){
-  assert.match(path,/^\\/[^/?#]+(?:\\/[^/?#]+)*$/,'invalid worker asset path: '+path);
+  assert.match(path,/^\/[^/?#]+(?:\/[^/?#]+)*$/,'invalid worker asset path: '+path);
   assert.ok(!path.startsWith('/api/'),'API must not be precached: '+path);
   assert.ok(existsSync(join(root,path.slice(1))),'offline source missing '+path);
 }
