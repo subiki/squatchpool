@@ -72,19 +72,42 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       catch (error) { clearTimeout(timeout); channel.port1.close(); reject(error); }
     });
   }
-  async function checkReady(reg) {
+  // A failed first install leaves serviceWorker.ready pending indefinitely.
+  // Bound the wait so a missing/broken precache asset shows a truthful error
+  // instead of claiming to be downloading forever.
+  async function waitForActiveWorker(reg) {
+    if (reg.active) return;
+    let timeout;
     try {
-      await navigator.serviceWorker.ready;
-      ready = await verifyCache(reg);
-      if (!ready && navigator.onLine) {
-        status.textContent = 'Restoring missing offline game files…';
-        ready = await verifyCache(reg, true);
-      }
-      offlineCheckFailed = !ready;
-    } catch {
-      ready = false;
-      offlineCheckFailed = true;
+      await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) => {
+          timeout = setTimeout(() => reject(new Error('Offline worker activation timed out')), 15000);
+        })
+      ]);
+    } finally {
+      clearTimeout(timeout);
     }
+    if (!reg.active) throw new Error('Offline worker not active');
+  }
+  let readinessCheck = 0;
+  async function checkReady(reg) {
+    const currentCheck = ++readinessCheck;
+    let verified = false;
+    try {
+      await waitForActiveWorker(reg);
+      verified = await verifyCache(reg);
+      if (!verified && navigator.onLine) {
+        status.textContent = 'Restoring missing offline game files…';
+        verified = await verifyCache(reg, true);
+      }
+    } catch {
+      // Missing files, storage errors and failed installation are not ready.
+    }
+    // Ignore a stale result after reconnection or controller replacement.
+    if (currentCheck !== readinessCheck) return;
+    ready = verified;
+    offlineCheckFailed = !verified;
     render();
   }
   render();
