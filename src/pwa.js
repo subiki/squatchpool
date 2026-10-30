@@ -47,7 +47,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   });
   window.addEventListener('online', () => {
     render();
-    if (registration) void checkReady(registration);
+    if (registration) { void registration.update().catch(() => {}); void checkReady(registration); }
   });
   window.addEventListener('offline', render);
   // serviceWorker.ready only proves activation, not that every offline asset

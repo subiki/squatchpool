@@ -1,15 +1,15 @@
 /** Fail the Pages build if its installable offline payload is incomplete. */
 import assert from 'node:assert/strict';
-import {existsSync,readFileSync} from 'node:fs';
+import {existsSync,readFileSync,readdirSync} from 'node:fs';
 import {fileURLToPath} from 'node:url';
 import {join} from 'node:path';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const read=path=>readFileSync(join(root,path));
-const pages=['index.html','caroms.html','cutthroat.html','rules.html','archive.html'];
+const pages=readdirSync(root).filter(p=>p.endsWith('.html')).sort();
 const essentials=[...pages.map(p=>'/'+p),'/manifest.webmanifest',
   '/app-icon-192.png','/app-icon-512.png','/src/pwa.js',
-  '/src/game.js','/src/caroms-game.js','/src/cutthroat-game.js',
+  '/src/game.js','/src/caroms-game.js','/src/cutthroat-game.js','/src/press-your-luck-game.js',
   '/src/aim-preference.js','/src/aim-preference.css'];
 const manifest=JSON.parse(read('manifest.webmanifest').toString());
 assert.equal(manifest.display,'standalone');

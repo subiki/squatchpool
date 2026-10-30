@@ -7,7 +7,7 @@ export function pressEligible(balls,group){
  return Boolean(group&&liveGroupBalls(balls,group).length===0);
 }
 export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=false,
- legalShot=true,eightAttempt=false,bankOrKick=false}){
+ legalShot=true,eightAttempt=false,bankOrKick=false,calledShotMade=false}){
  if(![0,1].includes(shooter))throw new RangeError('Invalid shooter');
  if(!Array.isArray(groups)||groups.length!==2)throw new Error('Two groups required');
  const pocketed=shotEvents.filter(e=>e.type==='pocket').map(e=>e.ballId);
@@ -32,11 +32,16 @@ export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=fa
   next=forfeitBonus(next,shooter);
   return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false};
  }
- if(!legalShot)return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false,unresolvedFoul:true};
+ if(!legalShot){
+  next=forfeitBonus(next,shooter);
+  return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false,ballInHand:true};
+ }
  const opponent=groups[1-shooter];
  const count=eligible?pocketed.filter(id=>groupOf(id)===opponent).length:0;
  if(count)next=pocketOpponentBalls(next,shooter,count);
- keepTurn=count>0;
+ // Clearing one's own group is normal eight-ball play; a correctly called shot
+ // continues the inning. Once clear, opponent balls can build provisional bonus.
+ keepTurn=count>0||calledShotMade;
  return {match:next,finish:null,winner:null,keepTurn,nextPlayer:keepTurn?shooter:1-shooter,scratch:false,
   unresolvedOwnGroupShot:!eligible};
 }

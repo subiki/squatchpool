@@ -8,6 +8,7 @@ on:
       - 'caroms.html'
       - 'index.html'
       - 'cutthroat.html'
+      - 'press-your-luck.html'
       - 'rules.html'
       - 'archive.html'
       - 'manifest.webmanifest'
