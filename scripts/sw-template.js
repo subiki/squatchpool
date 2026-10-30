@@ -41,3 +41,18 @@ self.addEventListener('fetch', event => {
       .then(cache => cache.match('/index.html'))));
   }
 });
+
+// The UI only claims offline readiness after the active edition's entire cache
+// has been verified, not merely because a service worker registered.
+self.addEventListener('message', event => {
+  if (event.data?.type !== 'SQUATCH_OFFLINE_STATUS' || !event.ports?.[0]) return;
+  event.waitUntil((async () => {
+    let ready = false;
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      const entries = await Promise.all(PRECACHE.map(path => cache.match(path)));
+      ready = entries.every(Boolean);
+    } catch { /* CacheStorage can be unavailable or evicted. */ }
+    event.ports[0].postMessage({type:'SQUATCH_OFFLINE_STATUS',ready,assetCount:PRECACHE.length});
+  })());
+});
