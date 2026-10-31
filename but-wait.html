@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1">
+ <meta name="theme-color" content="#101d19">
+ <meta name="description" content="Play But Wait, There's More — a Squatch Pool house-rules game from The 4T's.">
+ <title>But Wait, There's More · Squatch Pool</title>
+ <link rel="stylesheet" href="./src/styles.css">
+ <link rel="stylesheet" href="./src/aim-preference.css">
+ <link rel="stylesheet" href="./src/world.css">
+ <script type="module" src="./src/game.js"></script>
+ <script type="module" src="./src/deployment.js"></script>
+<link rel="stylesheet" href="./src/shared-header.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head>
+<body>
+ <div class="grain" aria-hidden="true"></div>
+ <div class="app">
+  <header class="squatch-unified-header">
+<div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
+<div class="squatch-release" aria-label="Version and deployment"><span class="prototype">FIRST BREAK / v0.1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
+<nav class="squatch-header-nav" aria-label="Explore Squatch Pool"><a href="/">🏠 Home</a><a href="/but-wait.html" aria-current="page">🎱 But Wait</a><a href="/caroms.html">🌲 Caroms</a><a href="/cutthroat.html">🦍 Cutthroat</a><a href="/press-your-luck.html">🎲 Press Your Luck</a><a href="/rules.html">📜 Rules</a><a href="/archive.html">📖 Field Notes</a></nav>
+<details class="squatch-header-stats" open><summary>Across Squatch Pool · Live statistics</summary>
+<div class="squatch-stat-numbers" aria-label="Site-wide statistics"><div class="stat"><strong id="site-stats-players">—</strong><span>Players</span></div><div class="stat"><strong id="site-stats-racks">—</strong><span>Racks</span></div><div class="stat"><strong id="site-stats-balls">—</strong><span>Balls made</span></div></div>
+<div class="stats-breakdown"><strong>By game</strong><div id="site-stats-breakdown">Awaiting live totals</div></div>
+
+<p class="stats-footnote" id="stats-status" aria-live="polite">Connecting to live statistics…</p></details></header>
+  
+  <main>
+   
+   <section class="squatch-catalog" aria-labelledby="squatch-catalog-title">
+    <p class="eyebrow highlight">ORIGINAL SQUATCH GAMES</p>
+    <h2 id="squatch-catalog-title">Choose your trouble.</h2>
+    <div class="squatch-game-grid" id="squatch-game-grid">
+      <article class="squatch-game-card current"><strong>🎱 But Wait, There's More</strong><p>Clear your balls, then face the surprise your opponent places.</p><span>PLAYABLE NOW</span></article>
+      <article class="squatch-game-card"><strong>🌲 Caroms · Whacky Pool</strong><p>Play solo against Squatch Bot or with a friend. Strike an object ball into the white ball first; choose beginner, intermediate, or advanced rules.</p><span>PLAYABLE BETA · SOLO OR LOCAL</span><a class="squatch-game-action" href="./caroms.html" aria-label="Play Caroms beta">Play Caroms</a></article>
+      <article class="squatch-game-card"><strong>🦍 Coin-Op Cutthroat</strong><p>Three local players, three groups, and a scratch lets the third player claim a ball or re-enter.</p><span>PLAYABLE BETA · THREE LOCAL PLAYERS</span><a class="squatch-game-action" href="./cutthroat.html" aria-label="Play three-player Cutthroat">Play Cutthroat</a></article>
+      <article class="squatch-game-card"><strong>🎲 Press Your Luck</strong><p>Earn points by pocketing your opponent's balls. Take the 8 to bank your score; a banked 8 doubles it.</p><span>PLAYABLE BETA · TWO LOCAL PLAYERS</span><a class="squatch-game-action" href="./press-your-luck.html">Play Press Your Luck</a></article>
+    </div>
+    <p class="catalog-note">But Wait, Caroms and three-player Cutthroat are playable locally. Caroms uses provisional rule interpretations; Cutthroat also labels its playtest interpretations; sitewide totals appear only when Cloudflare statistics are connected. Other modes unlock after complete-match testing. <a href="./rules.html">Read the original rules</a>.</p>
+   </section>
+   <div class="intro">
+    <div>
+     <div class="eyebrow highlight">THE FIRST GAME</div>
+     <h2>But Wait, <em>There's More.</em></h2>
+     <p>Classic 8-ball, with a Squatch-sized surprise: one solid and one stripe wait off-table. When you clear your balls, your opponent chooses either remaining ball and where it goes.</p>
+    </div>
+    <div class="mode-controls">
+     <label for="mode">Who's at the table?</label>
+     <select id="mode" aria-label="Opponent type"><option value="bot">You vs. Speed Squatch</option><option value="local">Two players (pass &amp; play)</option></select>
+     <span class="table-size-label" id="table-size-label">Table size</span>
+     <div class="table-size-buttons" role="group" aria-labelledby="table-size-label">
+      <button type="button" class="table-size-pick selected" data-size="7" aria-pressed="true"><strong>7 FT</strong><small>BAR · 78×39</small></button>
+      <button type="button" class="table-size-pick" data-size="8" aria-pressed="false"><strong>8 FT</strong><small>HOME · 88×44</small></button>
+      <button type="button" class="table-size-pick" data-size="9" aria-pressed="false"><strong>9 FT</strong><small>PRO · 100×50</small></button>
+     </div>
+     <small class="size-note">2¼″ balls and regulation pocket mouths at every size. Changing size starts a new rack.</small>
+     <button id="new-game" class="secondary">↻ New rack</button>
+    </div>
+   </div>
+   <section class="quickstart" aria-label="How to play"><strong>NEW HERE? START IN 3 STEPS</strong><span><b>1</b> Break: place white ball behind the line</span><span><b>2</b> Aim and set break power</span><span><b>3</b> Tap BREAK! · Then call shots</span><small>Clear your group. Your opponent chooses a hidden ball to place before your 8.</small></section>
+   <section class="match" aria-label="Pool game">
+    <div class="game-stats" aria-label="But Wait, There's More lifetime statistics">
+     <strong class="game-stats-title">BUT WAIT, THERE'S MORE <span>· ALL-TIME GAME STATS</span></strong>
+     <div><strong id="game-stats-players">—</strong><span>Players</span></div>
+     <div><strong id="game-stats-racks">—</strong><span>Racks</span></div>
+     <div><strong id="game-stats-balls">—</strong><span>Balls made</span></div>
+    </div>
+    <div class="scoreboard">
+     <div class="player active" id="player-0"><span class="portrait" aria-hidden="true">🎱</span><div><strong id="player-name-0">You</strong><small id="player-group-0">Open table</small></div><span class="player-count" id="player-count-0">—</span></div>
+     <div class="center-score"><span>HOUSE RULES</span><strong>VS.</strong><small id="shot-counter">Break shot</small></div>
+     <div class="player" id="player-1"><span class="portrait squatch" aria-hidden="true">🦍</span><div><strong id="player-name-1">Speed Squatch</strong><small id="player-group-1">Open table</small></div><span class="player-count" id="player-count-1">—</span></div>
+    </div>
+    <div class="table-frame">
+     <div class="table-topline"><span>THE FOUR T'S • <span id="table-dimensions">7 FT · 78 × 39 IN</span></span><span id="table-status">OPEN TABLE</span></div>
+     <div class="table-playfield">
+      <canvas id="table" width="1000" height="500" aria-label="Pool table. First place the white ball behind the head string for the break. After the break, tap a ball then a pocket to call the shot." role="img"></canvas>
+      <div class="pocket-targets" id="pocket-targets" aria-label="Choose a pocket" hidden>
+       <button type="button" class="pocket-pick pocket-tl" data-pocket="TL" aria-label="Call top left pocket">1 <span>↖</span></button>
+       <button type="button" class="pocket-pick pocket-tm" data-pocket="TM" aria-label="Call top middle pocket">2 <span>↑</span></button>
+       <button type="button" class="pocket-pick pocket-tr" data-pocket="TR" aria-label="Call top right pocket">3 <span>↗</span></button>
+       <button type="button" class="pocket-pick pocket-bl" data-pocket="BL" aria-label="Call bottom left pocket">4 <span>↙</span></button>
+       <button type="button" class="pocket-pick pocket-bm" data-pocket="BM" aria-label="Call bottom middle pocket">5 <span>↓</span></button>
+       <button type="button" class="pocket-pick pocket-br" data-pocket="BR" aria-label="Call bottom right pocket">6 <span>↘</span></button>
+      </div>
+     </div>
+     <div class="table-bottomline"><span>★ PACIFIC NORTHWEST ★</span><span>THE FOUR T’S</span></div>
+    </div>
+    <div class="aim-toggle-bar" role="group" aria-label="Touch aiming preference"><button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Invert aim: OFF</button><span class="aim-toggle-caption">ON = hold a finger behind the cue to aim away from it. Tap again for normal aim. Saved across games.</span></div>
+    <div class="announcer" aria-live="polite"><span class="announcer-avatar" aria-hidden="true">🌲</span><div><div class="eyebrow">FROM THE BOOTH</div><p id="announcer-text">Welcome to The 4T's. Break 'em like you mean it.</p></div></div>
+    <div class="call-panel" id="call-panel" aria-label="Called shot">
+     <div class="call-instructions"><strong>CALL YOUR SHOT</strong><small id="call-hint">After the break, tap a ball, then a pocket.</small></div>
+     <div class="call-progress" aria-live="polite"><span id="call-ball-status">Ball: not called</span><span id="call-pocket-status">Pocket: not called</span></div>
+     <button id="undo-call" type="button" class="secondary undo-call" disabled>↶ Undo call</button>
+     <div class="ball-picks" id="ball-picks" aria-label="Eligible balls — alternative to tapping the table" hidden></div>
+    </div>
+    <div class="control-panel">
+     <div class="aim-help"><strong id="control-title">Your shot</strong><span id="control-hint">Tap or drag on the table to aim. Choose your power, then shoot.</span><button id="move-cue" type="button" class="secondary move-break-cue" hidden>↔ Reposition break cue ball</button></div>
+     <div class="power"><label for="power">POWER <output id="power-value" for="power">68%</output></label><input id="power" type="range" min="10" max="100" value="68" step="1"></div>
+     <button id="shoot" class="shoot">SHOOT <span aria-hidden="true">➜</span></button>
+    </div>
+    <div class="spin-panel" aria-label="Advanced cue-ball spin (optional)">
+      <span class="spin-heading">🎱 CUE SPIN <small>Optional · leave centered for a normal shot</small></span>
+      <label for="spin-top">Draw / Follow <output id="spin-top-value" for="spin-top">Center</output>
+       <input id="spin-top" type="range" min="-100" max="100" value="0" step="5" aria-label="Backspin or topspin">
+      </label>
+      <label for="spin-side">English <output id="spin-side-value" for="spin-side">Center</output>
+       <input id="spin-side" type="range" min="-100" max="100" value="0" step="5" aria-label="Left or right sidespin">
+      </label>
+    </div>
+   </section>
+   <section class="rules-card world-card" style="margin-top:24px"><p class="eyebrow highlight">WEIRD RULES. REAL GAMES.</p><h2>Pick a game. Learn the twist. Break the rack.</h2><p>New modes focus on playable house rules, not fictional backstories.</p><a href="./rules.html">LEARN THE RULES →</a></section>
+   <section class="below">
+    <article class="rules-card">
+     <p class="eyebrow highlight">QUICK RULES</p><h3>What's the catch?</h3>
+     <p>Play 8-ball, except the <strong>7-ball and 15-ball</strong> start off the table. When you clear your visible group, your opponent chooses <strong>either remaining hidden ball</strong>—even their own—and places it in a legal spot. They can block your route to the 8 or force a difficult shot. If it’s your ball, you must sink it before the 8.</p>
+     <p class="note">In this first prototype, fouls award ball-in-hand. Groups are assigned after a legal post-break pocket. After the break, call your ball and pocket. Slop stays down but does not count.</p>
+    </article>
+    <article class="rules-card log-card"><p class="eyebrow highlight">TABLE TALK</p><h3>Shot history</h3><ol id="shot-log" aria-label="Shot history"><li>Fresh rack. Everyone still has a chance.</li></ol></article>
+   </section>
+   <footer>Squatch Pool • Billiards physics adapted from <a href="https://github.com/tailuge/billiards">Tailuge Billiards</a> (GPL-3.0). <a href="./LICENSE">License</a> · <a href="./THIRD_PARTY.md">Source and attribution</a> · <a href="./src/physics.js">Game physics source</a></footer>
+  </main>
+ </div>
+ <div class="modal-backdrop" id="result-modal" hidden>
+  <div class="result" role="dialog" aria-modal="true" aria-labelledby="result-title">
+   <div class="result-art">🏆</div><p class="eyebrow">GAME OVER</p>
+   <h2 id="result-title">Rack finished!</h2><p id="result-description"></p>
+   <button id="play-again" class="shoot">RACK 'EM AGAIN ➜</button>
+  </div>
+ </div>
+</body>
+</html>
