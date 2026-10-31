@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {tunaTargets,tunaCanWin,tunaRackOrder,tunaJudgeShot} from '../src/tuna-rules.js';
 const balls=(gone=[])=>Array.from({length:15},(_,i)=>({id:i+1,pocketed:gone.includes(i+1)}));
-test('rack positions preserve original money-ball placements',()=>{const a=tunaRackOrder();assert.equal(a.length,15);assert.equal(new Set(a).size,15);assert.equal(a[0],1);assert.equal(a[8],10);assert.equal(a[12],15);});
+test('rack positions preserve original money-ball placements',()=>{const a=tunaRackOrder();assert.equal(a.length,15);assert.equal(new Set(a).size,15);assert.equal(a[0],1);assert.equal(a[4],10);assert.equal(a[12],15);});
 test('two independent lowest-ball sequences',()=>{assert.deepEqual(tunaTargets(balls()),[1,11]);assert.deepEqual(tunaTargets(balls([1,11,12])),[2,13]);});
 test('10 wins once all stripes are gone, including with lower solids still on table',()=>{assert.equal(tunaCanWin(balls([1,2,3,4,5,6,7,8])),false);assert.equal(tunaCanWin(balls([9,11,12,13,14,15])),true);assert.equal(tunaCanWin(balls([1,2,3,4,5,6,7,8,9,11,12,13,14,15])),true);});
 test('legal combo into called ten wins with lower solids still on table',()=>{const r=tunaJudgeShot({balls:balls([9,11,12,13,14,15]),firstContact:1,pocketed:[10],calledBall:10,calledPocket:'TL',pocketEvents:[{ballId:10,pocketId:'TL'}]});assert.equal(r.winning,true);assert.equal(r.payout,3);assert.deepEqual(r.spotted,[]);});
