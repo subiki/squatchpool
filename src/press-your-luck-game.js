@@ -13,9 +13,9 @@ let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
 function rack(){
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
- balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];phase='placeBreak';breakShot=true;breakPlacementValid=false;angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
+ balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];phase='aim';breakShot=true;breakPlacementValid=true;angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
- $('place').hidden=false;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Tap or drag the cue ball within the kitchen, then confirm its position.');update();
+ $('place').hidden=true;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Drag the cue ball within the kitchen, aim, and press BREAK.');update();
 }
 function update(){
  $('score').textContent='Player 1: '+match.scores[0]+' · Player 2: '+match.scores[1]+' · Target '+match.targetScore;
@@ -26,7 +26,7 @@ function update(){
  if(options.some(b=>String(b.id)===selectedCall))callBall.value=selectedCall;
  $('shoot').disabled=phase!=='aim'||(!breakShot&&!callReady());$('shoot').textContent=breakShot?'BREAK':'SHOOT';
  const placing=phase==='place'||phase==='placeBreak';$('place').hidden=!placing;$('place').disabled=!placing||(phase==='placeBreak'&&!breakPlacementValid);$('place').textContent=phase==='placeBreak'?'Confirm break position':'Confirm cue placement';
- $('break-reposition').hidden=!(breakShot&&phase==='aim');
+ $('break-reposition').hidden=true;
  // Keep call selection on the felt; dropdowns remain an accessible fallback.
  updateCallHint();
 }
@@ -51,7 +51,7 @@ function updateCallHint(){
  $('shoot').disabled=phase!=='aim'||(!breakShot&&!callReady());
  $('undo-call').disabled=phase!=='aim'||breakShot||!($('call-ball').value||$('call-pocket').value);
  const called=$('call-ball').value,pocket=pockets.find(p=>p.id===$('call-pocket').value);
- hint.textContent=phase==='placeBreak'?'Place and confirm the break cue ball first.':
+ hint.textContent=phase==='placeBreak'?'Drag the break cue ball, aim, then press BREAK.':
   phase==='place'?'Place and confirm the cue ball first.':
   phase!=='aim'?'Shot in progress or rack complete.':
   breakShot?'Break: aim and shoot. No call needed.':
