@@ -28,13 +28,15 @@ export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=fa
   next=forfeitBonus(next,shooter);
   return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:true,ballInHand:true};
  }
- if(eightAttempt){
-  next=forfeitBonus(next,shooter);
-  return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false};
- }
+ // A missed 8 attempt does not excuse an independently illegal stroke.
+ // Resolve foul/ball-in-hand before the legal missed-8 turn handoff.
  if(!legalShot){
   next=forfeitBonus(next,shooter);
   return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false,ballInHand:true};
+ }
+ if(eightAttempt){
+  next=forfeitBonus(next,shooter);
+  return {match:next,finish:null,winner:null,keepTurn:false,nextPlayer:1-shooter,scratch:false};
  }
  const opponent=groups[1-shooter];
  const count=eligible?pocketed.filter(id=>groupOf(id)===opponent).length:0;

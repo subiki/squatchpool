@@ -51,3 +51,9 @@ test('declared 8 bank/kick doubles only when cue or 8 rail precedes called pocke
  const awarded=pressTurn({match,balls:balls(),groups,shooter:0,shotEvents:[cueContact,cueRail,eight],bankOrKick:qualifies([cueContact,cueRail,eight],call)});
  assert.equal(awarded.match.scores[0],8,'2 bonus + 2 eight doubled to 8');
 });
+
+test('illegal missed 8 attempt forfeits bonus and awards ball in hand',()=>{
+ const r=pressTurn({match:pocketOpponentBalls(newMatch(),0,3),balls:balls(),groups,shooter:0,eightAttempt:true,legalShot:false});
+ assert.deepEqual(r.match.bonus,[0,0]);assert.equal(r.nextPlayer,1);
+ assert.equal(r.ballInHand,true);assert.equal(r.keepTurn,false);
+});
