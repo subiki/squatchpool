@@ -41,7 +41,7 @@ test('Press Your Luck requires an actual kitchen placement before BREAK on every
 });
 
 test('Press Your Luck break placement accepts legal kitchen taps and rejects out-of-kitchen taps on 7, 8 and 9 ft',()=>{
- const start=source.indexOf('function aimPointer(e){');
+ const start=source.indexOf('function aimPointer(e,allowCall=false){');
  const end=source.indexOf("canvas.addEventListener('pointerdown'",start);
  assert.ok(start>=0&&end>start,'real pointer handler is present');
  const handler=source.slice(start,end);
