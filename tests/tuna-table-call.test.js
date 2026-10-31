@@ -30,7 +30,8 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
  try{
   await import('../src/tuna-game.js');
   for(const size of [7,8,9]){
-   node('size').value=String(size);node('start').onclick();
+   node('size').value=String(size);node('reset-match').onclick();
+   assert.equal(node('start').disabled,true,'cannot skip an active rack');
    tap(headStringX()*.55,TABLE.height/2);node('place').onclick();
    assert.equal(node('shoot').disabled,false);
    assert.equal(panel.open,false,'calling a shot should not require opening the drawer');
