@@ -1,6 +1,6 @@
 // Big Tuna Casserole — original house rules, Nov 6 2022.
 // Two independently descending targets: 1–10 and 11–15.
-// 10 is the winning ball only after 9 and all 11–15 have cleared.
+// 10 is the winning ball only after 1–9 and all 11–15 have cleared.
 export const TUNA_PAYOUTS=Object.freeze({15:1,9:2,10:3});
 export function tunaTargets(balls){
  const live=new Set(balls.filter(b=>b.id>0&&!b.pocketed).map(b=>b.id));
@@ -12,7 +12,7 @@ export function tunaTargets(balls){
 }
 export function tunaCanWin(balls){
  const live=new Set(balls.filter(b=>b.id>0&&!b.pocketed).map(b=>b.id));
- return live.has(10)&&![9,11,12,13,14,15].some(id=>live.has(id));
+ return live.has(10)&&![1,2,3,4,5,6,7,8,9,11,12,13,14,15].some(id=>live.has(id));
 }
 export function tunaRackOrder(){
  // Rows 1,2,3,4,5; apex 1, geometric center 10, back-row center 15.
