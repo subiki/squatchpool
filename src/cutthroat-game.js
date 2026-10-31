@@ -78,6 +78,7 @@ function finishShot(){
  const before=game.match.turn;
  game.match=finishCutthroatShot(game.match,{pocketed,scratch,foul:!contacted&&!shot.breakShot});
  game.breakShot=false;
+ window.squatchAnnounceShot?.(names[before]+': '+(scratch?'Scratch! Third player may claim a ball.':pocketed.length?'Pocketed '+pocketed.join(', '):'No ball pocketed. Turn passes.'));
  say(names[before]+': '+(pocketed.length?'pocketed '+pocketed.join(', '):'no ball pocketed')+
   (scratch?' · scratch. Third player decides a claim.':'.'));
  if(game.match.winner!==null){game.phase='done';say(names[game.match.winner]+' wins the rack.');}
