@@ -14,13 +14,14 @@ function message(s){$('status').textContent=s;}
 function rack(){
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();turn=match.breaker;groups=[null,null];phase='aim';breakShot=true;angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
+ $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callPocket.value='';
  $('place').hidden=true;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Tap the felt to aim.');update();
 }
 function update(){
  $('score').textContent='Player 1: '+match.scores[0]+' · Player 2: '+match.scores[1]+' · Target '+match.targetScore;
  $('bonus').textContent='Provisional: '+match.bonus[0]+' · '+match.bonus[1]+' · Groups: '+(groups[0]||'open')+' / '+(groups[1]||'open');
  callBall.replaceChildren(new Option('Choose ball',''),...balls.filter(b=>!b.pocketed&&b.id).map(b=>new Option(String(b.id),String(b.id))));
- $('shoot').disabled=phase!=='aim';$('place').hidden=phase!=='place';$('place').disabled=phase!=='place';
+ $('shoot').disabled=phase!=='aim';$('shoot').textContent=breakShot?'BREAK':'SHOOT';$('place').hidden=phase!=='place';$('place').disabled=phase!=='place';
  // After the break, a call is mandatory: expose the selectors instead of making Shoot appear dead.
  const callPanel=document.querySelector('.kit-more');if(callPanel&&phase==='aim'&&!breakShot)callPanel.open=true;
 }
@@ -73,7 +74,7 @@ function frame(t){
 function aimPointer(e){if(!['aim','place'].includes(phase))return;const box=canvas.getBoundingClientRect(),border=canvas.clientLeft,insideWidth=canvas.clientWidth,insideHeight=canvas.clientHeight,x=(e.clientX-box.left-border)*canvas.width/insideWidth,y=(e.clientY-box.top-border)*canvas.height/insideHeight;if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();$('notice').textContent='Cue position valid. Confirm placement.';}else $('notice').textContent='Cue overlaps a ball or rail. Choose an open spot.';return;}const b=cue();const next=angleFromPointer(b,{x,y},$('invert-aim').checked,TABLE.radius);if(next!==null)angle=next;}
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);aimPointer(e);});
 canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e);});
-$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){document.querySelector('.kit-more')?.setAttribute('open','');message('Open Call shot · Spin & options and choose a ball and pocket first.');(!callBall.value?callBall:callPocket).focus();return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
+$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){document.querySelector('.kit-more')?.setAttribute('open','');message('Open Call shot · Spin & options and choose a ball and pocket first.');(!callBall.value?callBall:callPocket).focus();return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{if(phase==='place'){phase='aim';message('Player '+(turn+1)+' to shoot.');update();}};
 $('next').onclick=rack;$('start').onclick=begin;
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
