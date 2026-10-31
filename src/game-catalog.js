@@ -1,8 +1,8 @@
 // Shared game catalog and data-driven popularity ranking for the homepage.
 // Unknown or uninstrumented games retain editorial order; never invent popularity.
 export const GAMES=[
- {id:'but-wait-theres-more',name:"But Wait, There's More",icon:'🎱',url:'/but-wait.html',players:'2 players · local',description:'Clear your group, then survive the surprise ball your opponent places.',highlight:'The original Squatch twist'},
- {id:'caroms',name:'Caroms · Whacky Pool',icon:'🌲',url:'/caroms.html',players:'Solo bot or 2 players',description:'Shoot an object ball into the white first. Three difficulty levels.',highlight:'Play against Squatch Bot'},
+ {id:'but-wait-theres-more',name:"But Wait, There's More",icon:'🎱',url:'/but-wait.html',players:'Solo vs Speed Squatch or 2 local players',description:'Clear your group, then survive the surprise ball your opponent places.',highlight:'The original Squatch twist'},
+ {id:'caroms',name:'Caroms · Whacky Pool',icon:'🌲',url:'/caroms.html',players:'Solo vs Squatch Bot or 2 local players',description:'Shoot an object ball into the white first. Three difficulty levels.',highlight:'Object-ball caroms'},
  {id:'cutthroat',name:'Coin-Op Cutthroat',icon:'🦍',url:'/cutthroat.html',players:'3 players · local',description:'Three groups. Scratches can bring an eliminated player back.',highlight:'Three-way rivalry'},
  {id:'press-your-luck',name:'Press Your Luck',icon:'🎲',url:'/press-your-luck.html',players:'2 players · local',description:'Pocket your opponent’s balls to build a bonus, then bank the 8.',highlight:'Risk it for double points'},
  {id:'tuna',name:'Big Tuna Casserole',icon:'🐟',url:'/tuna.html',players:'2 players · local',description:'Two number sequences, called pockets, and money balls.',highlight:'Race to the winning 10'}
