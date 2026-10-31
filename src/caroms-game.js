@@ -175,6 +175,7 @@ function finishShot(){
  if(made)reportCaromsBalls(state.statsRackId,shot.statsShotId,made);
  if(decision.respotCue)respot(0);
  if(decision.respotEight)respot(8);
+ window.squatchAnnounceShot?.(decision.reason);
  log(player(shot.player)+': '+(decision.pocketed.filter(id=>id!==0).join(', ')||'no object balls')+
   '. '+decision.reason);
  if(decision.newGroup)log(player(shot.player)+' takes '+decision.newGroup+'.');
