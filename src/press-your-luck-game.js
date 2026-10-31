@@ -120,8 +120,10 @@ function endShot(){
  const legalFirst=breakShot?firstContact!==null:!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||Boolean(groupOf(firstContact)):groupOf(firstContact)===groups[turn];
  const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:qualifiesEightBankKick(events,{declared:shotBank,calledBall:called,calledPocket:pocket}),calledShotMade:made});
  match=result.match;
+ if(!result.finish)window.squatchAnnounceShot?.(scratch?'Scratch! Ball in hand.':!legalFirst||!legalCall||illegalEight?'Foul! Turn passes.':made?'Called shot made!':'Miss. Turn passes.');
  if(result.respotEight){const b=balls.find(b=>b.id===8);const p=findPlacement(balls.filter(other=>other.id!==8),{x:TABLE.width/2,y:TABLE.height/2});if(p){Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});}else{message('No room to respot the 8.');phase='done';update();return;}}
  if(result.finish){
+  window.squatchAnnounceShot?.('Player '+(result.winner+1)+' wins the rack! '+match.lastRack.awarded+' points.');
   const li=document.createElement('li');li.textContent='Rack '+(match.finished?match.rack:match.rack-1)+': Player '+(result.winner+1)+' wins '+match.lastRack.awarded+' points';$('history').prepend(li);
   phase='done';$('next').hidden=match.finished;
   message(match.finished?'Player '+(match.winner+1)+' wins the match!':'Rack over. Player '+(result.winner+1)+' breaks next.');update();return;
