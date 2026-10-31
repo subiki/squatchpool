@@ -86,6 +86,9 @@ function update(){
  updateSelect($('caroms-call-ball'),targets.map(b=>[b.id,'Ball '+b.id]),state.calledBall,'Choose called ball');
  updateSelect($('caroms-call-pocket'),pockets.map(p=>[p.id,p.label]),state.calledPocket,'Choose pocket');
  $('caroms-call-controls').hidden=!needCall;
+ // Required calls and foul choices must remain reachable in table fullscreen.
+ if((needCall&&canAim&&(!state.calledBall||!state.calledPocket))||
+    (state.phase==='option'&&!isBot()))$('caroms-more').open=true;
  $('caroms-turn').textContent=state.phase==='done'?'Rack complete':player(state.turn)+(state.breakShot?' · 1-ball break':' · '+level(state.turn));
  $('caroms-score').textContent='Best of 3 · Racks: '+player(0)+' '+matchWins[0]+' – '+player(1)+' '+matchWins[1]+' · '+
   state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
