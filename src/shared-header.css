@@ -24,3 +24,15 @@
 .squatch-offline-tools{display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:.84rem;color:#cce2c9;padding:5px 0}
 .squatch-offline-tools button{background:#e4bc75;color:#17271d;border:0;border-radius:6px;padding:7px 12px;font-weight:800;cursor:pointer}
 .squatch-offline-tools button[hidden]{display:none}
+
+/* Game-hub navigation: consistent selection, readable mobile targets. */
+.squatch-header-nav{display:flex!important;flex-wrap:wrap;gap:8px}
+.squatch-header-nav a{min-height:44px;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap}
+.squatch-header-nav a[aria-current="page"]{background:#efc77c;color:#17281e;border-color:#f9dfa9}
+.squatch-header-nav a:hover{background:#3a5b43;color:#fff5da}
+.squatch-header-stats:not([open]){padding:5px 12px}
+@media(max-width:650px){
+ .squatch-header-nav{display:flex!important;flex-wrap:nowrap!important;overflow-x:auto;overscroll-behavior-x:contain;padding-bottom:7px;scrollbar-width:thin}
+ .squatch-header-nav a{flex:0 0 auto;min-height:48px}
+ .squatch-brand-row h1{font-size:1.65rem}
+}
