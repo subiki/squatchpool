@@ -5,11 +5,13 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {tunaTargets,tunaRackOrder,tunaJudgeShot} from './tuna-rules.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let balls=[],turn=0,money=[0,0],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,breakShot=true,shotCall=0,shotPocket='';
+let nextBreaker=0;
 const cue=()=>balls.find(b=>b.id===0);
 const telemetry=createGameTelemetry('tuna');
 let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
-function rack(){setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=0;money=[0,0];phase='aim';breakShot=true;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('history').replaceChildren();message('Player 1 breaks. Tap the felt to aim.');update();}
+function rack(){setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;phase='aim';breakShot=true;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('history').replaceChildren();message('Player '+(turn+1)+' breaks. Tap the felt to aim.');update();}
+function resetMatch(){money=[0,0];nextBreaker=0;rack();}
 function update(){
  $('turn').textContent='Player '+(turn+1)+' to '+(phase==='place'?'place cue ball':phase==='done'?'celebrate':'shoot');
  $('money').textContent='Player 1: $'+money[0]+' · Player 2: $'+money[1];
@@ -28,7 +30,7 @@ function endShot(){
  money[turn]+=result.payout;
  const li=document.createElement('li');li.textContent='Player '+(turn+1)+': '+(result.foul?'Foul':result.winning?'Wins the rack':result.credited.length?'Made '+result.credited.join(', '):'Miss')+(result.payout?' · $'+result.payout:'');$('history').prepend(li);
  breakShot=false;
- if(result.winning){phase='done';message('Player '+(turn+1)+' wins Big Tuna Casserole! Start a new rack to play again.');update();return;}
+ if(result.winning){nextBreaker=turn;phase='done';message('Player '+(turn+1)+' wins Big Tuna Casserole! Start a new rack to play again.');update();return;}
  if(!result.keepTurn)turn=1-turn;
  if(result.ballInHand){const b=cue();Object.assign(b,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});const p=findPlacement(balls.filter(other=>other.id!==0));if(!p){phase='done';message('No legal cue-ball placement available. Start a new rack.');update();return;}Object.assign(b,p);phase='place';message('Foul. Player '+(turn+1)+' has ball in hand. Tap a clear position, then confirm.');}
  else{phase='aim';message(result.keepTurn?'Good shot. Keep shooting.':'Player '+(turn+1)+' to shoot.');}
@@ -40,7 +42,8 @@ canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);
 $('shoot').onclick=()=>{if(phase!=='aim')return;if(!$('call-ball').value||!$('call-pocket').value){document.querySelector('.kit-more')?.setAttribute('open','');message('Open Call shot · Spin & options and choose a ball and pocket first.');(!$('call-ball').value?$('call-ball'):$('call-pocket')).focus();return;}shotCall=Number($('call-ball').value);shotPocket=$('call-pocket').value;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{if(phase==='place'){phase='aim';message('Player '+(turn+1)+' to shoot.');update();}};
 $('start').onclick=rack;
+$('reset-match').onclick=resetMatch;
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 $('invert-aim').onchange=()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}};
 $('size').onchange=()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}};
-rack();requestAnimationFrame(frame);
+resetMatch();requestAnimationFrame(frame);

@@ -15,8 +15,9 @@ export function tunaCanWin(balls){
  return live.has(10)&&![9,11,12,13,14,15].some(id=>live.has(id));
 }
 export function tunaRackOrder(){
- // Rows 1,2,3,4,5; apex 1, geometric center 10, back-row center 15.
- return [1,2,3,4,5,6,7,8,10,11,12,13,15,14,9];
+ // Row-major 15-ball triangle: apex index 0, middle of row 3 index 4,
+ // middle of back row index 12. The nine stays strategically near the base.
+ return [1,2,3,4,10,6,7,8,5,11,12,13,15,14,9];
 }
 export function tunaJudgeShot({balls,firstContact,pocketed=[],calledBall,calledPocket,pocketEvents=[],scratch=false}){
  const targets=tunaTargets(balls);
