@@ -216,3 +216,19 @@ test('But Wait still initializes when localStorage getter denies access',()=>{
   }
  }
 });
+
+test('Press Your Luck and Tuna add comparable sitewide racks and balls',async()=>{
+ const db=fakeD1();
+ for(const [gameId,rackId,shotId,amount] of [
+  ['press-your-luck',R1,S1,3],['tuna',R2,S2,2]
+ ]){
+  const toGame=payload=>({...payload,game:gameId});
+  assert.equal((await onRequestPost(context(db,toGame(rack(A,rackId))))).status,200);
+  assert.equal((await onRequestPost(context(db,toGame(pot(A,rackId,shotId,amount))))).status,200);
+ }
+ const result=await (await onRequestGet({env:{STATS_DB:db}})).json();
+ assert.equal(result.games.length,5);
+ assert.deepEqual(result.site,{players:1,racks:2,balls:5});
+ assert.deepEqual(result.games.filter(g=>['press-your-luck','tuna'].includes(g.id))
+  .map(g=>[g.id,g.racks,g.balls]),[['press-your-luck',1,3],['tuna',1,2]]);
+});
