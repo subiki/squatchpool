@@ -5,14 +5,15 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {tunaTargets,tunaRackOrder,tunaJudgeShot} from './tuna-rules.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let balls=[],turn=0,money=[0,0],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,breakShot=true,breakPlacementValid=false,shotCall=0,shotPocket='';
-let nextBreaker=0;
+let nextBreaker=0,rackNumber=0;
 const cue=()=>balls.find(b=>b.id===0);
 const telemetry=createGameTelemetry('tuna');
 let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
-function rack(){setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;phase='placeBreak';breakShot=true;breakPlacementValid=false;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('history').replaceChildren();$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Player '+(turn+1)+' breaks. Place the cue ball in the kitchen and confirm, then call a ball and pocket before BREAK.');update();}
-function resetMatch(){money=[0,0];nextBreaker=0;rack();}
+function rack(){rackNumber++;setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;phase='placeBreak';breakShot=true;breakPlacementValid=false;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Rack '+rackNumber+' · Player '+(turn+1)+' breaks. Place the cue ball in the kitchen and confirm, then call a ball and pocket before BREAK.');update();}
+function resetMatch(){money=[0,0];nextBreaker=0;rackNumber=0;$('history').replaceChildren();rack();}
 function update(){
+ $('start').disabled=phase!=='done';
  $('turn').textContent='Player '+(turn+1)+' to '+(phase==='placeBreak'?'place break cue ball':phase==='place'?'place cue ball':phase==='done'?'celebrate':'shoot');
  $('money').textContent='Player 1: $'+money[0]+' · Player 2: $'+money[1];
  $('targets').textContent='Legal first contact: '+tunaTargets(balls).join(' or ');
@@ -124,7 +125,7 @@ $('place').onclick=()=>{
 $('break-reposition').onclick=()=>{if(phase==='aim'&&breakShot){phase='placeBreak';breakPlacementValid=false;message('Tap or drag the cue ball within the kitchen, then confirm.');update();}};
 $('call-ball').addEventListener('change',()=>{$('call-pocket').value='';updateCallHint();});
 $('call-pocket').addEventListener('change',updateCallHint);
-$('start').onclick=rack;
+$('start').onclick=()=>{if(phase==='done')rack();};
 $('reset-match').onclick=resetMatch;
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 $('invert-aim').onchange=()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}};
