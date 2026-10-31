@@ -96,7 +96,7 @@ function endShot(){
  $('call-ball').value='';$('call-pocket').value='';update();
 }
 function frame(t){const elapsed=previous?Math.min(.08,(t-previous)/1000):0;previous=t;if(phase==='moving'){acc+=elapsed;let n=0;while(acc>=1/120&&n++<12){const outcome=step(balls,1/120);events.push(...outcome.shotEvents);if(firstContact===null){const hit=outcome.shotEvents.find(e=>e.type==='contact'&&e.balls.includes(0));if(hit)firstContact=hit.balls.find(id=>id!==0);}acc-=1/120;shotElapsed+=1/120;still=stationary(balls)?still+1:0;if(still>20||shotElapsed>20){endShot();break;}}}draw();requestAnimationFrame(frame);}
-function pointer(e){if(!['aim','place','placeBreak'].includes(phase))return;const box=canvas.getBoundingClientRect(),x=(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
+function pointer(e,allowCall=false){if(!['aim','place','placeBreak'].includes(phase))return;const box=canvas.getBoundingClientRect(),x=(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
  if(phase==='placeBreak'){
   const p=x>=headStringX()?{x,y}:kitchenPoint(x,y);
   breakPlacementValid=canPlaceBreakCue(balls,p.x,p.y);
@@ -104,7 +104,7 @@ function pointer(e){if(!['aim','place','placeBreak'].includes(phase))return;cons
   message(breakPlacementValid?'Break position valid. Confirm placement.':'The entire cue ball must stay behind the head string.');
   update();return;
  }
- if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;message('Valid cue position. Confirm placement.');}else message('Choose a clear cue position.');return;}if(pickTableCall(x,y))return;if(!callReady())return;const a=angleFromPointer(cue(),{x,y},$('invert-aim').checked,TABLE.radius);if(a!==null)angle=a;}
+ if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;message('Valid cue position. Confirm placement.');}else message('Choose a clear cue position.');return;}if(allowCall&&pickTableCall(x,y))return;if(!callReady())return;const a=angleFromPointer(cue(),{x,y},$('invert-aim').checked,TABLE.radius);if(a!==null)angle=a;}
 canvas.addEventListener('pointerdown',e=>{
  canvas.setPointerCapture(e.pointerId);
  // The breaker can drag the cue again until the break is struck.
@@ -114,8 +114,8 @@ canvas.addEventListener('pointerdown',e=>{
   const y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
   if(Math.hypot(x-cue().x,y-cue().y)<=TABLE.radius*2.5){phase='placeBreak';breakPlacementValid=false;}
  }
- pointer(e);
-});canvas.addEventListener('pointermove',e=>{if(e.buttons)pointer(e);});
+ pointer(e,true);
+});canvas.addEventListener('pointermove',e=>{if(e.buttons)pointer(e,false);});
 $('shoot').onclick=()=>{if(phase!=='aim')return;if(!callReady()){document.querySelector('.kit-more')?.setAttribute('open','');message('Tap a ball and pocket on the table, or use the call drawer before shooting.');(!$('call-ball').value?$('call-ball'):$('call-pocket')).focus();return;}shotCall=Number($('call-ball').value);shotPocket=$('call-pocket').value;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{
  if(phase==='placeBreak'&&breakPlacementValid){phase='aim';message('Break position confirmed. Call a ball and pocket, aim, then tap BREAK.');update();}
