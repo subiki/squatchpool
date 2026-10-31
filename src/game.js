@@ -259,6 +259,7 @@ function finishShot(){
  const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,pocketEvents:shot.pocketEvents,calledBall:shot.calledBall,calledPocket:shot.calledPocket,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
  const potted=shot.balls.filter(n=>n!==0);
  if(potted.length)reportBalls(shot.statsRackId,shot.statsShotId,potted.length);
+ window.squatchAnnounceShot?.(decision.reason);
  log(person(shot.player)+': '+(potted.length?'pocketed '+potted.join(', '):'no balls')+(shot.balls.includes(0)?' • scratch':'')+'. '+decision.reason);
  if(decision.newGroup){
   state.groups[shot.player]=decision.newGroup;
