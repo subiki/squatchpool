@@ -1,4 +1,12 @@
 export const stashBall=group=>group==='solids'?7:15;
+// The opponent selects one of the still-held balls, not automatically the shooter's group.
+// Resolving a surprise is per shooter: a returned opponent ball may block the eight
+// without requiring the shooter to pocket their own still-held ball.
+export function resolveSurpriseChoice(heldBalls,deployed,group,ballId){
+ if(!['solids','stripes'].includes(group)||deployed[group]||
+    ![7,15].includes(ballId)||!heldBalls.includes(ballId))return null;
+ return {heldBalls:heldBalls.filter(id=>id!==ballId),deployed:{...deployed,[group]:true}};
+}
 export const groupOf=id=>id>=1&&id<=7?'solids':id>=9&&id<=15?'stripes':null;
 export const otherGroup=group=>group==='solids'?'stripes':'solids';
 export const otherPlayer=player=>1-player;

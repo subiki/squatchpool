@@ -10,6 +10,14 @@
  <link rel="stylesheet" href="./src/aim-preference.css">
  <link rel="stylesheet" href="./src/world.css">
  <link rel="stylesheet" href="./src/game-page-layout.css">
+ <style>
+ .surprise-panel{margin:10px 0;padding:14px;border:2px solid #e5c47e;border-radius:12px;background:#203b2f;color:#fff1d0}
+ .surprise-panel[hidden]{display:none}.surprise-panel>strong{display:block;font-size:1.15rem}
+ .surprise-panel p{margin:8px 0 12px}.surprise-choices{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+ .surprise-choices button{min-height:48px;flex:1 1 140px;background:#355443;color:#fff0ce;border:2px solid #ac9a6d}
+ .surprise-choices button[aria-pressed="true"]{background:#f1ca80;color:#17291e;border-color:#ffe7ad}
+ #stash-confirm{width:100%;min-height:50px}
+ </style>
  <script type="module" src="./src/game.js"></script>
  <script type="module" src="./src/deployment.js"></script>
 <link rel="stylesheet" href="./src/shared-header.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head>
@@ -82,6 +90,15 @@
       </div>
      </div>
      <div class="table-bottomline"><span>★ PACIFIC NORTHWEST ★</span><span>THE FOUR T’S</span></div>
+    </div>
+    <div class="surprise-panel" id="stash-panel" hidden aria-label="Opponent's surprise ball choice">
+     <strong id="stash-actor">Opponent chooses a held ball</strong>
+     <p id="stash-instructions">Choose the held 7 or 15, then tap a legal position on the table.</p>
+     <div class="surprise-choices" role="group" aria-label="Choose which ball to return">
+      <button type="button" id="stash-solid" aria-pressed="false">🎱 7 · Held solid</button>
+      <button type="button" id="stash-stripe" aria-pressed="false">🎱 15 · Held stripe</button>
+     </div>
+     <button type="button" id="stash-confirm" class="shoot" disabled>Confirm ball placement</button>
     </div>
     <div class="aim-toggle-bar" role="group" aria-label="Touch aiming preference"><button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Invert aim: OFF</button><span class="aim-toggle-caption">ON = hold a finger behind the cue to aim away from it. Tap again for normal aim. Saved across games.</span></div>
     <div class="announcer" aria-live="polite"><span class="announcer-avatar" aria-hidden="true">🌲</span><div><div class="eyebrow">FROM THE BOOTH</div><p id="announcer-text">Welcome to The 4T's. Break 'em like you mean it.</p></div></div>

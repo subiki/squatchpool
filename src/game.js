@@ -1,7 +1,7 @@
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,kitchenPoint,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {initStats,newStatsId,reportRack,reportBalls} from './stats.js';
-import {groupOf,otherGroup,otherPlayer,stashBall,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
+import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
@@ -30,7 +30,7 @@ function newGame(){
  $('.table-playfield')?.style?.setProperty('--table-aspect',String(TABLE.width/TABLE.height));
  $('#table-dimensions').textContent=TABLE.size+' FT · '+TABLE.playingLengthIn+' × '+TABLE.playingWidthIn+' IN';
  try{if(typeof localStorage!=='undefined')localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
- state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},turn:0,phase:'placeBreak',angle:0,power:85,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingCue:false,winner:null,statsRackId:newStatsId(),generation:(state?.generation||0)+1};
+ state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},heldBalls:[7,15],turn:0,phase:'placeBreak',angle:0,power:85,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingStashBall:null,pendingStashPoint:null,pendingCue:false,winner:null,statsRackId:newStatsId(),generation:(state?.generation||0)+1};
  accumulator=0;$('#power').value='85';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
  say('Break setup: tap or drag anywhere in the shaded kitchen. You can change its position before BREAK!');update();
@@ -93,14 +93,32 @@ function updateCallUI(){
   '3. Aim from the white ball. Then press SHOOT.';
 }
 
+function updateSurpriseUI(){
+ const choosing=state.phase==='placeStash';
+ $('#stash-panel').hidden=!choosing;
+ if(!choosing)return;
+ const actor=otherPlayer(state.turn);
+ $('#stash-actor').textContent=person(actor)+' chooses and places a held ball';
+ $('#stash-instructions').textContent=state.pendingStashBall===null?
+  'Choose the held 7 or 15. Either can be placed to help or block the shooter.':
+  state.pendingStashPoint?'Preview ready. Confirm this spot, or tap elsewhere to move it.':
+  'Tap an empty spot on the table to preview the '+state.pendingStashBall+'-ball.';
+ for(const [id,selector] of [[7,'#stash-solid'],[15,'#stash-stripe']]){
+  const button=$(selector);button.hidden=!state.heldBalls.includes(id);
+  button.disabled=!human(actor);
+  button.setAttribute('aria-pressed',String(state.pendingStashBall===id));
+ }
+ $('#stash-confirm').disabled=!human(actor)||state.pendingStashBall===null||!state.pendingStashPoint;
+}
 function update(){
  updateCallUI();
+ updateSurpriseUI();
  for(let i=0;i<2;i++){
   $('#player-'+i).classList.toggle('active',state.turn===i&&state.winner===null);
   $('#player-name-'+i).textContent=person(i);
   const g=state.groups[i];
-  $('#player-group-'+i).textContent=g?(g[0].toUpperCase()+g.slice(1))+(state.deployed[g]?' · surprise revealed':' · 1 hidden'):'Open table';
-  $('#player-count-'+i).textContent=g?String(liveGroupBalls(state.balls,g).length+(state.deployed[g]?0:1))+' left':'—';
+  $('#player-group-'+i).textContent=g?(g[0].toUpperCase()+g.slice(1))+(state.deployed[g]?' · surprise resolved':' · surprise pending'):'Open table';
+  $('#player-count-'+i).textContent=g?String(liveGroupBalls(state.balls,g).length+(!state.deployed[g]&&state.heldBalls.includes(stashBall(g))?1:0))+' left':'—';
  }
  $('#shot-counter').textContent=state.shotNumber===0?'Break shot':'Shot '+(state.shotNumber+1);
  $('#table-status').textContent=state.phase==='placeBreak'?'PLACE BREAK CUE':state.phase==='placeStash'?'SURPRISE BALL!':state.phase==='placeCue'?'BALL IN HAND':
@@ -111,7 +129,7 @@ function update(){
  $('#spin-side-value').textContent=state.spinSide>0?'Right '+state.spinSide+'%':state.spinSide<0?'Left '+(-state.spinSide)+'%':'Center';
  const actor=state.phase==='placeStash'?otherPlayer(state.turn):state.turn;
  const title={placeBreak:'Place the break cue ball',aim:person(state.turn)+(state.shotNumber===0?' breaks':' shoots'),moving:'Balls rolling…',placeCue:'Ball in hand',placeStash:"But wait… THERE'S MORE!",done:'Rack finished!'};
- const hint={placeBreak:'Tap or drag anywhere in the shaded kitchen (even close to the rails), release, then aim.',aim:human(actor)?(state.isBreak?'Break: aim, power, SHOOT.':!state.callBall?'Tap the object ball you want to call.':!state.callPocket?'Now tap one of the pocket targets.':'Call set. Tap or drag on the felt to aim, then SHOOT.'):'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: tap a clear spot to bring the hidden '+stashBall(state.pendingStash)+'-ball back.',done:'Rack again to play another game.'};
+ const hint={placeBreak:'Tap or drag anywhere in the shaded kitchen (even close to the rails), release, then aim.',aim:human(actor)?(state.isBreak?'Break: aim, power, SHOOT.':!state.callBall?'Tap the object ball you want to call.':!state.callPocket?'Now tap one of the pocket targets.':'Call set. Tap or drag on the felt to aim, then SHOOT.'):'Speed Squatch is sizing up the shot…',moving:'Let the balls come to rest.',placeCue:'Your opponent fouled. Tap a clear spot to place the white ball.',placeStash:'Opponent: choose a held ball, tap a legal spot on the table, then confirm placement.',done:'Rack again to play another game.'};
  $('#control-title').textContent=title[state.phase];$('#control-hint').textContent=hint[state.phase];
  $('#shoot').disabled=state.phase!=='aim'||!human(state.turn)||!callReady();
  $('#move-cue').hidden=!state.isBreak||!human(state.turn)||!['placeBreak','aim'].includes(state.phase);
@@ -123,13 +141,19 @@ function update(){
 function revealStashIfNeeded(){
  const group=state.groups[state.turn];
  if(!readyForStash(state.balls,group,state.deployed[group]))return false;
- state.pendingStash=group;state.phase='placeStash';
- say("BUT WAIT, THERE'S MORE! "+person(otherPlayer(state.turn))+' places the missing '+stashBall(group)+'-ball.');
- log(person(state.turn)+' cleared the visible '+group+'; the '+stashBall(group)+'-ball enters play!');
+ state.pendingStash=group;state.pendingStashBall=null;state.pendingStashPoint=null;
+ state.phase='placeStash';
+ say("BUT WAIT, THERE'S MORE! "+person(otherPlayer(state.turn))+' chooses the held 7 or 15, then places it on the table.');
  if(!human(otherPlayer(state.turn))){
   const token=state.generation;
   botTimer=setTimeout(()=>{if(state.generation===token&&state.phase==='placeStash'){
-   const p=findPlacement(state.balls,{x:560,y:215});if(p)placeStash(p);
+   // The bot chooses deliberately; never silently derive the ball from the shooter.
+   const preferred=stashBall(group);
+   state.pendingStashBall=state.heldBalls.includes(preferred)?preferred:state.heldBalls[0];
+   const eight=state.balls.find(b=>b.id===8&&!b.pocketed);
+   const p=findPlacement(state.balls,eight?{x:eight.x+TABLE.radius*2.2,y:eight.y}:{x:TABLE.width/2,y:TABLE.height/2});
+   if(p){state.pendingStashPoint=p;placeStash(p);}
+   else say('No legal placement found for the held ball.');
   }},680);
  }
  return true;
@@ -177,11 +201,31 @@ function placeCue({x,y}){
  Object.assign(cue(),{x,y,vx:0,vy:0,pocketed:false});
  state.pendingCue=false;say(person(state.turn)+' has ball in hand.');resume();
 }
+function selectStashBall(id){
+ if(state.phase!=='placeStash'||!human(otherPlayer(state.turn))||!state.heldBalls.includes(id))return;
+ state.pendingStashBall=id;state.pendingStashPoint=null;
+ say('Selected the held '+id+'-ball. Tap a legal spot on the table, then confirm.');
+ update();
+}
+function previewStash({x,y}){
+ if(state.phase!=='placeStash'||!human(otherPlayer(state.turn)))return;
+ if(state.pendingStashBall===null){say('First choose the held 7 or 15 below the table.');return;}
+ if(!canPlace(state.balls,x,y)){say('That spot is blocked. Tap another location.');return;}
+ state.pendingStashPoint={x,y};
+ say('Previewing the '+state.pendingStashBall+'-ball. Confirm below or tap to reposition.');
+ update();
+}
 function placeStash({x,y}){
- if(!canPlace(state.balls,x,y)){say('That spot is blocked. Try another spot.');return;}
- const group=state.pendingStash;state.balls.push(ball(stashBall(group),x,y));
- state.deployed[group]=true;state.pendingStash=null;
- say('The '+stashBall(group)+'-ball is back! Clear it before going for the 8.');resume();
+ if(state.phase!=='placeStash'||state.pendingStashBall===null||!canPlace(state.balls,x,y))return;
+ const group=state.pendingStash,id=state.pendingStashBall;
+ const resolved=resolveSurpriseChoice(state.heldBalls,state.deployed,group,id);
+ if(!resolved)return;
+ state.balls.push(ball(id,x,y));
+ state.heldBalls=resolved.heldBalls;state.deployed=resolved.deployed;
+ state.pendingStash=null;state.pendingStashBall=null;state.pendingStashPoint=null;
+ log(person(otherPlayer(state.turn))+' chose and placed the held '+id+'-ball. '+(state.heldBalls.length?state.heldBalls.join(', ')+' still held.':'No balls remain held.'));
+ say('The '+id+'-ball is on the table. '+(groupOf(id)===group?'Clear it before your 8.':'Your 8 is available if your own group is clear.'));
+ resume();
 }
 function aimFrom(p){
  if(state.phase!=='aim'||!human(state.turn)||!callReady())return;
@@ -329,6 +373,13 @@ function render(){
   ctx.fillText(state.phase==='placeBreak'?'POSITION WHITE BALL BEHIND HEAD STRING':state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
  }
  for(const b of state.balls)if(!b.pocketed)drawBall(b);
+ if(state.phase==='placeStash'&&state.pendingStashBall!==null&&state.pendingStashPoint){
+  ctx.save();ctx.globalAlpha=.6;
+  drawBall(ball(state.pendingStashBall,state.pendingStashPoint.x,state.pendingStashPoint.y));
+  ctx.restore();
+  ctx.beginPath();ctx.arc(state.pendingStashPoint.x,state.pendingStashPoint.y,TABLE.radius+7,0,2*Math.PI);
+  ctx.lineWidth=3;ctx.strokeStyle='#ffe7a4';ctx.stroke();
+ }
 }
 function frame(timestamp){
  // The old .08s clamp plus discarded substeps caused visible slow motion
@@ -381,7 +432,7 @@ canvas.addEventListener('pointerdown',e=>{
   return;
  }
  if(state.phase==='placeCue'&&human(state.turn)){placeCue(p);return;}
- if(state.phase==='placeStash'&&human(otherPlayer(state.turn))){placeStash(p);return;}
+ if(state.phase==='placeStash'&&human(otherPlayer(state.turn))){previewStash(p);return;}
  if(state.phase!=='aim'||!human(state.turn))return;
  if(!state.isBreak&&!callReady()){
   if(state.callBall===null){
@@ -409,6 +460,9 @@ for(const button of document.querySelectorAll('.pocket-pick')){
  button.addEventListener('click',()=>selectCallPocket(button.dataset.pocket));
 }
 $('#move-cue').addEventListener('click',moveBreakCue);
+$('#stash-solid').addEventListener('click',()=>selectStashBall(7));
+$('#stash-stripe').addEventListener('click',()=>selectStashBall(15));
+$('#stash-confirm').addEventListener('click',()=>{if(state.phase==='placeStash'&&human(otherPlayer(state.turn))&&state.pendingStashPoint)placeStash(state.pendingStashPoint);});
 $('#shoot').addEventListener('click',()=>{if(state.phase==='aim'&&human(state.turn))hit();});
 $('#new-game').addEventListener('click',newGame);
 $('#play-again').addEventListener('click',newGame);
