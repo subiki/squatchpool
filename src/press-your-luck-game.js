@@ -14,18 +14,21 @@ function message(s){$('status').textContent=s;}
 function rack(){
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];phase='placeBreak';breakShot=true;breakPlacementValid=false;angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
- $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callPocket.value='';
+ $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
  $('place').hidden=false;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Tap or drag the cue ball within the kitchen, then confirm its position.');update();
 }
 function update(){
  $('score').textContent='Player 1: '+match.scores[0]+' · Player 2: '+match.scores[1]+' · Target '+match.targetScore;
  $('bonus').textContent='Provisional: '+match.bonus[0]+' · '+match.bonus[1]+' · Groups: '+(groups[0]||'open')+' / '+(groups[1]||'open');
- callBall.replaceChildren(new Option('Choose ball',''),...balls.filter(b=>!b.pocketed&&b.id).map(b=>new Option(String(b.id),String(b.id))));
- $('shoot').disabled=phase!=='aim';$('shoot').textContent=breakShot?'BREAK':'SHOOT';
+ const selectedCall=callBall.value;
+ const options=balls.filter(b=>!b.pocketed&&b.id);
+ callBall.replaceChildren(new Option('Choose ball',''),...options.map(b=>new Option(String(b.id),String(b.id))));
+ if(options.some(b=>String(b.id)===selectedCall))callBall.value=selectedCall;
+ $('shoot').disabled=phase!=='aim'||(!breakShot&&!callReady());$('shoot').textContent=breakShot?'BREAK':'SHOOT';
  const placing=phase==='place'||phase==='placeBreak';$('place').hidden=!placing;$('place').disabled=!placing||(phase==='placeBreak'&&!breakPlacementValid);$('place').textContent=phase==='placeBreak'?'Confirm break position':'Confirm cue placement';
  $('break-reposition').hidden=!(breakShot&&phase==='aim');
- // After the break, a call is mandatory: expose the selectors instead of making Shoot appear dead.
- const callPanel=document.querySelector('.kit-more');if(callPanel&&phase==='aim'&&!breakShot)callPanel.open=true;
+ // Keep call selection on the felt; dropdowns remain an accessible fallback.
+ updateCallHint();
 }
 function begin(){
  try{match=newMatch({targetScore:validateTargetScore($('target').value)});}catch(e){message(e.message);return;}
@@ -39,7 +42,61 @@ function draw(){
  for(const p of pockets)renderPocket(ctx,p);
  ctx.strokeStyle='#c59a61';ctx.lineWidth=2;ctx.beginPath();for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}ctx.stroke();
  for(const b of balls){if(b.pocketed)continue;ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);ctx.fillStyle=b.id===0?'#fff':b.id===8?'#111':b.id<=7?'#ddac4b':'#477fc0';ctx.fill();ctx.strokeStyle='#ffffff99';ctx.stroke();if(b.id){ctx.fillStyle='white';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillText(b.id,b.x,b.y);}}
- if(phase==='aim'){const b=cue(),dx=Math.cos(angle),dy=Math.sin(angle);ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*240,b.y+dy*240);ctx.stroke();ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+140),b.y-dy*(r+140));ctx.stroke();}
+ drawCallTargets();
+ if(phase==='aim'&&(breakShot||callReady())){const b=cue(),dx=Math.cos(angle),dy=Math.sin(angle);ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*240,b.y+dy*240);ctx.stroke();ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+140),b.y-dy*(r+140));ctx.stroke();}
+}
+const callReady=()=>Boolean($('call-ball').value&&$('call-pocket').value);
+function updateCallHint(){
+ const hint=$('table-call-hint');if(!hint)return;
+ $('shoot').disabled=phase!=='aim'||(!breakShot&&!callReady());
+ $('undo-call').disabled=phase!=='aim'||breakShot||!($('call-ball').value||$('call-pocket').value);
+ const called=$('call-ball').value,pocket=pockets.find(p=>p.id===$('call-pocket').value);
+ hint.textContent=phase==='placeBreak'?'Place and confirm the break cue ball first.':
+  phase==='place'?'Place and confirm the cue ball first.':
+  phase!=='aim'?'Shot in progress or rack complete.':
+  breakShot?'Break: aim and shoot. No call needed.':
+  !called?'1. Tap a ball on the table to call it.':
+  !pocket?'2. Tap a glowing pocket on the table.':
+  'Called '+called+' to '+pocket.label+'. Aim and tap SHOOT.';
+}
+function drawCallTargets(){
+ if(phase!=='aim'||breakShot)return;
+ const called=Number($('call-ball').value);
+ if(!called)return;
+ const b=balls.find(ball=>ball.id===called&&!ball.pocketed);
+ ctx.save();ctx.strokeStyle='#ffe19b';ctx.lineWidth=3;
+ if(b){ctx.beginPath();ctx.arc(b.x,b.y,TABLE.radius*1.55,0,Math.PI*2);ctx.stroke();}
+ if(!$('call-pocket').value){
+  pockets.forEach((p,i)=>{
+   const x=p.kind==='side'?p.x:p.x+p.sx*TABLE.radius*1.65;
+   const y=p.y+p.sy*TABLE.radius*1.65;
+   ctx.beginPath();ctx.arc(x,y,TABLE.radius*1.6,0,Math.PI*2);
+   ctx.fillStyle='#f4cc78';ctx.fill();ctx.strokeStyle='#16382a';ctx.stroke();
+   ctx.fillStyle='#173225';ctx.font='bold 16px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(i+1),x,y);
+  });
+ }
+ ctx.restore();
+}
+function pickTableCall(x,y){
+ if(phase!=='aim'||breakShot)return false;
+ // Translate a finger-sized hit target into table coordinates at any zoom/size.
+ const scale=Math.max(canvas.width/(canvas.clientWidth||canvas.width),canvas.height/(canvas.clientHeight||canvas.height));
+ const hit=Math.max(TABLE.radius*1.8,22*scale);
+ const b=balls.filter(b=>b.id>0&&!b.pocketed).map(b=>({ball:b,d:Math.hypot(b.x-x,b.y-y)})).sort((a,b)=>a.d-b.d)[0];
+ if(b&&b.d<=hit){
+  $('call-ball').value=String(b.ball.id);$('call-pocket').value='';
+  message('Called ball '+b.ball.id+'. Tap a glowing pocket on the table.');
+  updateCallHint();return true;
+ }
+ if($('call-ball').value){
+  const p=pockets.map(p=>({p,d:Math.hypot(p.x-x,p.y-y)})).sort((a,b)=>a.d-b.d)[0];
+  if(p&&p.d<=Math.max(TABLE.radius*2.5,26*scale)){
+   $('call-pocket').value=p.p.id;
+   message('Called '+$('call-ball').value+' to '+p.p.label+'. Aim and SHOOT.');
+   updateCallHint();return true;
+  }
+ }
+ return false;
 }
 function endShot(){
  const madeCount=new Set(events.filter(e=>e.type==='pocket'&&e.ballId>0).map(e=>e.ballId)).size;
@@ -66,14 +123,14 @@ function endShot(){
  turn=result.nextPlayer;breakShot=false;
  if(scratch||result.ballInHand){cue().pocketed=false;cue().vx=cue().vy=cue().wx=cue().wy=cue().wz=0;cue().motion='stationary';const p=findPlacement(balls.filter(b=>b.id!==0));if(p)Object.assign(cue(),p);phase='place';message('Player '+(turn+1)+' has ball in hand. Tap a clear position and confirm.');}
  else{phase='aim';message('Player '+(turn+1)+' to shoot. '+(result.match.bonus[turn]?'Pressing bonus at risk.':''));}
- $('bank').checked=false;callPocket.value='';update();
+ $('bank').checked=false;callBall.value='';callPocket.value='';update();
 }
 function frame(t){
  const elapsed=previous?Math.min(.08,(t-previous)/1000):0;previous=t;
  if(phase==='moving'){acc+=elapsed;let n=0;while(acc>=1/120&&n++<12){const outcome=step(balls,1/120);events.push(...outcome.shotEvents);if(firstContact===null){const hit=outcome.shotEvents.find(e=>e.type==='contact'&& e.balls.includes(0));if(hit)firstContact=hit.balls.find(id=>id!==0);}acc-=1/120;shotElapsed+=1/120;still=stationary(balls)?still+1:0;if(still>20||shotElapsed>20){endShot();break;}}}
  draw();requestAnimationFrame(frame);
 }
-function aimPointer(e){if(!['aim','place','placeBreak'].includes(phase))return;const box=canvas.getBoundingClientRect(),border=canvas.clientLeft,insideWidth=canvas.clientWidth,insideHeight=canvas.clientHeight,x=(e.clientX-box.left-border)*canvas.width/insideWidth,y=(e.clientY-box.top-border)*canvas.height/insideHeight;if(phase==='placeBreak'){
+function aimPointer(e,allowCall=false){if(!['aim','place','placeBreak'].includes(phase))return;const box=canvas.getBoundingClientRect(),border=canvas.clientLeft,insideWidth=canvas.clientWidth,insideHeight=canvas.clientHeight,x=(e.clientX-box.left-border)*canvas.width/insideWidth,y=(e.clientY-box.top-border)*canvas.height/insideHeight;if(phase==='placeBreak'){
   // A tap beyond the head string cannot teleport the cue back into the kitchen.
   const p=x>=headStringX()?{x,y}:kitchenPoint(x,y);
   breakPlacementValid=canPlaceBreakCue(balls,p.x,p.y);
@@ -81,22 +138,28 @@ function aimPointer(e){if(!['aim','place','placeBreak'].includes(phase))return;c
   $('notice').textContent=breakPlacementValid?'Break position valid. Confirm placement.':'Place the entire cue ball behind the head string.';
   update();return;
  }
- if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();$('notice').textContent='Cue position valid. Confirm placement.';}else $('notice').textContent='Cue overlaps a ball or rail. Choose an open spot.';return;}const b=cue();const next=angleFromPointer(b,{x,y},$('invert-aim').checked,TABLE.radius);if(next!==null)angle=next;}
+ if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();$('notice').textContent='Cue position valid. Confirm placement.';}else $('notice').textContent='Cue overlaps a ball or rail. Choose an open spot.';return;}
+ if(allowCall&&pickTableCall(x,y))return;
+ if(!breakShot&&!callReady())return;
+ const b=cue();const next=angleFromPointer(b,{x,y},$('invert-aim').checked,TABLE.radius);if(next!==null)angle=next;}
 canvas.addEventListener('pointerdown',e=>{
  canvas.setPointerCapture(e.pointerId);
  // Drag the cue itself to reposition after confirmation, without stealing ordinary aim taps.
  if(phase==='aim'&&breakShot){const box=canvas.getBoundingClientRect();const x=(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
   if(Math.hypot(x-cue().x,y-cue().y)<=TABLE.radius*2.5){phase='placeBreak';breakPlacementValid=false;}
  }
- aimPointer(e);
+ aimPointer(e,true);
 });
-canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e);});
-$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){document.querySelector('.kit-more')?.setAttribute('open','');message('Open Call shot · Spin & options and choose a ball and pocket first.');(!callBall.value?callBall:callPocket).focus();return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
+canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e,false);});
+$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{
  if(phase==='placeBreak'&&breakPlacementValid){phase='aim';message('Break position confirmed. Aim, then tap BREAK.');update();}
  else if(phase==='place'){phase='aim';message('Player '+(turn+1)+' to shoot.');update();}
 };
 $('break-reposition').onclick=()=>{if(phase==='aim'&&breakShot){phase='placeBreak';breakPlacementValid=false;message('Tap or drag the cue ball within the kitchen, then confirm.');update();}};
+$('call-ball').addEventListener('change',()=>{callPocket.value='';updateCallHint();});
+$('call-pocket').addEventListener('change',updateCallHint);
+$('undo-call').onclick=()=>{if(phase!=='aim'||breakShot)return;callBall.value='';callPocket.value='';message('Call cleared. Tap a ball to call a new shot.');updateCallHint();};
 $('next').onclick=rack;$('start').onclick=begin;
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 $('invert-aim').onchange=()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}};
