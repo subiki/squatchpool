@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
 const template = readFileSync(new URL('../scripts/sw-template.js', import.meta.url), 'utf8');
-const assets = ['/index.html','/caroms.html','/cutthroat.html','/rules.html','/archive.html','/src/game.js'];
+const assets = ['/index.html','/but-wait.html','/caroms.html','/cutthroat.html','/rules.html','/archive.html','/src/game.js'];
 function workerHarness() {
   const events = new Map();
   const stored = new Map();
