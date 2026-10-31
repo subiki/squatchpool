@@ -1,0 +1,18 @@
+/* One visual contract for all five Squatch Pool game modes. */
+.game-rules-layout{margin:10px 0 14px!important}
+.table-stage{border:1px solid #5c765f;border-radius:14px;background:#142b22!important;overflow:hidden}
+.table-stage .table-wrap{margin:0}
+.table-stage .table-kit{padding:10px!important;background:#1a3328!important;border-top:1px solid #5c765f;border-radius:0!important}
+.table-stage .kit-primary{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.table-stage .kit-primary .kit-power{flex:1 1 150px;min-width:100px}
+.table-stage .kit-primary .kit-power input[type=range]{width:100%;accent-color:#efc77c}
+.table-stage .kit-primary button{min-height:44px;border-radius:9px;font-weight:750}
+.table-stage .kit-primary :is(#shoot,#caroms-shoot,#cut-shoot){background:#efc77c;color:#19271e;border:1px solid #efc77c;font-size:1.08rem}
+.table-stage .kit-primary .aim-toggle,.table-stage .kit-primary .kit-aim{font-size:.88rem;white-space:nowrap}
+.table-stage .kit-more{flex:1 0 100%;width:100%;margin:3px 0 0;padding:7px 0 0;border-top:1px solid #526d5b;background:transparent}
+.table-stage .kit-more>summary{cursor:pointer;font-weight:750;color:#f2d29a;min-height:44px;display:flex;align-items:center}
+.table-stage .kit-more .kit-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}
+.table-stage .kit-primary button[hidden],.table-stage .kit-primary label[hidden]{display:none!important}
+.table-stage:fullscreen{overflow:auto;display:flex;flex-direction:column;justify-content:center;background:#0b1b15}
+.table-stage:fullscreen .table-kit{flex:0 0 auto}
+@media(max-width:650px){.table-stage .table-kit{padding:7px!important}.table-stage .kit-primary{gap:6px}.table-stage .kit-primary .kit-power{flex:1 1 115px}.table-stage .kit-primary :is(#shoot,#caroms-shoot,#cut-shoot){flex:0 1 auto}.table-stage .kit-primary .kit-aim{flex:0 1 auto}}
