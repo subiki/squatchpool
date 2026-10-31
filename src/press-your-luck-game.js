@@ -14,13 +14,15 @@ function message(s){$('status').textContent=s;}
 function rack(){
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();turn=match.breaker;groups=[null,null];phase='aim';breakShot=true;angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
- $('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Tap the felt to aim.');update();
+ $('place').hidden=true;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Tap the felt to aim.');update();
 }
 function update(){
  $('score').textContent='Player 1: '+match.scores[0]+' · Player 2: '+match.scores[1]+' · Target '+match.targetScore;
  $('bonus').textContent='Provisional: '+match.bonus[0]+' · '+match.bonus[1]+' · Groups: '+(groups[0]||'open')+' / '+(groups[1]||'open');
  callBall.replaceChildren(new Option('Choose ball',''),...balls.filter(b=>!b.pocketed&&b.id).map(b=>new Option(String(b.id),String(b.id))));
- $('shoot').disabled=phase!=='aim';$('place').disabled=phase!=='place';
+ $('shoot').disabled=phase!=='aim';$('place').hidden=phase!=='place';$('place').disabled=phase!=='place';
+ // After the break, a call is mandatory: expose the selectors instead of making Shoot appear dead.
+ const callPanel=document.querySelector('.kit-more');if(callPanel&&phase==='aim'&&!breakShot)callPanel.open=true;
 }
 function begin(){
  try{match=newMatch({targetScore:validateTargetScore($('target').value)});}catch(e){message(e.message);return;}
