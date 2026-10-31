@@ -10,7 +10,7 @@ test('Caroms remains offered as bot or local two-player beta',()=>{
  assert.match(home,/src="\/src\/game-hub\.js"/,'homepage loads dynamic game cards');
  const game=GAMES.find(g=>g.id==='caroms');
  assert.equal(game.url,'/caroms.html');
- assert.match(game.players,/Solo bot or 2 players/);
+ assert.match(game.players,/Solo.*Squatch Bot.*2.*players/);
  assert.match(caroms,/id="caroms-table"/);
  assert.match(caroms,/src="\.\/src\/caroms-game\.js"/);
  assert.match(caroms,/<option value="bot" selected>Squatch Bot · solo<\/option>/);
