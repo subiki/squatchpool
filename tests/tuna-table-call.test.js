@@ -26,6 +26,7 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
  globalThis.localStorage={getItem:()=>null,setItem(){}};
  globalThis.requestAnimationFrame=()=>{};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
+ const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
  try{
   await import('../src/tuna-game.js');
   for(const size of [7,8,9]){
@@ -46,6 +47,9 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    // A second ball tap changes the call, clears the stale pocket and keeps
    // the cue hidden until a new pocket is chosen.
    const second=fullRack()[2];
+   drag(second.x,second.y);
+   assert.equal(node('call-ball').value,'1','drag-to-aim must not change called ball');
+   assert.equal(node('call-pocket').value,'TM','drag-to-aim must not clear called pocket');
    tap(second.x,second.y);
    assert.equal(node('call-ball').value,'2');
    assert.equal(node('call-pocket').value,'');
