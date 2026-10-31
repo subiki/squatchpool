@@ -39,7 +39,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
 @media(max-width:650px){main{padding-bottom:100px}#caroms-shoot{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 24px);z-index:20;box-shadow:0 5px 24px #000b}main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
 </style>
-<link rel="stylesheet" href="./src/shared-header.css"><link rel="stylesheet" href="./src/aim-preference.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head>
+<link rel="stylesheet" href="./src/game-page-layout.css"><link rel="stylesheet" href="./src/shared-header.css"><link rel="stylesheet" href="./src/aim-preference.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head>
 <body>
 <header class="squatch-unified-header">
 <div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
@@ -51,6 +51,18 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 <p><strong>Caroms:</strong> <span id="caroms-stats-game">Awaiting live totals</span></p><span id="caroms-stats-site" hidden></span><small id="caroms-stats-status">Statistics unavailable until connected</small>
 <p class="stats-footnote" id="stats-status" aria-live="polite">Connecting to live statistics…</p></details></header>
 <main>
+<section class="game-rules-layout"><details open class="panel" id="caroms-rules-panel"><summary>How to play · rules &amp; controls</summary><div class="panel-body">
+<p><strong>Solo bot or two local players.</strong> Caroms is a playable beta. Shoot a numbered object ball into the white cue ball first; after contact, a ball must reach a rail. Pocket balls to clear your group, then legally pocket the 8.</p>
+<ol class="rules-list">
+<li>Break with the 1-ball. On each turn, select a numbered object ball to strike, then aim and shoot.</li>
+<li>First contact must be with the white ball. After that contact, a ball must touch a rail or it is a foul.</li>
+<li>Beginners play slop, intermediate players call the 8, and advanced players call every shot. Each player can choose their own level.</li>
+<li>When a call is required, tap the ball and pocket or use the selectors; Undo call clears the choice.</li>
+<li>Tap a ball, then drag on the felt to aim. Arrow keys adjust aim; Space shoots. On an option foul, the incoming player chooses whether to leave the white ball or move it to center. A scratched white ball returns to center.</li>
+</ol>
+<p><strong>Playtest interpretations:</strong> A struck ball can score after a legal carom; an 8 pocketed on the break is re-spotted. See the <a href="./archive.html#episode-3">original Episode 3 manuscript</a>.</p>
+</div></details></section>
+
 <h1>Caroms (Whacky Pool)</h1>
 <p class="notice"><strong>Play Caroms:</strong> Play solo against Squatch Bot or pass and play with a friend. First to two racks wins this playtest match. Strike a numbered ball into the white ball first; after contact, a ball must reach a rail. <a href="#caroms-rules-panel">More rules</a></p>
 <div class="controls"><button id="caroms-new" type="button">Next / restart rack</button><button id="caroms-match-reset" type="button">New match</button></div>
@@ -90,17 +102,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 </div></div></details>
 <div class="controls"><button class="primary" id="caroms-shoot" type="button">BREAK WITH THE 1</button></div>
 <details class="panel" id="caroms-history-panel"><summary>Shot history</summary><div class="panel-body"><ol id="caroms-log" aria-live="polite"></ol></div></details>
-<details class="panel" id="caroms-rules-panel"><summary>How to play · rules &amp; controls</summary><div class="panel-body">
-<p><strong>Solo bot or two local players.</strong> Caroms is a playable beta. Shoot a numbered object ball into the white cue ball first; after contact, a ball must reach a rail. Pocket balls to clear your group, then legally pocket the 8.</p>
-<ol class="rules-list">
-<li>Break with the 1-ball. On each turn, select a numbered object ball to strike, then aim and shoot.</li>
-<li>First contact must be with the white ball. After that contact, a ball must touch a rail or it is a foul.</li>
-<li>Beginners play slop, intermediate players call the 8, and advanced players call every shot. Each player can choose their own level.</li>
-<li>When a call is required, tap the ball and pocket or use the selectors; Undo call clears the choice.</li>
-<li>Tap a ball, then drag on the felt to aim. Arrow keys adjust aim; Space shoots. On an option foul, the incoming player chooses whether to leave the white ball or move it to center. A scratched white ball returns to center.</li>
-</ol>
-<p><strong>Playtest interpretations:</strong> A struck ball can score after a legal carom; an 8 pocketed on the break is re-spotted. See the <a href="./archive.html#episode-3">original Episode 3 manuscript</a>.</p>
-</div></details>
+
 <details class="panel story-panel" id="caroms-story-panel">
 <summary>Optional original story · Episode 3 (tap to expand)</summary>
 <div class="panel-body">
