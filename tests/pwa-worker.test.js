@@ -31,6 +31,7 @@ function workerHarness() {
     self: {
       location: {origin:'https://squatch.example'},
       addEventListener: (name, handler) => events.set(name,handler),
+      skipWaiting: async () => {}, // Real ServiceWorkerGlobalScope API used after successful precache.
       clients: {claim: async () => {}}
     }
   };
