@@ -7,8 +7,12 @@ test('Caroms has concise rules before play, with optional panels after the table
  const at=id=>html.indexOf('id="'+id+'"');
  const table=at('caroms-table');
  assert.ok(table>0,'the real game canvas is present');
- for(const id of ['caroms-new','caroms-turn','caroms-score','caroms-status','caroms-stats-game','caroms-stats-site'])
+ for(const id of ['caroms-new','caroms-turn','caroms-score','caroms-status'])
   assert.ok(at(id)>0&&at(id)<table,id+' must appear before the table');
+ const header=readFileSync(new URL('../src/site-header.js',import.meta.url),'utf8');
+ for(const id of ['caroms-stats-game','caroms-stats-site','caroms-stats-status'])
+  assert.ok(header.includes(id),id+' is rendered in the shared header');
+ assert.ok(html.indexOf('<squatch-header>')<table,'shared header precedes game table');
  for(const id of ['caroms-call-controls','caroms-shot-panel','caroms-shoot','caroms-story-panel'])
   assert.ok(at(id)>table,id+' must follow the playable table');
  assert.ok(at('caroms-rules-panel')>0&&at('caroms-rules-panel')<table,'rules appear before gameplay without forcing an expanded panel');
