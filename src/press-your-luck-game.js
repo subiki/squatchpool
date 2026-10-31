@@ -4,7 +4,7 @@ import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,c
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {groupOf} from './rules.js';
 import {newMatch,validateTargetScore} from './press-your-luck-score.js';
-import {pressTurn,pressEligible} from './press-your-luck-turn.js';
+import {pressTurn,pressEligible,qualifiesEightBankKick} from './press-your-luck-turn.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,breakShot=true,breakPlacementValid=false;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
@@ -118,7 +118,7 @@ function endShot(){
  if(assignment){groups[turn]=groupOf(called);groups[1-turn]=groups[turn]==='solids'?'stripes':'solids';}
  const eligible=pressEligible(preBalls,groups[turn]);
  const legalFirst=breakShot?firstContact!==null:!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||Boolean(groupOf(firstContact)):groupOf(firstContact)===groups[turn];
- const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:shotBank&&events.some(e=>e.type==='rail'&&e.ballId===8)||shotBank&&events.some(e=>e.type==='rail'&&e.ballId===0&&events.indexOf(e)<events.findIndex(h=>h.type==='contact'&&h.balls.includes(0))),calledShotMade:made});
+ const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:qualifiesEightBankKick(events,{declared:shotBank,calledBall:called,calledPocket:pocket}),calledShotMade:made});
  match=result.match;
  if(result.respotEight){const b=balls.find(b=>b.id===8);const p=findPlacement(balls.filter(other=>other.id!==8),{x:TABLE.width/2,y:TABLE.height/2});if(p){Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});}else{message('No room to respot the 8.');phase='done';update();return;}}
  if(result.finish){
