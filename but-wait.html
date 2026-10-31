@@ -17,8 +17,28 @@
  .surprise-choices button{min-height:48px;flex:1 1 140px;background:#355443;color:#fff0ce;border:2px solid #ac9a6d}
  .surprise-choices button[aria-pressed="true"]{background:#f1ca80;color:#17291e;border-color:#ffe7ad}
  #stash-confirm{width:100%;min-height:50px}
+
+ .but-wait-stage{margin:8px 0 0}
+ .but-wait-stage .kit-status{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:baseline;padding:8px 12px;color:#f4dfb6}
+ .but-wait-stage .kit-status strong{color:#ffe2a5;font-size:.96rem}
+ .but-wait-stage .kit-status span{font-size:.86rem}
+ .but-wait-stage .kit-primary .power{flex:1 1 125px;min-width:90px}
+ .but-wait-stage .kit-primary .power input{margin:4px 0 0}
+ .but-wait-stage .kit-primary #shoot{flex:0 1 145px;min-width:95px}
+ .but-wait-stage .kit-primary #invert-aim{font-size:.88rem}
+ .but-wait-stage .kit-primary #move-cue{margin:0}
+ .but-wait-stage .kit-more{margin-top:8px}
+ .but-wait-stage .kit-more .call-panel{margin:8px 0}
+ .but-wait-stage .kit-more .spin-panel{margin:8px 0}
+ .but-wait-stage .kit-more .aim-toggle-caption{display:block;margin:8px 0;color:#d4ddc8;font-size:.84rem}
+ .but-wait-stage:fullscreen{overflow:auto;justify-content:flex-start}
+ .but-wait-stage:fullscreen .table-frame{width:min(100%,calc((100dvh - 180px)*2));margin:0 auto;flex:0 0 auto}
+ .but-wait-stage:fullscreen .table-playfield{aspect-ratio:var(--table-aspect,2/1)}
+ .but-wait-stage:fullscreen canvas{max-height:none;flex:none}
+ @media(max-width:650px){.but-wait-stage .kit-primary{gap:6px}.but-wait-stage .kit-primary #shoot{flex:1 1 105px}.but-wait-stage .kit-primary #invert-aim{flex:1 1 125px}.but-wait-stage .kit-status{padding:6px 8px}}
  </style>
  <script type="module" src="./src/game.js"></script>
+ <script type="module" src="./src/table-kit.js"></script>
  <script type="module" src="./src/deployment.js"></script>
 <link rel="stylesheet" href="./src/shared-header.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head>
 <body>
@@ -76,6 +96,8 @@
      <div class="center-score"><span>HOUSE RULES</span><strong>VS.</strong><small id="shot-counter">Break shot</small></div>
      <div class="player" id="player-1"><span class="portrait squatch" aria-hidden="true">🦍</span><div><strong id="player-name-1">Speed Squatch</strong><small id="player-group-1">Open table</small></div><span class="player-count" id="player-count-1">—</span></div>
     </div>
+    <section class="table-stage but-wait-stage" id="table-stage" aria-label="But Wait pool table and fullscreen shot controls">
+      <div class="kit-status" role="status"><strong id="control-title">Your shot</strong><span id="control-hint">Place the cue ball in the kitchen, then aim and break.</span></div>
     <div class="table-frame">
      <div class="table-topline"><span>THE FOUR T'S • <span id="table-dimensions">7 FT · 78 × 39 IN</span></span><span id="table-status">OPEN TABLE</span></div>
      <div class="table-playfield">
@@ -100,18 +122,22 @@
      </div>
      <button type="button" id="stash-confirm" class="shoot" disabled>Confirm ball placement</button>
     </div>
-    <div class="aim-toggle-bar" role="group" aria-label="Touch aiming preference"><button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Invert aim: OFF</button><span class="aim-toggle-caption">ON = hold a finger behind the cue to aim away from it. Tap again for normal aim. Saved across games.</span></div>
-    <div class="announcer" aria-live="polite"><span class="announcer-avatar" aria-hidden="true">🌲</span><div><div class="eyebrow">FROM THE BOOTH</div><p id="announcer-text">Welcome to The 4T's. Break 'em like you mean it.</p></div></div>
+      <section class="table-kit" aria-label="But Wait shot controls">
+        <div class="kit-primary">
+          <div class="power kit-power"><label for="power">POWER <output id="power-value" for="power">85%</output></label><input id="power" type="range" min="10" max="100" value="85" step="1"></div>
+          <button id="shoot" class="shoot" type="button">BREAK!</button>
+          <button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Reverse aim: OFF</button>
+          <button type="button" id="kit-fullscreen" aria-label="Toggle table fullscreen">⛶ Fullscreen</button>
+          <button id="move-cue" type="button" class="secondary move-break-cue" hidden>↔ Reposition break cue ball</button>
+        </div>
+        <details class="kit-more" id="but-wait-more">
+          <summary>More · Called shots, spin &amp; help</summary>
+          <p class="aim-toggle-caption">Reverse aim: hold your finger behind the cue to aim away from it. Saved across games.</p>
     <div class="call-panel" id="call-panel" aria-label="Called shot">
      <div class="call-instructions"><strong>CALL YOUR SHOT</strong><small id="call-hint">After the break, tap a ball, then a pocket.</small></div>
      <div class="call-progress" aria-live="polite"><span id="call-ball-status">Ball: not called</span><span id="call-pocket-status">Pocket: not called</span></div>
      <button id="undo-call" type="button" class="secondary undo-call" disabled>↶ Undo call</button>
      <div class="ball-picks" id="ball-picks" aria-label="Eligible balls — alternative to tapping the table" hidden></div>
-    </div>
-    <div class="control-panel">
-     <div class="aim-help"><strong id="control-title">Your shot</strong><span id="control-hint">Tap or drag on the table to aim. Choose your power, then shoot.</span><button id="move-cue" type="button" class="secondary move-break-cue" hidden>↔ Reposition break cue ball</button></div>
-     <div class="power"><label for="power">POWER <output id="power-value" for="power">68%</output></label><input id="power" type="range" min="10" max="100" value="68" step="1"></div>
-     <button id="shoot" class="shoot">SHOOT <span aria-hidden="true">➜</span></button>
     </div>
     <div class="spin-panel" aria-label="Advanced cue-ball spin (optional)">
       <span class="spin-heading">🎱 CUE SPIN <small>Optional · leave centered for a normal shot</small></span>
@@ -122,6 +148,10 @@
        <input id="spin-side" type="range" min="-100" max="100" value="0" step="5" aria-label="Left or right sidespin">
       </label>
     </div>
+        </details>
+      </section>
+    </section>
+    <div class="announcer" aria-live="polite"><span class="announcer-avatar" aria-hidden="true">🌲</span><div><div class="eyebrow">FROM THE BOOTH</div><p id="announcer-text">Welcome to The 4T's. Break 'em like you mean it.</p></div></div>
    </section>
    <section class="shot-history-section" aria-label="Shot history">    <details class="rules-card log-card"><summary>Shot history · Expand log</summary><ol id="shot-log" aria-label="Shot history"><li>Fresh rack. Everyone still has a chance.</li></ol></details></section>
    <footer>Squatch Pool • Billiards physics adapted from <a href="https://github.com/tailuge/billiards">Tailuge Billiards</a> (GPL-3.0). <a href="./LICENSE">License</a> · <a href="./THIRD_PARTY.md">Source and attribution</a> · <a href="./src/physics.js">Game physics source</a></footer>

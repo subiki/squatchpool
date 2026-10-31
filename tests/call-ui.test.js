@@ -115,6 +115,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.ok(frames<2000,'break ends and waits for called ball');
   assert.equal(element('#power').value,'68','post-break shots return to normal power default');
   assert.equal(element('#shoot').disabled,true,'no uncaught shot allowed');
+  assert.equal(element('#but-wait-more').open,true,'mandatory call drawer opens after break');
   assert.ok(element('#ball-picks').children.length>=1,'ball number buttons are visible');
   const initiallyDrawn=cueDraws;tick();
   assert.equal(cueDraws,initiallyDrawn,'cue hidden before call');
@@ -137,6 +138,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   click('#undo-call');
   assert.equal(element('#table-status').textContent,'PICK A BALL');
   assert.equal(element('#shoot').disabled,true);
+  assert.equal(element('#but-wait-more').open,true,'undo keeps call controls discoverable');
   const afterUndo=cueDraws;tick();
   assert.equal(cueDraws,afterUndo,'undo hides cue');
   element('#ball-picks').children[0].listeners.get('click')();
