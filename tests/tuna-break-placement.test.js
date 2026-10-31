@@ -42,7 +42,7 @@ test('Tuna requires a legal kitchen break placement on all three tables and perm
    tap(headStringX()+TABLE.radius*2,TABLE.height/2);
    assert.equal(node('place').disabled,true,'cannot confirm outside the kitchen');
    tap(headStringX()*.55,TABLE.height/2);
-   assert.equal(node('place').disabled,false,'legal kitchen touch enables confirmation');
+   assert.equal(node('place').disabled,false,'legal kitchen touch enables confirmation, size '+size+' status '+node('status').textContent+' head '+headStringX()+' width '+TABLE.width+' radius '+TABLE.radius);
    node('place').onclick();
    assert.equal(node('shoot').disabled,false,'confirmed placement unlocks BREAK');
    assert.equal(node('shoot').textContent,'BREAK');
