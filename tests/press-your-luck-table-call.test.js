@@ -12,7 +12,7 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
  let nextFrame=()=>{},time=0,cueDraws=0;
  const ctx=new Proxy({
   fillRect(x,y,w,h){if(x===0&&y===0&&w===TABLE.width&&h===TABLE.height)positions.clear();},
-  fillText(value,x,y){if(/^\\d+$/.test(String(value)))positions.set(String(value),{x,y});},
+  fillText(value,x,y){if(/^\d+$/.test(String(value)))positions.set(String(value),{x,y});},
   stroke(){if(this.strokeStyle==='#d6aa70')cueDraws++;}
  },{get:(obj,key)=>obj[key]??(()=>{}),set:(obj,key,value)=>{obj[key]=value;return true;}});
  function node(id){
