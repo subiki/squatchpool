@@ -25,7 +25,7 @@ function endShot(){
  breakShot=false;
  if(result.winning){phase='done';message('Player '+(turn+1)+' wins Big Tuna Casserole! Start a new rack to play again.');update();return;}
  if(!result.keepTurn)turn=1-turn;
- if(result.ballInHand){const b=cue();Object.assign(b,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});const p=findPlacement(balls.filter(other=>other.id!==0));if(p)Object.assign(b,p);phase='place';message('Foul. Player '+(turn+1)+' has ball in hand. Tap a clear position, then confirm.');}
+ if(result.ballInHand){const b=cue();Object.assign(b,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});const p=findPlacement(balls.filter(other=>other.id!==0));if(!p){phase='done';message('No legal cue-ball placement available. Start a new rack.');update();return;}Object.assign(b,p);phase='place';message('Foul. Player '+(turn+1)+' has ball in hand. Tap a clear position, then confirm.');}
  else{phase='aim';message(result.keepTurn?'Good shot. Keep shooting.':'Player '+(turn+1)+' to shoot.');}
  $('call-pocket').value='';$('power').value='65';update();
 }
