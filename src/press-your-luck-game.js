@@ -167,7 +167,7 @@ function aimPointer(e,allowCall=false){if(!['aim','place','placeBreak'].includes
   const p=x>=headStringX()?{x,y}:kitchenPoint(x,y);
   breakPlacementValid=canPlaceBreakCue(balls,p.x,p.y);
   if(breakPlacementValid)Object.assign(cue(),p);
-  $('notice').textContent=breakPlacementValid?'Break position valid. Confirm placement.':'Place the entire cue ball behind the head string.';
+  $('notice').textContent=breakPlacementValid?'Cue ball positioned. Aim and press BREAK.':'Keep the cue ball behind the head string.';
   update();return;
  }
  if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();$('notice').textContent='Cue position valid. Confirm placement.';}else $('notice').textContent='Cue overlaps a ball or rail. Choose an open spot.';return;}
@@ -178,11 +178,12 @@ canvas.addEventListener('pointerdown',e=>{
  canvas.setPointerCapture(e.pointerId);
  // Drag the cue itself to reposition after confirmation, without stealing ordinary aim taps.
  if(phase==='aim'&&breakShot){const box=canvas.getBoundingClientRect();const x=(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
-  if(Math.hypot(x-cue().x,y-cue().y)<=TABLE.radius*2.5){phase='placeBreak';breakPlacementValid=false;}
+  if(Math.hypot(x-cue().x,y-cue().y)<=TABLE.radius*2.5){phase='placeBreak';breakPlacementValid=true;}
  }
  aimPointer(e,true);
 });
 canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e,false);});
+canvas.addEventListener('pointerup',()=>{if(phase==='placeBreak'&&breakPlacementValid){phase='aim';message('Cue positioned. Aim and press BREAK.');update();}});
 $('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{
  if(phase==='placeBreak'&&breakPlacementValid){phase='aim';message('Break position confirmed. Aim, then tap BREAK.');update();}
