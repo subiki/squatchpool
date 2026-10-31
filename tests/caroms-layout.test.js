@@ -3,14 +3,15 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../caroms.html',import.meta.url),'utf8');
 
-test('Caroms is playable before optional instructions and lore',()=>{
+test('Caroms has concise rules before play, with optional panels after the table',()=>{
  const at=id=>html.indexOf('id="'+id+'"');
  const table=at('caroms-table');
  assert.ok(table>0,'the real game canvas is present');
  for(const id of ['caroms-new','caroms-turn','caroms-score','caroms-status','caroms-stats-game','caroms-stats-site'])
   assert.ok(at(id)>0&&at(id)<table,id+' must appear before the table');
- for(const id of ['caroms-call-controls','caroms-shot-panel','caroms-shoot','caroms-rules-panel','caroms-story-panel'])
+ for(const id of ['caroms-call-controls','caroms-shot-panel','caroms-shoot','caroms-story-panel'])
   assert.ok(at(id)>table,id+' must follow the playable table');
+ assert.ok(at('caroms-rules-panel')>0&&at('caroms-rules-panel')<table,'rules appear before gameplay without forcing an expanded panel');
  assert.match(html,/<p class="notice">\s*<strong>Play Caroms:/);
  assert.match(html,/@media\(max-width:650px\)/);
  assert.match(html,/#caroms-shoot\{position:fixed/);
@@ -36,7 +37,7 @@ test('original story remains intact but collapsed after the game',()=>{
  const table=html.indexOf('id="caroms-table"');
  const rules=html.indexOf('id="caroms-rules-panel"');
  const story=html.indexOf('id="caroms-story-panel"');
- assert.ok(table<rules&&rules<story,'optional content must not block play');
+ assert.ok(rules<table&&table<story,'source rules are available before the table; optional story follows gameplay');
  const tag=html.match(/<details[^>]*id="caroms-story-panel"[^>]*>/)?.[0];
  assert.ok(tag&&!/\bopen\b/.test(tag),'story must be closed by default');
  assert.match(html,/Optional original story/);

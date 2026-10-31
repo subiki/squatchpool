@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101d19">
+<meta name="description" content="Try the Squatch Points Arcade Lab: a free, points-only pool challenge with practice, a local jackpot and real table physics.">
+<title>Squatch Arcade Lab · The First Corner</title>
+<link rel="stylesheet" href="/src/shared-header.css">
+<link rel="stylesheet" href="/src/game-page-layout.css">
+<link rel="stylesheet" href="/src/arcade.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<script type="module" src="/src/pwa.js"></script>
+<script type="module" src="/src/deployment.js"></script>
+<script type="module" src="/src/table-kit.js"></script>
+</head><body>
+<header class="squatch-unified-header">
+<div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
+<div class="squatch-release"><span class="prototype">ARCADE LAB · M1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
+<nav class="squatch-header-nav" aria-label="Explore Squatch Pool">
+<a href="/">🏠 Home</a><a href="/but-wait.html">🎱 But Wait</a><a href="/caroms.html">🌲 Caroms</a><a href="/cutthroat.html">🦍 Cutthroat</a><a href="/press-your-luck.html">🎲 Press Your Luck</a><a href="/tuna.html">🐟 Tuna</a><a href="/arcade.html" aria-current="page">🏆 Arcade Lab</a><a href="/rules.html">📜 Rules</a><a href="/archive.html">📖 Field Notes</a>
+</nav>
+</header>
+<main class="arcade-main">
+<section class="arcade-heading">
+<p class="eyebrow">ONE CHALLENGE · ZERO DOLLARS · REAL POOL PHYSICS</p>
+<h2>The First Corner</h2>
+<p id="rules-summary">Sink the 1-ball in the top-left corner in three shots or fewer. No scratches.</p>
+<p class="arcade-small">A playable, browser-local Squatch Points experiment. All five original Squatch Pool games remain completely free.</p>
+</section>
+<section class="arcade-accounts" aria-label="Local Squatch Points demo">
+<div class="arcade-stat"><span>Your points</span><strong id="points">100</strong></div>
+<div class="arcade-stat arcade-pot"><span>Local jackpot</span><strong id="pot">20</strong></div>
+<div class="arcade-stat"><span>Creator share</span><strong id="creator-points">0</strong></div>
+<div class="arcade-stat"><span>Attempts</span><strong id="attempt-count">0</strong></div>
+</section>
+<section class="arcade-entry" aria-label="Choose how to play">
+<div><strong id="edition-label">Open on this device</strong><p>One seeded challenge. Practice free or risk 10 virtual points for a local jackpot.</p></div>
+<div class="arcade-choice"><button id="practice" type="button">Free practice</button><button id="entry" class="arcade-paid" type="button">Play for 10 points</button></div>
+</section>
+<div class="arcade-table-meta"><span id="mode-label">Free practice</span><span>7 FT · 1-ball · <strong id="shots-left">3</strong> shots left</span></div>
+<div class="table-stage" id="table-stage">
+<canvas id="table" aria-label="Playable seven-foot pool table: aim the cue at the numbered one ball and sink it in the top-left corner. Touch or drag on the felt to aim."></canvas>
+<section class="table-kit" aria-label="Cue controls"><div class="kit-primary">
+<label class="kit-power" for="power">Power <input id="power" type="range" min="10" max="100" value="68" aria-label="Shot power"></label>
+<button id="shoot" type="button">🎱 Shoot</button>
+<label class="kit-aim" for="invert-aim"><input type="checkbox" id="invert-aim"> Reverse aim</label>
+<button type="button" id="kit-fullscreen" aria-label="Toggle table fullscreen">⛶ Fullscreen</button>
+</div></section></div>
+<p id="status" class="arcade-status" role="status" aria-live="polite">Preparing the table…</p>
+<div class="arcade-two">
+<section class="arcade-instructions"><h3>How to win</h3>
+<ol><li>Drag on the table to aim the cue stick, or use arrow keys to fine-tune. Reverse aim lets you drag behind the cue ball.</li><li>Adjust power, then tap Shoot. Sink the 1-ball in the <strong>glowing top-left corner</strong> within three shots.</li><li>Practice wins earn <strong>5 points</strong> up to five times per UTC day. Points attempts cost <strong>10 points on the first shot</strong>: 7 grow the pot, 2 go to the displayed creator tally, and 1 is retired.</li></ol>
+<p>Misses use one of your three shots; a scratch or a wrong-pocket make ends the attempt. Win a points attempt to collect the local pot once and close this edition. Practice remains free forever.</p>
+</section>
+<section class="arcade-instructions"><h3>About this prototype</h3>
+<p id="storage-note">Points are saved in this browser only.</p>
+<p><strong>No money or monetary value.</strong> Points cannot be purchased, transferred, traded, withdrawn, redeemed or spent outside this local arcade demo. No Google login, shared jackpot, public leaderboard, creator publishing or server-side win verification yet. Refreshing during a paid attempt abandons it; the points spent on its first shot are not refunded in this local demo.</p>
+<p><button id="reset-demo" class="arcade-reset" type="button">Reset local demo</button></p>
+</section></div>
+<details class="game-history shot-history-section"><summary>Shot history · Expand log</summary><ol id="history"></ol></details>
+<p class="arcade-footnote">Squatch Points Arcade M1 is a free, experimental single-device game. <a href="/">Return to the five original Squatch games</a>.</p>
+</main>
+<script type="module" src="/src/arcade-game.js"></script>
+</body></html>
