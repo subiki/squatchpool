@@ -5,13 +5,13 @@ import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('../src/press-your-luck-game.js',import.meta.url),'utf8');
 
 test('Press Your Luck preserves physics time on slow mobile frames and stops timed-out shots',()=>{
- const match=source.match(/function frame\\(t\\)\\{[\\s\\S]*?\\n\\}\\nfunction aimPointer\\(/);
+ const match=source.match(/function frame\(t\)\{[\s\S]*?\n\}\nfunction aimPointer\(/);
  assert.ok(match,'real Press Your Luck animation loop should be present');
  let steps=0,handedOff=0;
  const makeFrame=new Function('step','stationary','draw','requestAnimationFrame','endShot',
   `let previous=0,phase='moving',acc=0,firstContact=null,shotElapsed=0,still=0;
    const balls=[{id:0,pocketed:false,vx:1,vy:2,wx:3,wy:4,wz:5,motion:'sliding'}],events=[];
-   ${match[0].replace(/\\nfunction aimPointer\\($/,'')}
+   ${match[0].replace(/\nfunction aimPointer\($/,'')}
    return {frame,state:()=>({shotElapsed,acc,balls,phase}),setElapsed:n=>shotElapsed=n};`);
  const game=makeFrame(
   ()=>{steps++;return {shotEvents:[]};},
