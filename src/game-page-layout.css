@@ -1,0 +1,11 @@
+/* Shared, mobile-first game-page content hierarchy. Keep gameplay ahead of optional logs. */
+.game-rules-layout{display:block!important;margin:16px 0 20px!important}
+.game-rules-layout .rules-card{width:100%;max-width:none;border-color:#d6ae65;background:linear-gradient(145deg,#31523d,#1b352a)}
+.game-rules-layout .rules-card h3{font-size:clamp(1.45rem,4.5vw,2rem);margin:.25rem 0 .75rem}
+.game-rules-layout .rules-card p{max-width:85ch}
+.shot-history-section{margin:16px 0 28px}
+.shot-history-section details{display:block;width:100%}
+.shot-history-section summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-size:1.15rem;font-weight:800;color:#f2d29a}
+.shot-history-section details:not([open]){padding-block:10px}
+.shot-history-section ol{margin:14px 0 0;padding-left:1.5rem}
+.shot-history-section li{margin-bottom:.6rem}
