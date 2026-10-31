@@ -50,6 +50,29 @@
         if (current === href) link.setAttribute('aria-current', 'page');
         nav.append(link);
       }
+      // Caroms/Cutthroat game telemetry still needs its mode-specific readout.
+      // Keep these IDs present while their stats adapters are consolidated.
+      const extra = {
+        '/caroms.html': ['Caroms', 'caroms-stats-game', 'caroms-stats-site', 'caroms-stats-status'],
+        '/cutthroat.html': ['Cutthroat', 'cut-stats-game', 'cut-stats-site', 'cut-stats-status'],
+      }[current];
+      if (extra) {
+        const [label, gameId, siteId, statusId] = extra;
+        const details = header.querySelector('.squatch-header-stats');
+        const line = document.createElement('p');
+        const heading = document.createElement('strong');
+        heading.textContent = label + ': ';
+        const result = document.createElement('span');
+        result.id = gameId;
+        result.textContent = 'Awaiting game totals';
+        const site = document.createElement('span');
+        site.id = siteId;
+        site.hidden = true;
+        const status = document.createElement('small');
+        status.id = statusId;
+        line.append(heading, result);
+        details.append(line, site, status);
+      }
       this.append(header);
     }
   }
