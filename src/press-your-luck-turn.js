@@ -45,3 +45,13 @@ export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=fa
  return {match:next,finish:null,winner:null,keepTurn,nextPlayer:keepTurn?shooter:1-shooter,scratch:false,
   unresolvedOwnGroupShot:!eligible};
 }
+
+// A declared bank/kick only doubles a legally called 8 if the cue ball or
+// 8 itself actually touched a cushion BEFORE the 8 entered its called pocket.
+// In particular, another ball's rail contact or a later event cannot double.
+export function qualifiesEightBankKick(shotEvents,{declared=false,calledBall=null,calledPocket=null}={}){
+ if(!declared||calledBall!==8||!calledPocket)return false;
+ const pocketIndex=shotEvents.findIndex(e=>e.type==='pocket'&&e.ballId===8);
+ if(pocketIndex<0||shotEvents[pocketIndex].pocketId!==calledPocket)return false;
+ return shotEvents.slice(0,pocketIndex).some(e=>e.type==='rail'&&(e.ballId===0||e.ballId===8));
+}
