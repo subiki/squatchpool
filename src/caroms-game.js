@@ -31,7 +31,18 @@ function scheduleBot(){
   if(state.phase==='option'){chooseOption(false,true);return;}
   const candidates=eligibleBalls(),white=cue();if(!candidates.length||!white||white.pocketed)return;
   // Bounded deterministic geometric baseline. All strokes use the real physics engine.
-  const b=candidates.slice().sort((a,z)=>Math.hypot(a.x-white.x,a.y-white.y)-Math.hypot(z.x-white.x,z.y-white.y))[0];
+  // Prefer a clear object-ball-to-white-ball lane. Never use the white ball as striker.
+  const laneBlocked=b=>state.balls.some(other=>{
+   if(other.pocketed||other.id===b.id||other.id===0)return false;
+   const dx=white.x-b.x,dy=white.y-b.y,length2=dx*dx+dy*dy;
+   if(length2===0)return false;
+   const t=((other.x-b.x)*dx+(other.y-b.y)*dy)/length2;
+   if(t<=0||t>=1)return false;
+   return Math.hypot(other.x-(b.x+t*dx),other.y-(b.y+t*dy))<TABLE.radius*2.2;
+  });
+  const b=candidates.slice().sort((a,z)=>Number(laneBlocked(a))-Number(laneBlocked(z))||
+   Math.hypot(a.x-white.x,a.y-white.y)-Math.hypot(z.x-white.x,z.y-white.y))[0];
+  if(!b||b.id===0)return;
   state.shooterBall=b.id;state.angle=Math.atan2(white.y-b.y,white.x-b.x);
   state.power=78;state.spinTop=0;state.spinSide=0;
   const required=!state.breakShot&&caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn]));
@@ -186,7 +197,7 @@ function hit(fromBot=false){
  const needCall=!state.breakShot&&caromsCallRequired(level(state.turn),
   caromsEligible(state.balls,state.groups[state.turn]));
  if(needCall&&(!state.calledBall||!state.calledPocket))return;
- const b=striker();if(!b||b.pocketed)return;
+ const b=striker();if(!b||b.pocketed||b.id===0)return;
  const speed=shotSpeed(state.power,state.breakShot);
  b.vx=Math.cos(state.angle)*speed;b.vy=Math.sin(state.angle)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
