@@ -133,6 +133,16 @@ function pointerAim(event){
 }
 canvas.addEventListener('pointerdown',event=>{canvas.setPointerCapture(event.pointerId);pointerAim(event);});
 canvas.addEventListener('pointermove',event=>{if(event.buttons)pointerAim(event);});
+window.addEventListener('keydown',event=>{
+ if(phase!=='aim'||event.altKey||event.ctrlKey||event.metaKey)return;
+ if(event.target instanceof HTMLElement&&event.target.closest('button,input,select,textarea,a,[contenteditable]'))return;
+ if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
+  event.preventDefault();
+  angle+=(event.key==='ArrowLeft'?-1:1)*(Math.PI/180)*2;
+ }else if(event.code==='Space'){
+  event.preventDefault();stroke();
+ }
+});
 $('practice').addEventListener('click',()=>begin('practice'));
 $('entry').addEventListener('click',()=>begin('points'));
 $('shoot').addEventListener('click',stroke);
