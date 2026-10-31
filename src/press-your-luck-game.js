@@ -79,22 +79,28 @@ function drawCallTargets(){
 }
 function pickTableCall(x,y){
  if(phase!=='aim'||breakShot)return false;
- // Translate a finger-sized hit target into table coordinates at any zoom/size.
  const scale=Math.max(canvas.width/(canvas.clientWidth||canvas.width),canvas.height/(canvas.clientHeight||canvas.height));
+ // The six glowing pocket buttons are the touch targets, not just the
+ // pocket mouths. Once a ball is called, prioritize them over nearby balls.
+ if($('call-ball').value){
+  const hit=Math.max(TABLE.radius*1.6,Math.min(22*scale,TABLE.radius*2.8));
+  const target=pockets.map(p=>{
+   const px=p.kind==='side'?p.x:p.x+p.sx*TABLE.radius*1.65;
+   const py=p.y+p.sy*TABLE.radius*1.65;
+   return {p,d:Math.min(Math.hypot(px-x,py-y),Math.hypot(p.x-x,p.y-y))};
+  }).sort((a,b)=>a.d-b.d)[0];
+  if(target&&target.d<=hit){
+   $('call-pocket').value=target.p.id;
+   message('Called '+$('call-ball').value+' to '+target.p.label+'. Aim and SHOOT.');
+   updateCallHint();return true;
+  }
+ }
  const hit=Math.max(TABLE.radius*1.8,22*scale);
  const b=balls.filter(b=>b.id>0&&!b.pocketed).map(b=>({ball:b,d:Math.hypot(b.x-x,b.y-y)})).sort((a,b)=>a.d-b.d)[0];
  if(b&&b.d<=hit){
   $('call-ball').value=String(b.ball.id);$('call-pocket').value='';
   message('Called ball '+b.ball.id+'. Tap a glowing pocket on the table.');
   updateCallHint();return true;
- }
- if($('call-ball').value){
-  const p=pockets.map(p=>({p,d:Math.hypot(p.x-x,p.y-y)})).sort((a,b)=>a.d-b.d)[0];
-  if(p&&p.d<=Math.max(TABLE.radius*2.5,26*scale)){
-   $('call-pocket').value=p.p.id;
-   message('Called '+$('call-ball').value+' to '+p.p.label+'. Aim and SHOOT.');
-   updateCallHint();return true;
-  }
  }
  return false;
 }
