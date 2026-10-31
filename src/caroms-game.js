@@ -89,7 +89,16 @@ function update(){
  // Required calls and foul choices must remain reachable in table fullscreen.
  if((needCall&&canAim&&(!state.calledBall||!state.calledPocket))||
     (state.phase==='option'&&!isBot()))$('caroms-more').open=true;
- $('caroms-turn').textContent=state.phase==='done'?'Rack complete':player(state.turn)+(state.breakShot?' · 1-ball break':' · '+level(state.turn));
+ $('caroms-turn').textContent=state.phase==='done'?'RACK FINAL':state.phase==='moving'?'BALLS IN MOTION':state.breakShot?'BREAK':state.phase==='option'?'FOUL DECISION':'LIVE';
+ for(let i=0;i<2;i++){
+  $('caroms-hud-score-'+i).textContent=String(matchWins[i]);
+  const g=state.groups[i],remaining=g?liveGroupBalls(state.balls,g).length:null;
+  $('caroms-hud-group-'+i).textContent=g?g+' · '+remaining+' left':'Open table';
+  $('caroms-hud-p'+i).classList.toggle('possession',state.phase!=='done'&&state.turn===i);
+ }
+ $('caroms-hud-name-1').textContent=solo()?'SQUATCH BOT':'PLAYER 2';
+ $('caroms-hud-possession').textContent=state.phase==='done'?player(state.winner)+' wins':player(state.turn)+' shooting';
+ $('caroms-rack-actions').hidden=state.phase!=='done';
  $('caroms-score').textContent='Best of 3 · Racks: '+player(0)+' '+matchWins[0]+' – '+player(1)+' '+matchWins[1]+' · '+
   state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
   (g?' ('+liveGroupBalls(state.balls,g).length+' left)':'')).join('   ·   ');

@@ -38,7 +38,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 .gameplay-heading{margin:18px 0 8px;font-size:1.2rem}.stats-panel strong{color:#f7d18b}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
 @media(max-width:650px){main{padding-bottom:20px}main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
-.table-stage .caroms-status-bar{padding:8px 12px 0}
+.caroms-hud{display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,1.2fr) minmax(0,1fr);border:1px solid #b08e55;border-radius:12px;overflow:hidden;background:#142a23;color:#f5eddc}.hud-player{padding:10px 12px;display:grid;gap:2px;min-width:0}.hud-player strong{font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}.hud-player small{font-size:.76rem;color:#c9d4c9}.hud-name{font-size:.75rem;letter-spacing:.07em;font-weight:850}.hud-player.possession{background:#2c513f;box-shadow:inset 0 4px #efc77c}.hud-center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 6px;border-inline:1px solid #657d69;gap:4px}.hud-center span{font-size:.7rem;letter-spacing:.04em}.hud-center strong{font-size:1rem!important;line-height:1.25}.caroms-rack-actions{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}.caroms-rack-actions[hidden]{display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:650px){.hud-player{padding:8px 6px}.hud-player strong{font-size:1.6rem}.hud-name{font-size:.65rem}.hud-center span{font-size:.59rem}.hud-center strong{font-size:.82rem!important}}.table-stage .caroms-status-bar{padding:8px 12px 0}
 .table-stage .caroms-status-bar #caroms-status{margin:4px 0 8px}
 .table-stage .kit-primary #caroms-shoot{font-size:1.1rem;flex:0 0 auto}
 .table-stage .kit-primary .kit-striker{flex:0 1 150px;min-width:105px}
@@ -80,7 +80,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 <p><strong>Playtest interpretations:</strong> A struck ball can score after a legal carom; an 8 pocketed on the break is re-spotted. See the <a href="./archive.html#episode-3">original Episode 3 manuscript</a>.</p>
 </div></details></section>
 
-<div class="controls"><button id="caroms-new" type="button">Next / restart rack</button><button id="caroms-match-reset" type="button">New match</button></div>
+
 <details class="panel" id="caroms-setup-panel"><summary>Table &amp; player settings</summary><div class="panel-body">
 <div class="controls">
 <label>Opponent<select id="caroms-mode"><option value="bot" selected>Squatch Bot · solo</option><option value="local">Local player · pass and play</option></select></label>
@@ -91,7 +91,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 </div></div></details>
 <h2 class="gameplay-heading">Pool table</h2><div id="caroms-play-anchor"></div>
 <div class="table-stage" id="table-stage">
-<div class="caroms-status-bar"><div id="caroms-turn" aria-live="polite"></div><div id="caroms-score"></div><p id="caroms-status" role="status" aria-live="polite"></p></div>
+<div class="caroms-status-bar"><div class="caroms-hud" aria-label="Match scoreboard"><div class="hud-player" id="caroms-hud-p0"><span class="hud-name">PLAYER 1</span><strong id="caroms-hud-score-0">0</strong><small id="caroms-hud-group-0">Open table</small></div><div class="hud-center"><span>CAROMS · BEST OF 3</span><strong id="caroms-turn" aria-live="polite">BREAK</strong><span id="caroms-hud-possession">On the table</span></div><div class="hud-player" id="caroms-hud-p1"><span class="hud-name" id="caroms-hud-name-1">SQUATCH BOT</span><strong id="caroms-hud-score-1">0</strong><small id="caroms-hud-group-1">Open table</small></div></div><div id="caroms-score" class="sr-only"></div><p id="caroms-status" role="status" aria-live="polite"></p><div class="caroms-rack-actions" id="caroms-rack-actions" hidden><button id="caroms-new" class="primary" type="button">Next rack</button><button id="caroms-match-reset" type="button">New match</button></div></div>
 <div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
 <section class="table-kit" aria-label="Caroms shot controls">
 <div class="kit-primary">
