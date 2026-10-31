@@ -11,7 +11,7 @@ test('Tuna requires a legal kitchen break placement on all three tables and perm
  function node(id){
   if(!nodes.has(id))nodes.set(id,{
    id,value:id==='size'?'7':'',disabled:false,hidden:false,textContent:'',
-   clientLeft:0,
+   clientLeft:0,clientTop:0,
    get clientWidth(){return this.width;},
    get clientHeight(){return this.height;},
    getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};},
