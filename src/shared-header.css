@@ -36,3 +36,33 @@
  .squatch-header-nav a{flex:0 0 auto;min-height:48px}
  .squatch-brand-row h1{font-size:1.65rem}
 }
+
+/* The header is owned by one light-DOM Web Component, not copied between pages.
+ * Use stronger scoped selectors than legacy per-page h1/header rules. */
+squatch-header{display:block;width:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.45}
+.squatch-unified-header .squatch-brand-row h1{
+ font-family:Georgia,serif!important;font-weight:700!important;
+ letter-spacing:.01em!important;text-transform:none!important;
+ font-style:normal!important;text-shadow:none!important;
+}
+.squatch-unified-header .squatch-release,
+.squatch-unified-header .squatch-release *,
+.squatch-unified-header .squatch-release time{
+ font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+ font-size:.8rem!important;font-style:normal!important;font-weight:500!important;
+ letter-spacing:normal!important;text-transform:none!important;
+ line-height:1.5!important;
+}
+.squatch-unified-header .squatch-release .prototype{
+ font-weight:800!important;letter-spacing:.06em!important;
+}
+.squatch-unified-header .squatch-header-nav a{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-size:.9rem!important}
+@media(max-width:650px){
+ .squatch-unified-header .squatch-release,
+ .squatch-unified-header .squatch-release *,
+ .squatch-unified-header .squatch-release time{font-size:.72rem!important}
+}
+/* Optional cross-document transition hides the header flash in supporting browsers.
+   It does NOT pretend to preserve a running game when navigating away. */
+@view-transition{navigation:auto}
+.squatch-unified-header{view-transition-name:squatch-site-header}
