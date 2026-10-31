@@ -8,9 +8,11 @@ export const GAMES=[
  {id:'tuna',name:'Big Tuna Casserole',icon:'🐟',url:'/tuna.html',players:'2 players · local',description:'Two number sequences, called pockets, and money balls.',highlight:'Race to the winning 10'}
 ];
 export function rankedGames(stats){
- const counts=new Map((stats||[]).filter(g=>Number.isFinite(g.racks)&&g.racks>0).map(g=>[g.id,g.racks]));
+ const counts=new Map((stats||[]).filter(g=>Number.isFinite(g.racks)&&g.racks>=0).map(g=>[g.id,g.racks]));
+ // Don't call a partially instrumented leaderboard 'popularity'.
+ const comparable=GAMES.every(game=>counts.has(game.id));
  return GAMES.map((game,index)=>({...game,index,racks:counts.get(game.id)||0,tracked:counts.has(game.id)}))
-  .sort((a,b)=>b.racks-a.racks||a.index-b.index);
+  .sort((a,b)=>comparable?b.racks-a.racks||a.index-b.index:a.index-b.index);
 }
 export function renderGameCards(container,stats){
  if(!container)return;
@@ -22,7 +24,7 @@ export function renderGameCards(container,stats){
   const desc=document.createElement('p');desc.textContent=game.description;
   const highlight=document.createElement('p');highlight.className='hub-highlight';highlight.textContent=game.highlight;
   const link=document.createElement('a');link.className='hub-play';link.href=game.url;link.textContent='Play '+game.name.replace(' · Whacky Pool','');link.setAttribute('aria-label','Play '+game.name);
-  if(game.tracked){const popular=document.createElement('span');popular.className='hub-count';popular.textContent=game.racks.toLocaleString()+' racks played';card.append(popular);}
+  if(game.tracked&&game.racks>0){const popular=document.createElement('span');popular.className='hub-count';popular.textContent=game.racks.toLocaleString()+' racks played';card.append(popular);}
   card.append(tag,title,desc,highlight,link);container.append(card);
  }
 }
