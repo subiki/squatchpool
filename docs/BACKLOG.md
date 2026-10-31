@@ -26,7 +26,7 @@
 
 ## Next release gate — after bot parity, M5 and persistent navigation
 
-- [#213](https://github.com/subiki/squatchpool/pull/213): unify header branding, release timestamp font, active nav and statistics across all public pages; **still a pending PR, not a shipped change**. Keep this UX working after the persistent-shell transition.
+- [#213](https://github.com/subiki/squatchpool/pull/213): unify header branding, release timestamp font, active nav and statistics across all public pages; **merged to main at 6096e53; production SHA still unverified**. Keep this UX working after the persistent-shell transition.
 - [#77](https://github.com/subiki/squatchpool/issues/77): solo bot **or** local humans in every game. Cutthroat must support 1 human+2 bots, 2 humans+1 bot or 3 humans. Do not claim incomplete bot support in the catalog.
 - [#212](https://github.com/subiki/squatchpool/issues/212): navigate without reloading header; preserve router/history/offline and terminate old game controllers; CSS transitions are not sufficient.
 - [#15](https://github.com/subiki/squatchpool/issues/15), with [#7](https://github.com/subiki/squatchpool/issues/7), [#54](https://github.com/subiki/squatchpool/issues/54), [#55](https://github.com/subiki/squatchpool/issues/55), [#58](https://github.com/subiki/squatchpool/issues/58), [#127](https://github.com/subiki/squatchpool/issues/127): complete each five-mode match (break → call/aim → legal/illegal shot → next turn/placement → finish → restart), desktop and touch. Fix defects as discovered; do not broaden QA infrastructure.
