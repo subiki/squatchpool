@@ -1,28 +1,25 @@
-# Squatch Pool backlog — prioritized by release gate
+# Squatch Pool — active five-game shipping backlog
 
-See [ROADMAP.md](ROADMAP.md) for v0.1–v1.0 release gates and target dates. Keep the first playable game ahead of cinematic polish, engine experiments, and community features. Items below are opportunities, not automatic commitments to a specific release.
+**Product owner direction (2026-10-30): finish and ship the five games that already exist before inventing new ones.** [Shipping tracker #159](https://github.com/subiki/squatchpool/issues/159) is the authoritative execution queue; this file keeps priorities visible to the agents. Older feature-spec issues are source material, not permission to open duplicate PRs.
 
-## Gate: one complete game first
+## Current release: verified v0.2 five-game play
 
-**P0: validate the existing prototype**
-- Play a complete match on a phone and a desktop; fix anything preventing a full game.
-- Confirm turn/foul/8-ball outcomes with Squatch Pool's original rule text; tune the first game rules where the prototype deviates.
-- Refine aiming, cushion/pocket physics, and the simple AI only as needed for fun play.
-- Create a web deployment with a preview URL and test it. Add real Squatch character art and reactions only after controls work.
+**P0 — Repair and prove production release [#128](https://github.com/subiki/squatchpool/issues/128), [#5](https://github.com/subiki/squatchpool/issues/5).** Confirm Cloudflare Pages actual preview/production build; source SHA in `deployment.json`; tests `npm test`, `npm run check`, `npm run build`; live homepage, five game pages and D1 API. Distinguish a GitHub runner job failing before executing any steps from a real code failure. Existing Pages GitHub integration only. If Cloudflare access is unavailable, record exactly one action and work another independent slice.
 
-## Next content (after v0.1 playability; scope according to release evidence)
+**P0 — Complete and playtest all five modes [#15](https://github.com/subiki/squatchpool/issues/15).** Each game must finish a full rack on desktop and mobile/touch, including legal break, called shot, make/miss, foul/ball-in-hand, next turn, win, next rack and restart. Keep house rules grounded: [But Wait #7](https://github.com/subiki/squatchpool/issues/7), [Caroms #54](https://github.com/subiki/squatchpool/issues/54), [Cutthroat #55](https://github.com/subiki/squatchpool/issues/55), [Press Your Luck #58](https://github.com/subiki/squatchpool/issues/58), [Tuna #127](https://github.com/subiki/squatchpool/issues/127). Preserve 7/8/9-foot regulation physics and the user's cue preferences.
 
-- Add other original Squatch games, particularly **Coin-Op Cutthroat** (three players; balls never return after being potted; on a scratch, the third player may claim one of the scratcher's balls, including to re-enter; next player takes ball-in-hand; last player with balls wins). Implement from full original source material; don't assume ordinary cutthroat rules.
-- More characters: Speed Squatch, Hudsquatch, Big Jim, and the rest of The 4T's cast.
-- Accessible visual lessons and official 8-ball / 9-ball rule variants, with sample shots and actual source rule references.
+**P1 — Compact fullscreen table kit [#63](https://github.com/subiki/squatchpool/issues/63).** Power + Shoot/Break + Reverse Aim + Fullscreen remain adjacent to the table, even fullscreen. One clear drawer for optional spin, called-shot options and placement with auto-reveal on missing required calls. Rules prominent; history collapsed; mobile-first. First implementation in Press Your Luck/Tuna exists; bring But Wait/Caroms/Cutthroat into parity and playtest all five.
 
-## Stretch: Mario Maker of pool
+**P1 — Live comparable statistics [#45](https://github.com/subiki/squatchpool/issues/45).** All five are registered in shared telemetry/D1 API, but live production must prove five rows, real rack/ball counting, anonymous-browser semantics, safe retry/dedup and true homepage popularity sorting. Never display unverifiable totals as real.
 
-- One-shot and multi-shot creator: drop balls on a table, select objectives and shot limits, test and share stable links.
-- Creator-made and curated challenges; optional verified-solvable status earned by a successful digital attempt.
-- Rule presets and per-rule include/exclude toggles, then visual rule conditions/outcomes. Support player-judged house rules beside automatically enforced rules.
-- Community workshop: sharing, remixing, browsing, ratings, and a portable setup/rulesheet so each game can be played at a physical table.
-- Advanced cue control, spin, aiming guides and instructional demonstrations; optional natural-language creation later.
-- Multiplayer, accounts and public leaderboards only if actual play demands them.
+**P1 — Offline complete five-game install [#131](https://github.com/subiki/squatchpool/issues/131).** PWA source exists; real Android/desktop install -> preload -> airplane-mode cold launch -> every game/rules/archive -> reconnection/update must be observed. API remains network only.
 
-**Guardrail:** prefer another playable game over architecture scaffolding; no new infrastructure unless it directly helps the current milestone.
+## Definition of shipped
+A focused change has a linked issue, PR and merge SHA plus its actual executed tests. A **production release** additionally has a verified Cloudflare deployed source SHA and player-facing smoke. A **completed product gate** additionally has full desktop and mobile acceptance evidence. Do not conflate these three states.
+
+## Deferred until the five-game exit gate
+- New games: Honolulu, Assassin and other candidates already parked in GitHub issues.
+- [Maker Epic #151](https://github.com/subiki/squatchpool/issues/151): future rule blocks, community game creation, sharing/remixing. Only start by **extracting rules from proven completed games**, never premature framework work.
+- Experimental 3D, cinematics, account features, monetization, arbitrary rules engine, comprehensive CI/test framework.
+
+Preserve the original Pacific Northwest **temperate rainforest** universe, licensed source and archive; never invent source rules or lose the original stories. The site should remain **fun, clean, table-first and easy to play**.

@@ -1,5 +1,8 @@
 # Squatch Pool — release gates and maturity plan
 
+> **CURRENT EXECUTION STATUS (2026-10-30):** The historic version dates and future-engineering phases below are targets, not the active work order. Five game pages now exist; **none is accepted as a complete production-verified five-mode release** without desktop/touch playthrough evidence. Follow [Shipping Tracker #159](https://github.com/subiki/squatchpool/issues/159) and [BACKLOG.md](BACKLOG.md) for the current P0 deployment + complete games and P1 compact UX, D1 stats and offline installation. The future Mario-Maker-style rules builder [#151](https://github.com/subiki/squatchpool/issues/151) stays parked until those gates pass. Never reinterpret a merge as a Cloudflare deploy.
+
+
 **Operating principle:** fast playable proof of concept first. These are aggressive planning targets starting 2026-10-26, **not guarantees or evidence of completion**. Product acceptance beats the calendar; cut optional scope rather than shipping broken core play. Track direction in [#33](https://github.com/subiki/squatchpool/issues/33).
 
 | Release | Target | Product exit gate | Engineering expectation |

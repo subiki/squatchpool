@@ -1,20 +1,19 @@
-# Squatch Pool — gameplay-first roadmap
+# Squatch Pool — five-game finish line
 
-## Product direction
-Build weird, playable pool games. **No mandatory lore, character biographies, episode introductions, narration, or invented stories in the primary play flow.** Preserve original rule mechanics as reference, but do not promote story prose as gameplay or spend development time expanding it. Prioritize fun, understandable rules and complete matches over test infrastructure.
+## Immediate product direction (2026-10-30)
+**Finish current games; do not add more yet.** The five existing playable pages are **But Wait, There's More**, **Caroms (Whacky Pool)**, **Coin-Op Cutthroat**, **Press Your Luck** and **Big Tuna Casserole**. A page/controller being present is not evidence of a complete match or production deployment. Preserve source-backed mechanics and treat unknown rule cases as provisional.
 
-## Delivery order
-1. **Fix release timestamp (#27):** Cloudflare must generate deployment.json at build time and display its actual build timestamp, or explicitly say unavailable. Never show a stale hardcoded date as current.
-2. **Finish playable Caroms (#54, #77):** complete the existing browser game; bot opponent only after local play works.
-3. **Ship three-player Coin-Op Cutthroat (#55):** group choice, turn progression, scratch claim/re-entry, elimination, winner, restart, desktop/touch.
-4. **Ship Press Your Luck (#56, #58):** score, banking, final eight, and explicit provisional rules for unknown edge cases.
-5. **Ship other weird games (#59–62)** only when rules can support a complete match; prioritize mechanics rather than recovering fictional stories.
-6. **Improve game selection and playability (#53, #63):** clear rules at the top, collapsible guidance, touch controls, 7/8/9 ft tables, per-game stats.
-7. **Lightweight release safeguards (#64, #45):** enough to prevent broken gameplay, no test-only delivery cycles.
+### Execution sequence
+1. **P0 deployment integrity** — Resolve [#128](https://github.com/subiki/squatchpool/issues/128); confirm exact Cloudflare live commit through `deployment.json` and functional assets. GitHub Actions zero-step failures are not test output. Existing build output `.`; existing Pages Git integration only.
+2. **P0 complete five modes** — [#15](https://github.com/subiki/squatchpool/issues/15), [#54](https://github.com/subiki/squatchpool/issues/54), [#55](https://github.com/subiki/squatchpool/issues/55), [#58](https://github.com/subiki/squatchpool/issues/58), [#127](https://github.com/subiki/squatchpool/issues/127). Each: break -> aim/call -> shoot/foul/turn -> win -> next rack/restart in real desktop and touch browsers.
+3. **P1 shared compact fullscreen experience** — [#63](https://github.com/subiki/squatchpool/issues/63). Keep table and key controls together, reverse aim easy and persistent, advanced shots discoverable, no sprawling sliders.
+4. **P1 all-five truthful statistics** — [#45](https://github.com/subiki/squatchpool/issues/45). Verify real D1 counts and measured popularity ranking without fictitious data.
+5. **P1 offline mobile install** — [#131](https://github.com/subiki/squatchpool/issues/131). Offline playable after one preload including all five games; prove in a real Android browser.
 
-## Content policy
-- Remove story promotion and episode narration from the primary navigation and default play flow. Preserve existing stories, artwork, character material, and source references for future **optional, skippable** intro videos, tutorials, and explanations.
-- Keep historical source files and media in the repository or existing archive for later reuse; do not delete lore, artwork, or game rules.
-- Explain rules in short, practical instructions near the top of each game. Clearly mark provisional house-rule decisions. Default to a clean, playable table; put advanced details behind collapsible sections.
-- Pacific Northwest styling may remain visual branding, not a requirement to invent lore.
-- Ship one complete playable mode at a time. Game selection, rules, and Play must be obvious on mobile and desktop. Optional intro video must have Skip and remember the user's preference. Verify live deployment rather than equating GitHub merge with release.
+The ordered details and shipping evidence live in [#159](https://github.com/subiki/squatchpool/issues/159) and [BACKLOG.md](BACKLOG.md). Keep implementation lean: **one meaningful playable vertical slice per PR**, small focused regressions, no process-only cycles. When blocked on a Cloudflare account/tool, record the exact blocker, then make progress on a separate gameplay issue. Don't merge truly failing tested changes or invent test/deploy evidence.
+
+## Later: Squatch Pool Maker
+[#151](https://github.com/subiki/squatchpool/issues/151) is a future vision to remix existing game rules like LEGO. Only after the five current games are working should we dissect **their tested rules** into reusable blocks. No abstract rule engine now.
+
+## Product and content guardrails
+No mandatory character biographies, episode narration or story screens in the immediate play flow. Preserve the original house-rule manuscripts, stories, licensed source, and media in the archive. Explain rules prominently and briefly, put details in collapsible content, and default to a full table view. Pacific Northwest **temperate rainforest**, never jungle. Prove shipped production rather than assuming it after merging.
