@@ -13,7 +13,7 @@ const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
 const invertAim=bindInvertAim($('invert-aim'));
 const level=i=>$('caroms-level-'+i).value;
-let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0];
+let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0],historyNumber=0;
 const solo=()=>$('caroms-mode').value==='bot';
 const isBot=()=>solo()&&state.turn===1;
 const humanTurn=()=>!isBot();
@@ -49,7 +49,7 @@ const matchWinner=()=>matchWins.findIndex(wins=>wins>=2);
 const cue=()=>state.balls.find(b=>b.id===0);
 const striker=()=>state.balls.find(b=>b.id===state.shooterBall);
 function log(message){
- const li=document.createElement('li');li.textContent=message;
+ const li=document.createElement('li');li.value=++historyNumber;li.textContent=message;
  $('caroms-log').prepend(li);
  while($('caroms-log').children.length>14)$('caroms-log').lastElementChild.remove();
 }
@@ -139,7 +139,7 @@ function newGame(){
   shot:null,shotNumber:0,winner:null,statsRackId:newCaromsStatsId()};
  accumulator=0;
  $('caroms-power').value='85';$('caroms-top').value='0';$('caroms-side').value='0';
- $('caroms-log').replaceChildren();
+ $('caroms-log').replaceChildren();historyNumber=0;
  log('Fresh Caroms rack. '+player(state.turn)+' breaks. '+(solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
  scheduleBot();
  update();
