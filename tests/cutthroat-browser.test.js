@@ -24,6 +24,18 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
  assert.match(controller,/game\.power=68;game\.top=0;game\.side=0/);
 });
 
+test('Cutthroat keeps the core shot kit and required decisions attached to the fullscreen table',()=>{
+ assert.match(html,/id="table-stage"/);
+ assert.match(html,/src\/table-kit\.js/);
+ assert.match(html,/id="cut-options"/);
+ assert.match(html,/<div class="kit-primary">[\s\S]*?id="cut-power"[\s\S]*?id="cut-shoot"[\s\S]*?id="invert-aim"[\s\S]*?id="kit-fullscreen"/);
+ assert.doesNotMatch(html,/#cut-shoot\{position:fixed/,'shoot must not float over the felt on phones');
+ const stage=html.slice(html.indexOf('id="table-stage"'),html.indexOf('<details><summary>Shot history'));
+ for(const id of ['cut-group','cut-claim','cut-place','cut-reposition'])
+  assert.ok(stage.includes('id="'+id+'"'),id+' must remain available inside fullscreen');
+ assert.match(controller,/\$\('cut-options'\)\.open=true/,'required decisions must open the drawer');
+});
+
 test('regulation 7/8/9 ft Cutthroat racks retain 15 object balls and real physics',()=>{
  const dimensions={7:[78,39],8:[88,44],9:[100,50]};
  for(const size of [7,8,9]){
@@ -68,6 +80,7 @@ test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming
  update();
  assert.match($('cut-turn').textContent,/^Player 3 · scratch claim$/);
  assert.match($('cut-status').textContent,/Player 3 may claim.*Player 1/);
+ assert.equal($('cut-options').open,true,'claim options automatically open');
  game.match.pendingClaim=null;
  game.phase='placeCue';
  update();
