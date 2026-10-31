@@ -36,3 +36,16 @@
  .squatch-header-nav a{flex:0 0 auto;min-height:48px}
  .squatch-brand-row h1{font-size:1.65rem}
 }
+
+/* Readable shared live statistics table on every page. */
+#site-stats-breakdown{width:100%;overflow-x:auto;margin-top:8px}
+.squatch-stats-table{width:100%;border-collapse:collapse;font-size:.94rem;font-variant-numeric:tabular-nums;color:#f3ebd7}
+.squatch-stats-table th,.squatch-stats-table td{padding:9px 12px;border-bottom:1px solid #5d7662}
+.squatch-stats-table thead th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:#f4d393;background:#1c392c;text-align:right}
+.squatch-stats-table thead th:first-child{text-align:left}
+.squatch-stats-table tbody th{text-align:left;font-weight:650}
+.squatch-stats-table td{text-align:right}
+.squatch-stats-table tbody tr:nth-child(even){background:#213d30}
+.squatch-stats-table .stats-total-row{background:#163327!important;color:#f5d394;font-weight:850}
+.squatch-stats-table .stats-total-row>*{border-top:2px solid #c9a76b;border-bottom:0}
+@media(max-width:650px){.squatch-stats-table{font-size:.83rem}.squatch-stats-table th,.squatch-stats-table td{padding:8px 5px}.squatch-header-stats{padding:8px!important}}
