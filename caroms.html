@@ -37,9 +37,22 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 .story-panel blockquote{border-left:3px solid #eec67b;padding-left:16px;margin:14px 0}.story-actions a{display:inline-block;padding:8px 12px;min-height:44px}.rules-list{padding-left:24px;margin:10px 0}.rules-list li{margin:6px 0}
 .gameplay-heading{margin:18px 0 8px;font-size:1.2rem}.stats-panel strong{color:#f7d18b}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
-@media(max-width:650px){main{padding-bottom:100px}#caroms-shoot{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 24px);z-index:20;box-shadow:0 5px 24px #000b}main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
+@media(max-width:650px){main{padding-bottom:20px}main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
+.table-stage .caroms-status-bar{padding:8px 12px 0}
+.table-stage .caroms-status-bar #caroms-status{margin:4px 0 8px}
+.table-stage .kit-primary #caroms-shoot{font-size:1.1rem;flex:0 0 auto}
+.table-stage .kit-primary .kit-striker{flex:0 1 150px;min-width:105px}
+.table-stage .kit-primary .kit-power{flex:1 1 145px;min-width:110px}
+.table-stage .kit-primary .aim-toggle{flex:0 1 auto;font-size:.88rem}
+.table-stage .kit-primary label{font-weight:650}
+.table-stage .kit-more #caroms-call-controls{margin:8px 0}
+.table-stage .kit-more .aim-toggle-caption{margin:8px 0}
+.table-stage:fullscreen{overflow:auto}
+.table-stage:fullscreen .table-wrap{flex:1 1 auto;min-height:0;overflow:auto}
+.table-stage:fullscreen .table-wrap canvas{max-height:calc(100dvh - 235px)}
+@media(max-width:650px){.table-stage .kit-primary button{width:auto}.table-stage .kit-primary .kit-striker{flex:1 1 100px}.table-stage .kit-primary .kit-power{flex:1 1 110px}.table-stage .kit-primary .aim-toggle{flex:1 1 130px}}
 </style>
-<link rel="stylesheet" href="./src/game-page-layout.css"><link rel="stylesheet" href="./src/shared-header.css"><link rel="stylesheet" href="./src/aim-preference.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head>
+<link rel="stylesheet" href="./src/game-page-layout.css"><link rel="stylesheet" href="./src/shared-header.css"><link rel="stylesheet" href="./src/aim-preference.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/table-kit.js"></script><script type="module" src="/src/pwa.js"></script></head>
 <body>
 <header class="squatch-unified-header">
 <div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
@@ -76,12 +89,19 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 <label>Player 2 skill<select id="caroms-level-1"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
 
 </div></div></details>
-<div id="caroms-turn" aria-live="polite"></div>
-<div id="caroms-score"></div>
-<p id="caroms-status" role="status" aria-live="polite"></p>
-
-<h2 class="gameplay-heading">Pool table</h2><div id="caroms-play-anchor"></div><div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
-<div class="aim-toggle-bar" role="group" aria-label="Touch aiming preference"><button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Invert aim: OFF</button><span class="aim-toggle-caption">ON = hold a finger behind the cue to aim away from it. Tap again for normal aim. Saved across games.</span></div>
+<h2 class="gameplay-heading">Pool table</h2><div id="caroms-play-anchor"></div>
+<div class="table-stage" id="table-stage">
+<div class="caroms-status-bar"><div id="caroms-turn" aria-live="polite"></div><div id="caroms-score"></div><p id="caroms-status" role="status" aria-live="polite"></p></div>
+<div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
+<section class="table-kit" aria-label="Caroms shot controls">
+<div class="kit-primary">
+<label class="kit-striker">Strike ball<select id="caroms-striker" aria-label="Object ball to strike"></select></label>
+<label class="kit-power">Power <output id="caroms-power-value">85%</output><input id="caroms-power" type="range" min="10" max="100" value="85"></label>
+<button class="primary" id="caroms-shoot" type="button">BREAK WITH THE 1</button>
+<button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Reverse aim: OFF</button>
+<button type="button" id="kit-fullscreen" aria-label="Toggle table fullscreen">⛶ Fullscreen</button>
+<details class="kit-more" id="caroms-more"><summary>More · Called shots, spin &amp; foul options</summary>
+<p class="aim-toggle-caption">Reverse aim: hold your finger behind the cue to aim away from it. Saved across games.</p>
 <div id="caroms-option" hidden><strong>Option foul</strong><p>Incoming player: leave the white ball where it is or place it near table center?</p><div class="controls"><button id="caroms-leave" type="button">Leave white ball</button><button id="caroms-center" type="button">Move white ball to center</button></div></div>
 <div class="controls" id="caroms-call-controls" hidden>
 <label>Called ball<select id="caroms-call-ball"><option value="">Choose called ball</option></select></label>
@@ -96,13 +116,14 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 </div>
 <button id="caroms-undo" type="button" disabled>Undo call</button>
 </div>
-<details class="panel" open id="caroms-shot-panel"><summary>Shot controls · power &amp; spin</summary><div class="panel-body"><div class="controls">
-<label>Object ball to strike<select id="caroms-striker" aria-label="Object ball to strike"></select></label>
-<label>Power <output id="caroms-power-value">85%</output><input id="caroms-power" type="range" min="10" max="100" value="85"></label>
+
+<div id="caroms-shot-panel" class="kit-options">
 <label>Draw / follow <output id="caroms-top-value">0%</output><input id="caroms-top" type="range" min="-100" max="100" value="0"></label>
 <label>English <output id="caroms-side-value">0%</output><input id="caroms-side" type="range" min="-100" max="100" value="0"></label>
-</div></div></details>
-<div class="controls"><button class="primary" id="caroms-shoot" type="button">BREAK WITH THE 1</button></div>
+</div>
+</details>
+</div></section>
+</div>
 <details class="panel" id="caroms-history-panel"><summary>Shot history</summary><div class="panel-body"><ol id="caroms-log" aria-live="polite"></ol></div></details>
 
 <details class="panel story-panel" id="caroms-story-panel">
