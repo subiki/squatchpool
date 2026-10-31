@@ -1,5 +1,7 @@
 # Squatch Pool — Agent instructions
 
+> **ACTIVE PRODUCT DIRECTIVE — Oct 30, 2026:** [Ship tracker #159](https://github.com/subiki/squatchpool/issues/159) is the near-term execution queue. All **five existing** modes (But Wait, Caroms, Cutthroat, Press Your Luck and Big Tuna Casserole) have game pages; finish/verify their complete gameplay, compact fullscreen table UX, D1 statistics and offline production. **Do not start another game, rules workshop/Maker architecture (#151), 3D engine, or new CI framework before these acceptance gates.** Old numbered prototype phase/order sections below are historical; when they disagree with #159 and actual repo, follow the newer user directive. A merge is not a live release: verify production deployment.json SHA, assets, and real browser play. Continue from [docs/BACKLOG.md](docs/BACKLOG.md) and the related issues, choosing one independent player-facing slice per run.
+
 ## Mission
 Finish and verify the **existing playable browser game**, then release a shareable Squatch Pool alpha. Keep changes lean. Read README.md, docs/BACKLOG.md and open GitHub issues before doing work.
 
