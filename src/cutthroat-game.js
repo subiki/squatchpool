@@ -59,6 +59,8 @@ function update(){
  const choices=availableGroups(m);
  $('cut-group-select').replaceChildren(...choices.map(g=>new Option(ranges[g],String(g))));
  $('cut-claim').hidden=game.phase!=='claim';
+ // Keep required group/third-seat decisions usable inside fullscreen, not behind the page.
+ if(game.phase==='claim'||game.phase==='chooseGroup'||m.groupChoicePlayer===m.turn) $('cut-options').open=true;
  $('cut-claim-select').replaceChildren(new Option('Decline claim',''),...(claim?.returnable||[]).map(id=>new Option('Claim ball '+id,String(id))));
  for(const id of ['cut-power','cut-top','cut-side'])$(id).disabled=!canShoot;
  $('cut-power-value').textContent=game.power+'%';
