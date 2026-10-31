@@ -126,9 +126,35 @@ function endShot(){
  $('bank').checked=false;callBall.value='';callPocket.value='';update();
 }
 function frame(t){
- const elapsed=previous?Math.min(.08,(t-previous)/1000):0;previous=t;
- if(phase==='moving'){acc+=elapsed;let n=0;while(acc>=1/120&&n++<12){const outcome=step(balls,1/120);events.push(...outcome.shotEvents);if(firstContact===null){const hit=outcome.shotEvents.find(e=>e.type==='contact'&& e.balls.includes(0));if(hit)firstContact=hit.balls.find(id=>id!==0);}acc-=1/120;shotElapsed+=1/120;still=stationary(balls)?still+1:0;if(still>20||shotElapsed>20){endShot();break;}}}
- draw();requestAnimationFrame(frame);
+ // Preserve shot simulation time on low-FPS phones; catch up over later frames
+ // without advancing an unbounded number of 120 Hz steps in one paint.
+ const elapsed=previous?Math.min(.25,Math.max(0,(t-previous)/1000)):0;
+ previous=t;
+ if(phase==='moving'){
+  acc=Math.min(.35,acc+elapsed);
+  let n=0;
+  while(acc>=1/120&&n++<24){
+   const outcome=step(balls,1/120);
+   events.push(...outcome.shotEvents);
+   if(firstContact===null){
+    const hit=outcome.shotEvents.find(e=>e.type==='contact'&&e.balls.includes(0));
+    if(hit)firstContact=hit.balls.find(id=>id!==0);
+   }
+   acc-=1/120;
+   shotElapsed+=1/120;
+   still=stationary(balls)?still+1:0;
+   if(still>20||shotElapsed>20){
+    // A time-limited shot must not hand off the turn with moving balls.
+    if(shotElapsed>20)for(const b of balls)if(!b.pocketed)
+     Object.assign(b,{vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});
+    acc=0;
+    endShot();
+    break;
+   }
+  }
+ }
+ draw();
+ requestAnimationFrame(frame);
 }
 function aimPointer(e,allowCall=false){if(!['aim','place','placeBreak'].includes(phase))return;const box=canvas.getBoundingClientRect(),border=canvas.clientLeft,insideWidth=canvas.clientWidth,insideHeight=canvas.clientHeight,x=(e.clientX-box.left-border)*canvas.width/insideWidth,y=(e.clientY-box.top-border)*canvas.height/insideHeight;if(phase==='placeBreak'){
   // A tap beyond the head string cannot teleport the cue back into the kitchen.
