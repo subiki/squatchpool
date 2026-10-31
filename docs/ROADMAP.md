@@ -1,36 +1,26 @@
-# Squatch Pool — release gates and maturity plan
+# Squatch Pool — outcome-based release roadmap
 
-> **CURRENT EXECUTION STATUS (2026-10-30):** The historic version dates and future-engineering phases below are targets, not the active work order. Five game pages now exist; **none is accepted as a complete production-verified five-mode release** without desktop/touch playthrough evidence. Follow [Shipping Tracker #159](https://github.com/subiki/squatchpool/issues/159) and [BACKLOG.md](BACKLOG.md) for the current P0 deployment + complete games and P1 compact UX, D1 stats and offline installation. The future Mario-Maker-style rules builder [#151](https://github.com/subiki/squatchpool/issues/151) stays parked until those gates pass. Never reinterpret a merge as a Cloudflare deploy.
+**Rebaselined 2026-10-31.** Historic dates and version promises in issue [#33](https://github.com/subiki/squatchpool/issues/33) are no longer an accurate execution schedule: five modes now exist in code but their complete live gameplay is not yet accepted. **Do not declare a release merely because pages or merged PRs exist.** For agent-level NEXT work, use [BACKLOG.md](BACKLOG.md); for current release acceptance, use [#159](https://github.com/subiki/squatchpool/issues/159).
 
+## North star
+**Five original Squatch games that are easy, funny and satisfying to finish on a phone or desktop.** Table-first play, credible physics, real original house rules, consistent controls. Preserve the Pacific Northwest temperate rainforest universe without making stories, accounts or monetization a blocker. Fun first, no coverage quotas or heavyweight TDD during proof of concept.
 
-**Operating principle:** fast playable proof of concept first. These are aggressive planning targets starting 2026-10-26, **not guarantees or evidence of completion**. Product acceptance beats the calendar; cut optional scope rather than shipping broken core play. Track direction in [#33](https://github.com/subiki/squatchpool/issues/33).
+## Milestones (outcomes, not calendar theater)
 
-| Release | Target | Product exit gate | Engineering expectation |
-|---|---|---|---|
-| **v0.1 — Playable experiment** | Oct 28–30, 2026 | Finish *But Wait, There's More* on desktop and touch; clear controls; credible collisions/cushions/pockets; opponent selects **either** held ball and places it legally; restart | Existing `npm test` and `npm run check`; focused manual playtest; no TDD mandate |
-| **v0.2 — Fun prototype** | Nov 2 | Three unfamiliar testers complete a game without coaching; fix top frustrations; basic Speed Squatch reactions and rainforest ambience | Add tests for actual repeat regressions only |
-| **v0.3 — Squatch identity** | Nov 9 | Recognizable character intros/reactions, sound, original Pacific Northwest **temperate rainforest** identity without harming play | Targeted rules/physics regression tests; desktop and touch evidence |
-| **v0.4 — Variety** | Nov 23 | A second *original* game fully playable; switch between two modes and finish both | Smoke-test each mode; keep architecture proportional |
-| **v0.5 — Public alpha** | Dec 7 | Shareable discover→learn→play experience; original-site content preserved and represented accurately; core flows verified | PR checks and preview smoke tests, basic recovery instructions |
-| **v1.0 — First stable release** | Jan 4, 2027 | Stable phone/desktop matches, cohesive world, repeatable releases; original site and domain migration including registration complete, with dependencies verified | Versioned release, deployment evidence and tested rollback |
+| Gate | Success means | Primary GitHub work |
+|---|---|---|
+| **A — Shared session** · IN PROGRESS | Press Your Luck and Tuna break with no confirmation gate and finish/restart through shared placement/lifecycle; rules and physics preserved | [#206](https://github.com/subiki/squatchpool/issues/206), urgent #204/#205 PR triage |
+| **B — One table and shot contract** · NEXT | All five use shared drawing/input and a single event-driven shot resolution; game-specific house rules remain separate | [#207](https://github.com/subiki/squatchpool/issues/207) → [#209](https://github.com/subiki/squatchpool/issues/209) |
+| **C — One game interface, less code** · NEXT | Shared compact controls, announcer, history and HUD; no redundant per-game implementations | [#208](https://github.com/subiki/squatchpool/issues/208) → [#210](https://github.com/subiki/squatchpool/issues/210), [#63](https://github.com/subiki/squatchpool/issues/63) |
+| **D — Five-game playable release (v0.2 candidate)** · NOT YET ACCEPTED | Five full matches and restarts on desktop and mobile touch; prod SHA verified; real/unavailable stats truthful; offline install/play proven | [#159](https://github.com/subiki/squatchpool/issues/159), [#15](https://github.com/subiki/squatchpool/issues/15), [#128](https://github.com/subiki/squatchpool/issues/128), [#45](https://github.com/subiki/squatchpool/issues/45), [#131](https://github.com/subiki/squatchpool/issues/131) |
+| **E — Delight and expansion** · PARKED | Player feedback supports pursuing character identity, retention, optional accounts or Maker **after** playable release | Owner re-prioritizes [#65](https://github.com/subiki/squatchpool/issues/65), [#151](https://github.com/subiki/squatchpool/issues/151), [#163](https://github.com/subiki/squatchpool/issues/163), [#168](https://github.com/subiki/squatchpool/issues/168) |
 
-**External dependency:** DreamHost→Cloudflare DNS/registrar transfer (#28) can take longer than code work. Keep the game shipping at the existing preview while migration proceeds. A transfer delay does not prevent gameplay iteration; revisit the v1.0 date/scope transparently if needed.
+Treat dates as **forecasts only when grounded in actual throughput**. Older Oct/Nov 2026 and January 2027 targets remain historical, not automatic escalations or a justification for incomplete acceptance. Set the next release date after seeing gates A–C ship. Review the next milestone after each production-backed playable increment.
 
-## Universal release gate
+## Always-on release safety
 
-1. Identify a public URL and source commit/tag. A commit or green CI alone is **not** a shipped release.
-2. Demonstrate that release's distinct exit criteria with brief recorded evidence (device/browser, result, issue or PR link).
-3. No known critical defect that prevents finishing the supported game flow.
-4. Record a short changelog, known limitations and next priority; keep deferred work in issues.
-5. Only tag/publish a release after its gate is verified. Never silently lower acceptance criteria to meet a date.
-
-## Agent focus and scope
-
-- **Now:** game rules, physics, pockets, cushions, intuitive aiming, placement, full-match validation (#7, #13 and related playtest issues).
-- **Parallel, nonblocking:** lean CI/CD (#31), rainforest canon (#30), original content and domain migration (#28), deployment provenance (#27).
-- **After the first fun match:** character art, rainforest atmosphere, second original game, then broader public alpha.
-- Coordinate through independent issues and small PRs. Reuse Cloudflare Pages integration. Avoid full TDD, blanket coverage gates, framework rewrites, speculative engine swaps, redundant CI, accounts and creator platforms during v0.1.
+Keep production playable while refactoring. Only an outage or a genuinely unplayable mode interrupts the architecture queue. Use the existing Cloudflare Pages GitHub integration and deployment banner; never add a second deployment stack. Separate **code merged**, **production SHA verified**, and **real player workflow accepted**. Run lightweight targeted checks, use real browser play, and record failures precisely.
 
 ## Change control
 
-Revisit the next gate after each real playtest. If dates slip, document what was learned and remove optional scope. Do not invent player validation, browser test evidence, deployments or registrar completion. The roadmap is a decision aid, not a promise to automate every task.
+One active architecture implementation PR, plus one independent production-verification/hotfix lane. Each milestone is complete only when its issue-specific checklist has evidence. New ideas go into existing parked issues unless genuinely distinct. No new game or speculative infrastructure is auto-promoted by a scheduled agent. Escalate only an actual unresolved owner tradeoff, precise missing rule or credential.
