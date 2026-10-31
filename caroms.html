@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head>
+<head><script src="/src/site-header.js"></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Caroms · Squatch Pool Playable Beta</title>
@@ -54,15 +54,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 </style>
 <link rel="stylesheet" href="./src/game-page-layout.css"><link rel="stylesheet" href="./src/shared-header.css"><link rel="stylesheet" href="./src/aim-preference.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/table-kit.js"></script><script type="module" src="/src/pwa.js"></script></head>
 <body>
-<header class="squatch-unified-header">
-<div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
-<div class="squatch-release" aria-label="Version and deployment"><span class="prototype">FIRST BREAK / v0.1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
-<nav class="squatch-header-nav" aria-label="Explore Squatch Pool"><a href="/">🏠 Home</a><a href="/but-wait.html">🎱 But Wait</a><a href="/caroms.html" aria-current="page">🌲 Caroms</a><a href="/cutthroat.html">🦍 Cutthroat</a><a href="/press-your-luck.html">🎲 Press Your Luck</a><a href="/tuna.html">🐟 Tuna</a><a href="/rules.html">📜 Rules</a><a href="/archive.html">📖 Field Notes</a></nav>
-<details class="squatch-header-stats"><summary>Across Squatch Pool · Live statistics</summary>
-<div class="squatch-stat-numbers" aria-label="Site-wide statistics"><div class="stat"><strong id="site-stats-players">—</strong><span>Players</span></div><div class="stat"><strong id="site-stats-racks">—</strong><span>Racks</span></div><div class="stat"><strong id="site-stats-balls">—</strong><span>Balls made</span></div></div>
-<div class="stats-breakdown"><strong>By game</strong><div id="site-stats-breakdown">Awaiting live totals</div></div>
-<p><strong>Caroms:</strong> <span id="caroms-stats-game">Awaiting live totals</span></p><span id="caroms-stats-site" hidden></span><small id="caroms-stats-status">Statistics unavailable until connected</small>
-<p class="stats-footnote" id="stats-status" aria-live="polite">Connecting to live statistics…</p></details></header>
+<squatch-header></squatch-header>
 <main>
 
 
@@ -139,4 +131,4 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 </div></details>
 </main>
 <script type="module" src="./src/caroms-game.js"></script>
-<script type="module" src="./src/shared-header.js"></script></body></html>
+<script type="module" src="/src/site-header-data.js"></script></body></html>
