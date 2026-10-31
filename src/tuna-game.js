@@ -105,7 +105,37 @@ function endShot(){
  else{phase='aim';message(result.keepTurn?'Good shot. Keep shooting.':'Player '+(turn+1)+' to shoot.');}
  $('call-ball').value='';$('call-pocket').value='';update();
 }
-function frame(t){const elapsed=previous?Math.min(.08,(t-previous)/1000):0;previous=t;if(phase==='moving'){acc+=elapsed;let n=0;while(acc>=1/120&&n++<12){const outcome=step(balls,1/120);events.push(...outcome.shotEvents);if(firstContact===null){const hit=outcome.shotEvents.find(e=>e.type==='contact'&&e.balls.includes(0));if(hit)firstContact=hit.balls.find(id=>id!==0);}acc-=1/120;shotElapsed+=1/120;still=stationary(balls)?still+1:0;if(still>20||shotElapsed>20){endShot();break;}}}draw();requestAnimationFrame(frame);}
+function frame(t){
+ // Keep simulation time on slower Android frames rather than dropping it.
+ // The bounded backlog lets a busy frame catch up over subsequent paints.
+ const elapsed=previous?Math.min(.25,Math.max(0,(t-previous)/1000)):0;
+ previous=t;
+ if(phase==='moving'){
+  acc=Math.min(.35,acc+elapsed);
+  let n=0;
+  while(acc>=1/120&&n++<24){
+   const outcome=step(balls,1/120);
+   events.push(...outcome.shotEvents);
+   if(firstContact===null){
+    const hit=outcome.shotEvents.find(e=>e.type==='contact'&&e.balls.includes(0));
+    if(hit)firstContact=hit.balls.find(id=>id!==0);
+   }
+   acc-=1/120;
+   shotElapsed+=1/120;
+   still=stationary(balls)?still+1:0;
+   if(still>20||shotElapsed>20){
+    // Never hand control back while the physics objects are still moving.
+    if(shotElapsed>20)for(const b of balls)if(!b.pocketed)
+     Object.assign(b,{vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});
+    acc=0;
+    endShot();
+    break;
+   }
+  }
+ }
+ draw();
+ requestAnimationFrame(frame);
+}
 function pointer(e,allowCall=false){if(!['aim','place','placeBreak'].includes(phase))return;const box=canvas.getBoundingClientRect(),x=(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
  if(phase==='placeBreak'){
   const p=x>=headStringX()?{x,y}:kitchenPoint(x,y);
