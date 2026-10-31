@@ -10,7 +10,7 @@ const cue=()=>balls.find(b=>b.id===0);
 const telemetry=createGameTelemetry('tuna');
 let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
-function rack(){rackNumber++;setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;phase='placeBreak';breakShot=true;breakPlacementValid=false;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Rack '+rackNumber+' · Player '+(turn+1)+' breaks. Place the cue ball in the kitchen and confirm, then call a ball and pocket before BREAK.');update();}
+function rack(){rackNumber++;setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;phase='aim';breakShot=true;breakPlacementValid=true;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Rack '+rackNumber+' · Player '+(turn+1)+' breaks. Drag the cue ball within the kitchen, call a ball and pocket, aim, then press BREAK.');update();}
 function resetMatch(){money=[0,0];nextBreaker=0;rackNumber=0;$('history').replaceChildren();rack();}
 function update(){
  $('start').disabled=phase!=='done';
@@ -25,7 +25,7 @@ function update(){
  const placing=phase==='place'||phase==='placeBreak';
  $('place').hidden=!placing;$('place').disabled=!placing||(phase==='placeBreak'&&!breakPlacementValid);
  $('place').textContent=phase==='placeBreak'?'Confirm break position':'Confirm cue placement';
- $('break-reposition').hidden=!(breakShot&&phase==='aim');
+ $('break-reposition').hidden=true;
  // Keep the shot call on the table; the drawer is an accessible fallback.
  updateCallHint();
 }
@@ -37,7 +37,7 @@ function updateCallHint(){
  undo.disabled=phase!=='aim';
  const hint=$('table-call-hint');if(!hint)return;
  const called=$('call-ball').value,pocket=pockets.find(p=>p.id===$('call-pocket').value);
- hint.textContent=phase==='placeBreak'?'Place and confirm the break cue ball first.':
+ hint.textContent=phase==='placeBreak'?'Drag the cue ball within the kitchen, then aim.':
   phase==='place'?'Place and confirm the cue ball first.':
   phase!=='aim'?'Shot in progress or rack complete.':
   !called?'1. Tap a ball on the table to call it.':
@@ -141,7 +141,7 @@ function pointer(e,allowCall=false){if(!['aim','place','placeBreak'].includes(ph
   const p=x>=headStringX()?{x,y}:kitchenPoint(x,y);
   breakPlacementValid=canPlaceBreakCue(balls,p.x,p.y);
   if(breakPlacementValid)Object.assign(cue(),p);
-  message(breakPlacementValid?'Break position valid. Confirm placement.':'The entire cue ball must stay behind the head string.');
+  message(breakPlacementValid?'Cue ball positioned. Aim and press BREAK.':'The entire cue ball must stay behind the head string.');
   update();return;
  }
  if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;message('Valid cue position. Confirm placement.');}else message('Choose a clear cue position.');return;}if(allowCall&&pickTableCall(x,y))return;if(!callReady())return;const a=angleFromPointer(cue(),{x,y},$('invert-aim').checked,TABLE.radius);if(a!==null)angle=a;}
@@ -152,10 +152,11 @@ canvas.addEventListener('pointerdown',e=>{
   const box=canvas.getBoundingClientRect();
   const x=(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth;
   const y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
-  if(Math.hypot(x-cue().x,y-cue().y)<=TABLE.radius*2.5){phase='placeBreak';breakPlacementValid=false;}
+  if(Math.hypot(x-cue().x,y-cue().y)<=TABLE.radius*2.5){phase='placeBreak';breakPlacementValid=true;}
  }
  pointer(e,true);
 });canvas.addEventListener('pointermove',e=>{if(e.buttons)pointer(e,false);});
+canvas.addEventListener('pointerup',()=>{if(phase==='placeBreak'&&breakPlacementValid){phase='aim';message('Cue positioned. Call your shot, aim, and press BREAK.');update();}});
 $('shoot').onclick=()=>{if(phase!=='aim')return;if(!callReady()){document.querySelector('.kit-more')?.setAttribute('open','');message('Tap a ball and pocket on the table, or use the call drawer before shooting.');(!$('call-ball').value?$('call-ball'):$('call-pocket')).focus();return;}shotCall=Number($('call-ball').value);shotPocket=$('call-pocket').value;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{
  if(phase==='placeBreak'&&breakPlacementValid){phase='aim';message('Break position confirmed. Call a ball and pocket, aim, then tap BREAK.');update();}
