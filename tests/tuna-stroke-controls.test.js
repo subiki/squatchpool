@@ -4,6 +4,8 @@ import {readFileSync} from 'node:fs';
 
 const source=readFileSync(new URL('../src/tuna-game.js',import.meta.url),'utf8');
 const rack=source.split('function rack(){')[1]?.split('function resetMatch(){')[0]||'';
+const resetMatch=source.split('function resetMatch(){')[1]?.split('function update(){')[0]||'';
+const update=source.split('function update(){')[1]?.split('function draw(){')[0]||'';
 const shoot=source.split("$('shoot').onclick=()=>{")[1]?.split("$('place').onclick=")[0]||'';
 const endShot=source.split('function endShot(){')[1]?.split('function frame(')[0]||'';
 
@@ -24,4 +26,13 @@ test('Tuna consumes stroke settings at strike and leaves 68% neutral next shot',
   'reset power and both spins immediately after applying them, before movement');
  assert.doesNotMatch(endShot,/\$\('power'\)\.value='65'/,
   'settling a shot must not overwrite the neutral power');
+});
+
+test('Tuna protects the current rack and keeps the money-ball shot ledger across racks',()=>{
+ assert.doesNotMatch(rack,/\$\('history'\)\.replaceChildren\(/,'next rack must preserve prior shot history');
+ assert.match(resetMatch,/\$\('history'\)\.replaceChildren\(/,'new match clears the ledger');
+ assert.match(resetMatch,/rackNumber=0/,'new match resets the rack counter');
+ assert.match(rack,/rackNumber\+\+/,'next rack advances the counter');
+ assert.match(update,/\$\('start'\)\.disabled=phase!=='done'/,'cannot advance an unfinished rack');
+ assert.match(source,/\$\('start'\)\.onclick=\(\)=>\{if\(phase==='done'\)rack\(\);\}/,'click handler guards unfinished racks');
 });

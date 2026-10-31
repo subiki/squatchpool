@@ -33,9 +33,10 @@ test('Tuna requires a legal kitchen break placement on all three tables and perm
   assert.match(readFileSync(new URL('../tuna.html',import.meta.url),'utf8'),/id="break-reposition"/);
   for(const size of [7,8,9]){
    node('size').value=String(size);
-   node('start').onclick();
+   node('reset-match').onclick();
    assert.equal(node('table').width,TABLE.width);
    assert.equal(node('shoot').disabled,true,'break is locked before confirmation');
+   assert.equal(node('start').disabled,true,'next rack is unavailable during active play');
    assert.equal(node('place').hidden,false,'placement control is visible');
    assert.equal(node('place').disabled,true,'cannot confirm an untouched break cue');
    assert.match(node('status').textContent,/kitchen/);
