@@ -35,6 +35,7 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    tap(headStringX()*.55,TABLE.height/2);node('place').onclick();
    assert.equal(node('shoot').disabled,false);
    assert.equal(panel.open,false,'calling a shot should not require opening the drawer');
+   assert.equal(node('undo-call').hidden,true,'Undo stays hidden until a call starts');
    assert.match(node('table-call-hint').textContent,/Tap a ball/);
    const first=fullRack()[1];
    tap(first.x,first.y);
@@ -54,6 +55,12 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    tap(second.x,second.y);
    assert.equal(node('call-ball').value,'2');
    assert.equal(node('call-pocket').value,'');
+   assert.equal(node('undo-call').hidden,false,'Undo is available for incomplete calls');
+   node('undo-call').onclick();
+   assert.equal(node('call-ball').value,'','Undo clears ball');
+   assert.equal(node('call-pocket').value,'','Undo clears pocket');
+   assert.equal(node('undo-call').hidden,true,'Undo hides after clearing');
+   assert.match(node('table-call-hint').textContent,/Tap a ball/);
    // Accessible dropdowns still work as a fallback.
    node('call-ball').value='1';listeners.get('call-ball:change')();
    assert.equal(node('call-pocket').value,'');
