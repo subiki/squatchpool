@@ -22,10 +22,17 @@ details{border:1px solid #728b72;border-radius:10px;background:#223b2f;margin:12
 summary{cursor:pointer;font-weight:800;padding:13px 16px;min-height:48px}
 details>div{padding:12px 16px}li{margin:6px 0}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
-@media(max-width:650px){main,header{padding:12px}main{padding-bottom:100px}.table-wrap{padding:4px;border-width:5px}
+@media(max-width:650px){main,header{padding:12px}main{padding-bottom:20px}.table-wrap{padding:4px;border-width:5px}
 .controls label{flex:1;min-width:130px}select,button{width:100%}
-#cut-shoot{position:fixed;left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom));width:calc(100% - 24px);z-index:20;box-shadow:0 5px 24px #000b}}
-</style><link rel="stylesheet" href="./src/game-page-layout.css"><link rel="stylesheet" href="./src/shared-header.css"><link rel="stylesheet" href="./src/aim-preference.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head><body>
+}
+.kit-primary #cut-shoot{background:#efc77c;color:#1a2b22;font-size:1.1rem}
+.kit-primary .aim-toggle{flex:0 1 auto;font-size:.88rem}
+.table-kit .choice{margin:8px 0;padding:10px}
+.table-stage:fullscreen{overflow:auto}
+.table-stage:fullscreen .table-wrap{flex:1 1 auto;min-height:0;overflow:auto}
+.table-stage:fullscreen .table-wrap canvas{max-height:calc(100dvh - 155px)}
+@media(max-width:650px){.kit-primary button{width:auto}.kit-primary .kit-power{flex:1 1 110px}.kit-primary .aim-toggle{flex:1 1 125px}}
+</style><link rel="stylesheet" href="./src/game-page-layout.css"><link rel="stylesheet" href="./src/shared-header.css"><link rel="stylesheet" href="./src/aim-preference.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/table-kit.js"></script><script type="module" src="/src/pwa.js"></script></head><body>
 <header class="squatch-unified-header">
 <div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
 <div class="squatch-release" aria-label="Version and deployment"><span class="prototype">FIRST BREAK / v0.1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
@@ -54,21 +61,30 @@ details>div{padding:12px 16px}li{margin:6px 0}
 <label>Table size<select id="cut-size"><option value="7">7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label></div>
 <div id="cut-turn" aria-live="polite"></div><p id="cut-scores"></p><p id="cut-status" role="status" aria-live="polite"></p>
 
+<div class="table-stage" id="table-stage">
 <div class="table-wrap"><canvas id="cut-table" aria-label="Coin-Op Cutthroat pool table. Drag on the felt to aim. Tap to place the white ball when prompted."></canvas></div>
-<div class="aim-toggle-bar" role="group" aria-label="Touch aiming preference"><button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Invert aim: OFF</button><span class="aim-toggle-caption">ON = hold a finger behind the cue to aim away from it. Tap again for normal aim. Saved across games.</span></div>
-<div class="controls"><button id="cut-place" class="primary" type="button">Confirm break position</button><button id="cut-reposition" type="button" hidden>Reposition break cue ball</button></div>
+<section class="table-kit" aria-label="Shot controls">
+<div class="kit-primary">
+<label class="kit-power">Power <output id="cut-power-value">85%</output><input id="cut-power" type="range" min="10" max="100" value="85"></label>
+<button class="primary" id="cut-shoot" type="button">BREAK</button>
+<button id="cut-place" class="primary" type="button">Confirm break position</button>
+<button id="cut-reposition" type="button" hidden>Reposition break cue ball</button>
+<button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Reverse aim: OFF</button>
+<button type="button" id="kit-fullscreen" aria-label="Toggle table fullscreen">⛶ Fullscreen</button>
+<details class="kit-more" id="cut-options"><summary>More · Spin, group &amp; scratch claim</summary>
+<div class="kit-options">
+<label>Draw / follow <output id="cut-top-value">0%</output><input id="cut-top" type="range" min="-100" max="100" value="0"></label>
+<label>English <output id="cut-side-value">0%</output><input id="cut-side" type="range" min="-100" max="100" value="0"></label>
+</div>
 <section class="choice" id="cut-group" hidden><strong>Choose your ball group</strong>
 <p>You earned a group choice by legally pocketing a ball. You can keep playing before choosing, but must choose before your turn ends.</p>
 <div class="controls"><label>Group<select id="cut-group-select"></select></label><button id="cut-group-confirm" type="button">Claim this group</button></div></section>
 <section class="choice" id="cut-claim" hidden><strong>Third player's scratch claim</strong>
 <p>Choose an unpocketed ball from the scratcher's group to make it yours, or decline. No balls are re-spotted.</p>
 <div class="controls"><label>Choice<select id="cut-claim-select"></select></label><button id="cut-claim-confirm" type="button">Resolve claim</button></div></section>
-<details open><summary>Shot controls · power &amp; spin</summary><div class="controls">
-<label>Power <output id="cut-power-value">85%</output><input id="cut-power" type="range" min="10" max="100" value="85"></label>
-<label>Draw / follow <output id="cut-top-value">0%</output><input id="cut-top" type="range" min="-100" max="100" value="0"></label>
-<label>English <output id="cut-side-value">0%</output><input id="cut-side" type="range" min="-100" max="100" value="0"></label>
-</div></details>
-<div class="controls"><button class="primary" id="cut-shoot" type="button">BREAK</button></div>
+</details>
+</div></section>
+</div>
 
 <details><summary>Shot history</summary><div><ol id="cut-log" aria-live="polite"></ol></div></details>
 </main><script type="module">
