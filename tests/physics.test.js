@@ -94,10 +94,10 @@ test('Tailuge cue spin exposes draw, follow, and side english without changing a
  applyCueSpin(b,1,0.5);
  assert.equal(b.vx,700);
  assert.ok(b.wy>0,'follow must spin cue in direction of travel');
- assert.ok(b.wz>0,'right english must produce side angular velocity');
+ assert.ok(b.wz<0,'right English is negative canvas-z spin after direction fix #150');
  applyCueSpin(b,-1,-0.5);
  assert.ok(b.wy<0,'draw must reverse rolling spin');
- assert.ok(b.wz<0,'left english must reverse side spin');
+ assert.ok(b.wz>0,'left English reverses the canvas-z sign');
 });
 test('Tailuge collision transfers momentum and generates side-spin throw', () => {
  const a=ball(0,100,250),b=ball(1,140,250),balls=[a,b];
