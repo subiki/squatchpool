@@ -9,3 +9,9 @@
 .shot-history-section details:not([open]){padding-block:10px}
 .shot-history-section ol{margin:14px 0 0;padding-left:1.5rem}
 .shot-history-section li{margin-bottom:.6rem}
+
+/* Consistent readable rules and collapsed logs for compact game pages. */
+.game-rules-layout .rules-card{padding:16px;border:1px solid #d6ae65;border-radius:12px;color:#f7eed9}
+.game-history{border:1px solid #826c4a;border-radius:12px;padding:12px;background:#233e31}
+.game-history summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:800;color:#f2d29a}
+.game-history ol{padding-left:1.5rem}
