@@ -1,4 +1,7 @@
-// Every standalone page initializes its version badge and live site statistics
-// from the same canonical header DOM. Per-game telemetry remains with each controller.
+// Every route shows the same verified Pacific deployment stamp.
+// But Wait already owns its live/flush statistics client in game.js; avoid a
+// second competing read-only fetch that could overwrite its richer display.
 import './deployment.js';
-import './hub-stats.js';
+if (location.pathname !== '/but-wait.html') {
+  void import('./hub-stats.js');
+}
