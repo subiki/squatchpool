@@ -36,7 +36,9 @@ export function applyCueSpin(ball, top = 0, side = 0) {
   const topSpin = Math.max(-1, Math.min(1, top)) * 0.45 * 2.5;
   ball.wx = -y / R * topSpin;
   ball.wy = x / R * topSpin;
-  ball.wz = speed / R * Math.max(-1, Math.min(1, side)) * 0.45 * 2.5;
+  // The UI's positive slider means right English from the shooter's view.
+  // Canvas y points downward, so the original sign reversed left and right.
+  ball.wz = -speed / R * Math.max(-1, Math.min(1, side)) * 0.45 * 2.5;
   ball.motion = 'sliding';
 }
 
