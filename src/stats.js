@@ -91,15 +91,30 @@ function renderStats(data){
  }
  const container=document.querySelector('#site-stats-breakdown');
  if(container){
-  const rows=data.games.map(g=>{
-   const item=document.createElement('div');item.className='stats-game-row';
-   const title=document.createElement('strong');title.textContent=g.title;
-   const totals=document.createElement('span');
-   totals.textContent=[g.players+' players',g.racks+' racks',g.balls+' balls'].join(' · ');
-   item.append(title,totals);return item;
-  });
-  container.replaceChildren(...rows);
+  const table=document.createElement('table');table.className='squatch-stats-table';
+  const thead=document.createElement('thead'),headRow=document.createElement('tr');
+  for(const label of ['Game','Players','Racks','Balls made']){
+   const th=document.createElement('th');th.scope='col';th.textContent=label;headRow.append(th);
+  }
+  thead.append(headRow);
+  const tbody=document.createElement('tbody');
+  for(const g of data.games){
+   const tr=document.createElement('tr');
+   const name=document.createElement('th');name.scope='row';name.textContent=g.title;tr.append(name);
+   for(const field of ['players','racks','balls']){
+    const td=document.createElement('td');td.textContent=Number(g[field]??0).toLocaleString('en-US');tr.append(td);
+   }
+   tbody.append(tr);
+  }
+  const total=document.createElement('tr');total.className='stats-total-row';
+  const label=document.createElement('th');label.scope='row';label.textContent='Site total';total.append(label);
+  for(const field of ['players','racks','balls']){
+   const td=document.createElement('td');td.textContent=Number(data.site[field]??0).toLocaleString('en-US');total.append(td);
+  }
+  tbody.append(total);table.append(thead,tbody);
+  container.replaceChildren(table);
  }
+
 }
 let live=null;
 export function initStats(){
