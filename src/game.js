@@ -137,6 +137,8 @@ function update(){
  $('#shoot').textContent=state.isBreak?'BREAK!':'SHOOT ➜';
  $('#power').disabled=state.phase!=='aim'||!human(state.turn)||!callReady();
  $('#spin-top').disabled=$('#spin-side').disabled=state.phase!=='aim'||!human(state.turn)||!callReady();
+ // Called shots must remain discoverable when the primary kit is fullscreen.
+ if(state.phase==='aim'&&!state.isBreak&&human(state.turn)&&!callReady())$('#but-wait-more').open=true;
 }
 function revealStashIfNeeded(){
  const group=state.groups[state.turn];
