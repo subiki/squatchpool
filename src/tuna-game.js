@@ -10,14 +10,19 @@ const cue=()=>balls.find(b=>b.id===0);
 const telemetry=createGameTelemetry('tuna');
 let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
-function rack(){setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;phase='aim';breakShot=true;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('history').replaceChildren();$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-pocket').value='';message('Player '+(turn+1)+' breaks. Tap the felt to aim.');update();}
+function rack(){setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;phase='aim';breakShot=true;angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('history').replaceChildren();$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-pocket').value='';message('Player '+(turn+1)+' breaks. Call a ball and pocket, aim, then tap BREAK.');update();}
 function resetMatch(){money=[0,0];nextBreaker=0;rack();}
 function update(){
  $('turn').textContent='Player '+(turn+1)+' to '+(phase==='place'?'place cue ball':phase==='done'?'celebrate':'shoot');
  $('money').textContent='Player 1: $'+money[0]+' · Player 2: $'+money[1];
  $('targets').textContent='Legal first contact: '+tunaTargets(balls).join(' or ');
  $('call-ball').replaceChildren(new Option('Choose ball',''),...balls.filter(b=>b.id>0&&!b.pocketed).map(b=>new Option(String(b.id),String(b.id))));
- $('shoot').disabled=phase!=='aim';$('place').disabled=phase!=='place';
+ $('shoot').disabled=phase!=='aim';$('shoot').textContent=breakShot?'BREAK':'SHOOT';
+ $('place').hidden=phase!=='place';$('place').disabled=phase!=='place';
+ // Every Tuna shot, including the break, needs a call. Reveal required inputs
+ // before the player tries Shoot, without forcing optional spin controls open later.
+ const callPanel=document.querySelector('.kit-more');
+ if(callPanel&&phase==='aim'&&(!$('call-ball').value||!$('call-pocket').value))callPanel.open=true;
 }
 function draw(){const {width:w,height:h,radius:r}=TABLE;ctx.fillStyle='#155f49';ctx.fillRect(0,0,w,h);ctx.fillStyle='#76563a';ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);for(const p of pockets)renderPocket(ctx,p);ctx.strokeStyle='#c59a61';ctx.lineWidth=2;ctx.beginPath();for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}ctx.stroke();for(const b of balls){if(b.pocketed)continue;ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);ctx.fillStyle=b.id===0?'#fff':b.id===8?'#111':b.id<=7?'#ddac4b':'#477fc0';ctx.fill();ctx.strokeStyle='#ffffff99';ctx.stroke();if(b.id){ctx.fillStyle='white';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillText(b.id,b.x,b.y);}}if(phase==='aim'){const b=cue(),dx=Math.cos(angle),dy=Math.sin(angle);ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*240,b.y+dy*240);ctx.stroke();ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+140),b.y-dy*(r+140));ctx.stroke();}}
 function spot(id){const b=balls.find(b=>b.id===id);if(!b)return;const p=findPlacement(balls.filter(other=>other.id!==id),{x:TABLE.width*.7,y:TABLE.height/2});if(p)Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});else throw new Error('Cannot spot ball '+id+' on this layout.');}
