@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head>
+<head><script src="/src/site-header.js"></script>
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width, initial-scale=1">
  <meta name="theme-color" content="#101d19">
@@ -44,15 +44,7 @@
 <body>
  <div class="grain" aria-hidden="true"></div>
  <div class="app">
-  <header class="squatch-unified-header">
-<div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
-<div class="squatch-release" aria-label="Version and deployment"><span class="prototype">FIRST BREAK / v0.1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
-<nav class="squatch-header-nav" aria-label="Explore Squatch Pool"><a href="/">🏠 Home</a><a href="/but-wait.html" aria-current="page">🎱 But Wait</a><a href="/caroms.html">🌲 Caroms</a><a href="/cutthroat.html">🦍 Cutthroat</a><a href="/press-your-luck.html">🎲 Press Your Luck</a><a href="/tuna.html">🐟 Tuna</a><a href="/rules.html">📜 Rules</a><a href="/archive.html">📖 Field Notes</a></nav>
-<details class="squatch-header-stats"><summary>Across Squatch Pool · Live statistics</summary>
-<div class="squatch-stat-numbers" aria-label="Site-wide statistics"><div class="stat"><strong id="site-stats-players">—</strong><span>Players</span></div><div class="stat"><strong id="site-stats-racks">—</strong><span>Racks</span></div><div class="stat"><strong id="site-stats-balls">—</strong><span>Balls made</span></div></div>
-<div class="stats-breakdown"><strong>By game</strong><div id="site-stats-breakdown">Awaiting live totals</div></div>
-
-<p class="stats-footnote" id="stats-status" aria-live="polite">Connecting to live statistics…</p></details></header>
+  <squatch-header></squatch-header>
   
   <main>
    
@@ -164,5 +156,5 @@
    <button id="play-again" class="shoot">RACK 'EM AGAIN ➜</button>
   </div>
  </div>
-</body>
+<script type="module" src="/src/site-header-data.js"></script></body>
 </html>
