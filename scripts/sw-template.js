@@ -4,7 +4,7 @@ const CACHE_NAME = 'squatch-offline-__CACHE_VERSION__';
 const PRECACHE = __PRECACHE_LIST__;
 const PRECACHE_SET = new Set(PRECACHE);
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE)));
+  event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE)).then(() => self.skipWaiting()));
 });
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
