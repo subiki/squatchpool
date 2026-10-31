@@ -1,4 +1,5 @@
 import {readInvertAim,angleFromPointer} from './aim-preference.js';
+import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {groupOf} from './rules.js';
@@ -7,10 +8,12 @@ import {pressTurn,pressEligible} from './press-your-luck-turn.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,breakShot=true;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
+const telemetry=createGameTelemetry('press-your-luck');
+let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
 function rack(){
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
- balls=fullRack();turn=match.breaker;groups=[null,null];phase='aim';breakShot=true;angle=0;events=[];acc=0;previous=0;
+ balls=fullRack();turn=match.breaker;groups=[null,null];phase='aim';breakShot=true;angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Tap the felt to aim.');update();
 }
 function update(){
@@ -34,6 +37,8 @@ function draw(){
  if(phase==='aim'){const b=cue(),dx=Math.cos(angle),dy=Math.sin(angle);ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*240,b.y+dy*240);ctx.stroke();ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+140),b.y-dy*(r+140));ctx.stroke();}
 }
 function endShot(){
+ const madeCount=new Set(events.filter(e=>e.type==='pocket'&&e.ballId>0).map(e=>e.ballId)).size;
+ if(madeCount)telemetry.balls(statsRackId,statsShotId,madeCount);
  const ids=events.filter(e=>e.type==='pocket').map(e=>e.ballId);
  const scratch=ids.includes(0);
  const called=shotCall,pocket=shotPocket;
@@ -66,7 +71,7 @@ function frame(t){
 function aimPointer(e){if(!['aim','place'].includes(phase))return;const box=canvas.getBoundingClientRect(),border=canvas.clientLeft,insideWidth=canvas.clientWidth,insideHeight=canvas.clientHeight,x=(e.clientX-box.left-border)*canvas.width/insideWidth,y=(e.clientY-box.top-border)*canvas.height/insideHeight;if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();$('notice').textContent='Cue position valid. Confirm placement.';}else $('notice').textContent='Cue overlaps a ball or rail. Choose an open spot.';return;}const b=cue();const next=angleFromPointer(b,{x,y},$('invert-aim').checked,TABLE.radius);if(next!==null)angle=next;}
 canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);aimPointer(e);});
 canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e);});
-$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){document.querySelector('.kit-more')?.setAttribute('open','');message('Open Call shot · Spin & options and choose a ball and pocket first.');(!callBall.value?callBall:callPocket).focus();return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
+$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&(!callBall.value||!callPocket.value)){document.querySelector('.kit-more')?.setAttribute('open','');message('Open Call shot · Spin & options and choose a ball and pocket first.');(!callBall.value?callBall:callPocket).focus();return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
 $('place').onclick=()=>{if(phase==='place'){phase='aim';message('Player '+(turn+1)+' to shoot.');update();}};
 $('next').onclick=rack;$('start').onclick=begin;
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
