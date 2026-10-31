@@ -18,10 +18,12 @@ test('Caroms playtest reports a rack only when the 1-ball break is struck',()=>{
 
 test('Caroms stats panel is visible above the game table and honest about outages',()=>{
  const html=read('caroms.html');
- assert.ok(html.indexOf('id="caroms-stats-game"')<html.indexOf('id="caroms-table"'));
- assert.match(html,/id="caroms-stats-site"/);
- assert.match(html,/id="caroms-stats-status"/);
- assert.match(html,/Statistics unavailable until connected/);
+ assert.ok(html.indexOf('<squatch-header>')<html.indexOf('id="caroms-table"'));
+ const header=read('src/site-header.js');
+ assert.match(header,/caroms-stats-game/);
+ assert.match(header,/caroms-stats-site/);
+ assert.match(header,/caroms-stats-status/);
+ assert.match(header,/Awaiting game totals/);
  const adapter=read('src/caroms-stats.js');
  assert.match(adapter,/gameId:GAME_ID/);
  assert.match(adapter,/Statistics unavailable; you can still play/);
