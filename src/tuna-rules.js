@@ -23,7 +23,8 @@ export function tunaJudgeShot({balls,firstContact,pocketed=[],calledBall,calledP
  const targets=tunaTargets(balls);
  const legalContact=targets.includes(firstContact);
  const called=pocketEvents.some(e=>e.ballId===calledBall&&e.pocketId===calledPocket);
- const foul=scratch||!legalContact;
+ // A pocketed cue ball is always a scratch, even when a caller omits the flag.
+ const foul=scratch||pocketed.includes(0)||!legalContact;
  const legalPocket=!foul&&called;
  const pocketIds=new Set(pocketed.filter(id=>id>0));
  const winning=legalPocket&&calledBall===10&&pocketIds.has(10)&&tunaCanWin(balls);
