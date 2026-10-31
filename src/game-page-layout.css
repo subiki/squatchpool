@@ -15,3 +15,24 @@
 .game-history{border:1px solid #826c4a;border-radius:12px;padding:12px;background:#233e31}
 .game-history summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:800;color:#f2d29a}
 .game-history ol{padding-left:1.5rem}
+
+/* Compact table kit: controls stay attached to the table, including fullscreen. */
+.table-stage{width:100%;margin:12px 0;background:#142b22;border-radius:14px;overflow:hidden}
+.table-stage canvas{margin:0}
+.table-kit{margin:0!important;padding:8px!important;background:#1a3328!important;border-radius:0!important}
+.kit-primary{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.kit-primary button,.kit-primary summary{min-height:44px}
+.kit-primary button{padding:9px 12px}
+.kit-primary #shoot{background:#f5ca7a;font-size:1.1rem}
+.kit-primary .kit-power{flex:1 1 110px;min-width:90px}
+.kit-primary input[type=range]{width:100%;padding:0;min-height:30px;accent-color:#e8bc6d}
+.kit-aim{display:flex!important;align-items:center;gap:5px;white-space:nowrap;font-size:.9rem}
+.kit-aim input{min-height:20px!important}
+.kit-more{flex:1 0 100%;border-top:1px solid #55705e;padding-top:4px}
+.kit-more summary{cursor:pointer;display:flex;align-items:center;font-weight:700;color:#f2d29a}
+.kit-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding:8px 0}
+.kit-options label{min-width:0}
+.table-stage:fullscreen{display:flex;flex-direction:column;justify-content:center;align-items:stretch;background:#0b1b15;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.table-stage:fullscreen canvas{width:100%;height:auto;max-height:calc(100dvh - 120px);object-fit:contain;flex:1 1 auto;min-height:0}
+.table-stage:fullscreen .table-kit{flex:0 0 auto}
+@media(max-width:650px){.kit-primary{gap:6px}.kit-primary button{padding:8px}.kit-aim{font-size:.8rem}.kit-primary #kit-fullscreen{font-size:.8rem}.kit-primary .kit-power{flex:1 1 80px}.table-kit{padding:6px!important}}
