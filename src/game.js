@@ -69,12 +69,17 @@ function updateCallUI(){
  }
  const picking=canPickCall();
  const pickingBall=picking&&state.callBall===null;
- const pickingPocket=picking&&state.callBall!==null&&!state.callPocket;
+ const pickingPocket=picking&&state.callBall!==null;
  const p=pockets.find(p=>p.id===state.callPocket);
  $('#call-ball-status').textContent=state.callBall===null?'Ball: —':'Ball: '+state.callBall;
  $('#call-pocket-status').textContent=p?'Pocket: '+p.label:'Pocket: —';
  $('#undo-call').disabled=!picking||(state.callBall===null&&!state.callPocket);
  $('#pocket-targets').hidden=!pickingPocket;
+ for(const button of document.querySelectorAll('.pocket-pick')){
+  const selected=button.dataset.pocket===state.callPocket;
+  button.setAttribute('aria-pressed',String(selected));
+  button.setAttribute('aria-label',(selected?'Selected: ':'Call ')+button.dataset.pocket+' pocket');
+ }
  const choices=$('#ball-picks');
  choices.hidden=!pickingBall;
  if(pickingBall){
@@ -90,7 +95,7 @@ function updateCallUI(){
   !picking?(state.phase==='aim'?'Speed Squatch is calling a shot.':'Calls lock once you shoot.'):
   pickingBall?'1. Tap a ball on the table (or its number below).':
   pickingPocket?'2. Tap a glowing pocket number on the table.':
-  '3. Aim from the white ball. Then press SHOOT.';
+  '3. Aim and SHOOT, or tap another pocket to change your call.';
 }
 
 function updateSurpriseUI(){
