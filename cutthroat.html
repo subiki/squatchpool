@@ -30,13 +30,17 @@ details>div{padding:12px 16px}li{margin:6px 0}
 <div class="squatch-brand-row"><div class="brand-mark" aria-hidden="true">♠</div><div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div></div>
 <div class="squatch-release" aria-label="Version and deployment"><span class="prototype">FIRST BREAK / v0.1</span><span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span><span id="deployment-note">Deployment metadata not loaded</span></div>
 <nav class="squatch-header-nav" aria-label="Explore Squatch Pool"><a href="/">🏠 Home</a><a href="/but-wait.html">🎱 But Wait</a><a href="/caroms.html">🌲 Caroms</a><a href="/cutthroat.html" aria-current="page">🦍 Cutthroat</a><a href="/press-your-luck.html">🎲 Press Your Luck</a><a href="/tuna.html">🐟 Tuna</a><a href="/rules.html">📜 Rules</a><a href="/archive.html">📖 Field Notes</a></nav>
-<details class="squatch-header-stats" open><summary>Across Squatch Pool · Live statistics</summary>
+<details class="squatch-header-stats"><summary>Across Squatch Pool · Live statistics</summary>
 <div class="squatch-stat-numbers" aria-label="Site-wide statistics"><div class="stat"><strong id="site-stats-players">—</strong><span>Players</span></div><div class="stat"><strong id="site-stats-racks">—</strong><span>Racks</span></div><div class="stat"><strong id="site-stats-balls">—</strong><span>Balls made</span></div></div>
 <div class="stats-breakdown"><strong>By game</strong><div id="site-stats-breakdown">Awaiting live totals</div></div>
 <p><strong>Cutthroat:</strong> <span id="cut-stats-game">Awaiting live totals</span></p><span id="cut-stats-site" hidden></span><small id="cut-stats-status"></small>
 <p class="stats-footnote" id="stats-status" aria-live="polite">Connecting to live statistics…</p></details></header>
 <main>
-<section class="game-rules-layout"><details open id="cut-rules"><summary>How to play · source rules &amp; controls</summary><div>
+
+
+<h1>Coin-Op Cutthroat</h1>
+<p class="notice"><strong>Three local players · pass and play.</strong> Protect your own balls: 1–5, 6–10 or 11–15. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
+<section class="game-rules-layout"><details id="cut-rules"><summary>How to play · source rules &amp; controls</summary><div>
 <ol><li>Three players use all 15 numbered balls. Player 1 breaks; balls pocketed on the break stay down.</li>
 <li>After your first legal pocket, select an available group (1–5, 6–10, or 11–15) by the end of your turn.</li>
 <li>Pocket any object ball, including one you own, to continue shooting. A miss ends your turn. The 8 is not an automatic win.</li>
@@ -46,8 +50,6 @@ details>div{padding:12px 16px}li{margin:6px 0}
 <p><strong>Source:</strong> <a href="./archive.html#episode-4">Original Episode 4 rules</a>. <strong>Playtest interpretation:</strong> A non-scratch shot that misses all object balls ends the turn; no additional foul penalty is imposed because the original manuscript does not specify one.</p>
 </div></details></section>
 
-<h1>Coin-Op Cutthroat</h1>
-<p class="notice"><strong>Three local players · pass and play.</strong> Protect your own balls: 1–5, 6–10 or 11–15. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
 <div class="controls"><button id="cut-new" type="button">New rack</button>
 <label>Table size<select id="cut-size"><option value="7">7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label></div>
 <div id="cut-turn" aria-live="polite"></div><p id="cut-scores"></p><p id="cut-status" role="status" aria-live="polite"></p>
