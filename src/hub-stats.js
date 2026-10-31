@@ -17,7 +17,7 @@ if(players&&racks&&balls){
       breakdown.replaceChildren();
       for(const game of data.games){
         const line=document.createElement('p');
-        line.textContent=(game.title||game.game||'Game')+': '+(game.racks??0)+' racks';
+        line.textContent=(game.title||game.id||'Game')+': '+(game.racks??0)+' racks';
         breakdown.append(line);
       }
     }
