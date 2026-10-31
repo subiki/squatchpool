@@ -1,12 +1,14 @@
-# Squatch Pool — Agent instructions
+# Squatch Pool — agent instructions
 
-> **ACTIVE PRODUCT DIRECTIVE — Oct 30, 2026:** [Ship tracker #159](https://github.com/subiki/squatchpool/issues/159) is the near-term execution queue. All **five existing** modes (But Wait, Caroms, Cutthroat, Press Your Luck and Big Tuna Casserole) have game pages; finish/verify their complete gameplay, compact fullscreen table UX, D1 statistics and offline production. **Do not start another game, rules workshop/Maker architecture (#151), 3D engine, or new CI framework before these acceptance gates.** Old numbered prototype phase/order sections below are historical; when they disagree with #159 and actual repo, follow the newer user directive. A merge is not a live release: verify production deployment.json SHA, assets, and real browser play. Continue from [docs/BACKLOG.md](docs/BACKLOG.md) and the related issues, choosing one independent player-facing slice per run.
+> **ACTIVE EXECUTION GATE (2026-10-31):** [docs/BACKLOG.md](docs/BACKLOG.md) is the **single ordered queue**. **NOW = [#206](https://github.com/subiki/squatchpool/issues/206)**: shared break placement and shot lifecycle, first Press Your Luck then Tuna, reconciling PRs #204/#205. **NEXT = #207 → #209 → #208 → #210** (shot-result event contract before UI consumers). [#53](https://github.com/subiki/squatchpool/issues/53) owns architecture acceptance; [#159](https://github.com/subiki/squatchpool/issues/159) owns the five-game release gate. **Only production-down or a completely unplayable core flow may interrupt.** If the architecture PR is already claimed, use the **independent** production verification lane #128; do not duplicate work. Older v0.1 one-game, chronological version targets, numbered phases and broad new-game directions below are historical when they conflict with this queue.
+
+**First five minutes of any agent run:** read BACKLOG.md, current #206/#53/#159, `main`, *all open PRs touching the files you would edit*, then claim one small unblocked slice in the relevant issue. Cap active work to **one architecture PR plus one non-overlapping production/verification task**. Follow [docs/DELIVERY.md](docs/DELIVERY.md); provide actual test/browser/Cloudflare evidence. No new modes, Maker, 3D, accounts, broad test harness or speculative refactor before five-game acceptance.
 
 ## Mission
 Finish and verify the **existing playable browser game**, then release a shareable Squatch Pool alpha. Keep changes lean. Read README.md, docs/BACKLOG.md and open GitHub issues before doing work.
 
 ## Current reality (recheck every session)
-The repository contains a static, self-contained Canvas 2D prototype with a GPL-3.0 Tailuge Billiards-derived billiards physics engine of **But Wait, There's More**, with physics in src/physics.js, rules in src/rules.js, gameplay/UI in src/game.js, and Node tests. The existing deployment and issues may be changing in another ChatGPT session. **Do not restart engine evaluation or replace the Tailuge integration just because an old issue or instruction suggests it.** Reconcile current code, open PRs, and issue edits first.
+Five game pages are present: But Wait, Caroms, Cutthroat, Press Your Luck and Big Tuna Casserole. They are **not yet accepted as five complete production-verified matches**. Physics and 7/8/9-foot geometry are shared; renderer/input/UI/session and rule orchestration are fragmented, driving repeated break, call and HUD bugs. Preserve Tailuge and original rules. Reconcile open PRs before editing; a GitHub merge is not production verification. Specific next actions and deferred features are in [docs/BACKLOG.md](docs/BACKLOG.md).
 
 ## Deployment timestamp in site header
 - The top banner shows a Pacific-time version timestamp from `deployment.json`, generated **inside the Cloudflare Pages build**, not the viewer's clock. Preserve the verified fallback and distinguish preview builds from production.
@@ -65,49 +67,21 @@ The repository contains a static, self-contained Canvas 2D prototype with a GPL-
 - Treat live playtest findings and newer confirmed rule descriptions in GitHub as higher priority than stale roadmap text.
 - Never mark someone else's task complete without verifying acceptance evidence.
 
-## Release strategy and engineering maturity
-- [docs/ROADMAP.md](docs/ROADMAP.md) defines the v0.1–v1.0 product exit gates and aggressive target dates. Treat dates as targets; never declare a release complete without evidence. Do not call the current prototype v1.0 or infer completion from green CI.
-- **v0.1–v0.2:** optimize for fun and a complete match. Run existing tests and syntax checks plus focused manual browser playtests; add regression tests for concrete failures, not speculative coverage. **No full TDD or coverage quota.**
-- **v0.3–v0.4:** add focused repeatable physics/rules regressions as needed; validate a real desktop and touch playthrough for each release.
-- **v0.5–v1.0:** gradually enforce PR checks, deployed preview smoke tests, release evidence and rollback only as reliability needs justify them. Do not create a second Cloudflare deployment system.
-- Prioritize a working game over release ceremony. A failed core flow blocks a release; an optional cinematic does not. Cut optional scope before compromising core play.
-- Domain/content migration (#28) runs independently. Never block physics/gameplay changes on registrar or DNS work.
+## Lean delivery and release gates
+- **Current sequence:** M1 #206 → M2 #207 → M4 #209 → M3 #208 → M5 #210, then verify five-game release #159. The shared shot-result event must precede the HUD/announcer/history built on it. Keep each game migration a small, reversible playable PR.
+- **P0 exception:** production down or a mode unable to start/break. Investigate #128 and current #204/#205 before making a competing fix. Routine polish, extra modes, new frameworks and creator systems are parked.
+- **Tests:** run current `npm test`, `npm run check`, `npm run build` as relevant, plus actual touch/desktop behavior where possible; write focused regressions for reproduced defects, not blanket coverage goals. Never treat missing CI runner as a failing test.
+- **Ship discipline:** PR + merge is code shipped to a branch, *not* Cloudflare-deployed or player-accepted. Verify deployment SHA, live gameplay, honest D1 counters and PWA offline behavior as specified in #159. Preserve last known playable production.
+- **Parallel agents:** claim on the issue with branch/files/outcome; check conflicting PRs before edits. One architecture PR + one independent production/verification lane maximum. Do not rewrite another agent's branch, force-push, or merge overlapping changes blindly.
+- **Escalation:** only unresolved house rules, access, irreversible decisions or real owner priority tradeoffs. Otherwise choose first unblocked queue item and ship the smallest player-facing increment.
+- **Handoff:** issue/PR/commit, tests actually executed, browser/device evidence (or unverified), deployed SHA (or unverified), outcome, exact next action and blocker. Close issues only after the stated acceptance evidence.
 
-## Delivery order and gates
-1. **P0: Preserve playable deployment** — confirm current public URL and run existing tests. Fix regressions first. See #5.
-2. **P0: Original game correctness** — implement the actual opponent-selected held-ball behavior for But Wait, There's More; see #7. Never invent unresolved edge cases.
-3. **P0: Input and game completion** — phone/desktop aiming, placement, fouls, complete local match and restart; see #3 #4 #15.
-4. **P0: Release verification** — demonstrate full match in actual desktop and touch/mobile browser; record environment, steps, result, screenshot or other evidence where possible; see #13.
-5. **P1: Presentation** — improve Squatch branding and character personality without delaying functional release; see #6.
-6. **Later** — other original games, rules editor, creator, sharing workshop, hybrid referee (#8–#11 and docs/BACKLOG.md). No infrastructure work for these before P0 passes.
-
-Existing M0 engine-selection issue #12 is historical planning; reassess against current implementation before spending time. Do not delete or close it without recording the reason.
-
-## Every work session
-1. Read AGENTS.md, README.md, docs/BACKLOG.md, current open issues, PRs, and latest relevant commits.
-2. Pick one unclaimed, high-impact P0 task; avoid duplicating another agent.
-3. Implement the smallest working change. Run `npm test` and `npm run check`.
-4. Verify user-facing behavior in a real browser where tools permit; a successful build alone is insufficient.
-5. Update the relevant issue with commit/PR, tests, browser/device and outcomes, URL and remaining gaps.
-6. Close only after acceptance criteria are actually verified; otherwise leave it open and move to another unblocked task.
-7. Repeat until release gate passes, or document the exact external blocker.
-
-## Rules and product constraints
-- Browser/mobile web first; no native package, login, network multiplayer or community creator in P0. The **one D1-backed anonymous statistics counter** is an explicit user-approved exception to the previous no-database prototype scope; keep it narrow and optional, with graceful failure.
-- Local two-player pass-and-play is sufficient; simple bot is optional.
-- Source-of-truth original game: **But Wait, There's More**. The opponent chooses which held ball to reintroduce and where to place it legally. Do not silently auto-select based on the shooter's group. See issue #7 for detailed edge cases and acceptance.
-- Do not infer undocumented Squatch rules from story episodes. Ask for only genuinely missing decisions; work on independent tasks meanwhile.
-- Keep working deployment available. Avoid sweeping refactors, framework rewrites, new engines, elaborate CI, or unrelated polish.
-- If source/license questions arise, inspect actual files and dependencies rather than guessing.
-
-## Immediate v0.1 release gate
-v0.1 is eligible for release only when a public URL opens without login; desktop and touch aiming/shooting work; normal collisions, pockets and scratches work; two local players can finish a full game with correct held-ball choice and placement, turns, fouls and win detection; restart works; and Squatch identity is visible. Record real-browser evidence. If a gate is unverified, report it as unverified.
-
-## Blockers and recovery
-Diagnose routine failures and try bounded fixes. Preserve last known playable state. Escalate only missing access/credentials, consequential licensing questions, or genuinely unresolved original rules. Report what failed, what was tried, the recommended resolution, and one specific question. Do not fabricate tests, deployments, approvals, or completion.
-
-## Session handoff
-Report: current deployed URL and verified status; issue/PR worked; tests and browser evidence; remaining release gates; next concrete action; blockers. Instructions do not themselves schedule background agents.
+## Technical and product invariants
+- The original But Wait opponent may choose **either** hidden ball and place it legally; preserve all five distinct house-rule engines.
+- Keep regulation 7/8/9-foot physical ball/table/rail/pocket measures and Tailuge integration; keep PNW **temperate rainforest** canon, GPL notices and original archives.
+- Keep D1 `STATS_DB` anonymous semantics, event dedup, and offline PWA; API stats must never be cached offline or invented on failure.
+- Preserve persistent reverse aim, direct touch placement and a no-confirmation normal break after legal cue placement. Called ball/pocket before a regular shot and ability to change pocket until shooting must work.
+- Read [docs/PHYSICS_CALIBRATION.md](docs/PHYSICS_CALIBRATION.md), [docs/STATS.md](docs/STATS.md), specific game issues and this file's technical sections for exact behavior; do not invent missing rules.
 
 ## Installable offline PWA
 - New pages/games must include `/manifest.webmanifest` and `/src/pwa.js` in the HTML head; `scripts/build-pwa.mjs` automatically bundles root HTML, source JS/CSS, archive text and launcher icons for offline play. Static Pages root remains `.`.
