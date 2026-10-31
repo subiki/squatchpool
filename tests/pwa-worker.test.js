@@ -31,6 +31,7 @@ function workerHarness() {
     self: {
       location: {origin:'https://squatch.example'},
       addEventListener: (name, handler) => events.set(name,handler),
+      skipWaiting: async () => {}, // Browser service worker API used when precache succeeds.
       clients: {claim: async () => {}}
     }
   };
