@@ -63,6 +63,15 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    const target=pockets.map(p=>({p,d:Math.min(...available.map(([,b])=>Math.hypot(p.x-b.x,p.y-b.y)))})).sort((a,b)=>b.d-a.d)[0].p;
    tap(target.x,target.y);
    assert.equal(node('call-pocket').value,target.id,'touch selects a table pocket');
+   // On a narrow phone, the ball hit radius overlaps the pocket marker.
+   // The pocket drawn on the canvas must take priority over any nearby ball.
+   const markerX=target.kind==='side'?target.x:target.x+target.sx*TABLE.radius*1.65;
+   const markerY=target.y+target.sy*TABLE.radius*1.65;
+   Object.defineProperty(node('table'),'clientWidth',{get:()=>24,configurable:true});
+   tap(markerX*24/TABLE.width,markerY);
+   assert.equal(node('call-ball').value,id,'pocket tap cannot change the called ball');
+   assert.equal(node('call-pocket').value,target.id,'glowing pocket wins overlapping ball hit zone');
+   Object.defineProperty(node('table'),'clientWidth',{get(){return this.width;},configurable:true});
    assert.equal(node('shoot').disabled,false,'completed call unlocks shoot');
    tick();assert.ok(cueDraws>cueBefore,'cue appears only after both selections');
    drag(otherPoint.x,otherPoint.y);
