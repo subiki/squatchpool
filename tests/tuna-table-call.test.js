@@ -46,6 +46,14 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    tap(target.x,target.y);
    assert.equal(node('call-pocket').value,'TM','pocket selected by touch');
    assert.match(node('table-call-hint').textContent,/Top middle/);
+   // Stress an overlapping touch radius: a narrow rendered table makes the
+   // nearest rack ball fall inside the ball-hit zone even when tapping a
+   // drawn pocket button. The pocket must win once a ball is called.
+   Object.defineProperty(node('table'),'clientWidth',{get:()=>24,configurable:true});
+   tap(target.x*24/TABLE.width,target.y+target.sy*TABLE.radius*1.65);
+   assert.equal(node('call-ball').value,'1','pocket tap must not replace the called ball');
+   assert.equal(node('call-pocket').value,'TM','pocket button wins over an overlapping ball hit zone');
+   Object.defineProperty(node('table'),'clientWidth',{get(){return this.width;},configurable:true});
    // A second ball tap changes the call, clears the stale pocket and keeps
    // the cue hidden until a new pocket is chosen.
    const second=fullRack()[2];
