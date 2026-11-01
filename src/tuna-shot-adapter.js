@@ -2,7 +2,11 @@ import {tunaJudgeShot} from './tuna-rules.js';
 
 /** Pure Big Tuna house-rule adapter. Never infer scoring from the UI. */
 export function adjudicateTunaShot({player,balls,firstContact,shotEvents,calledBall,calledPocket}){
- const pocketEvents=shotEvents.filter(event=>event.type==='pocket');
+ const seen=new Set();
+ const pocketEvents=shotEvents.filter(event=>{
+  if(event.type!=='pocket'||seen.has(event.ballId))return false;
+  seen.add(event.ballId);return true;
+ });
  const pocketed=pocketEvents.map(event=>event.ballId);
  const ruling=tunaJudgeShot({
   balls,firstContact,pocketed,calledBall,calledPocket,pocketEvents,
