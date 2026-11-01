@@ -5,6 +5,7 @@ import {adjudicateTunaShot} from '../src/tuna-shot-adapter.js';
 import {adjudicatePressShot} from '../src/press-shot-adapter.js';
 import {adjudicateCutthroatShot} from '../src/cutthroat-shot-adapter.js';
 import {adjudicateCaromsShot} from '../src/caroms-shot-adapter.js';
+import {adjudicateButWaitShot} from '../src/but-wait-shot-adapter.js';
 import {ball} from '../src/physics.js';
 import {startCutthroat,assignCutthroatGroup,resolveCutthroatClaim} from '../src/cutthroat-rules.js';
 import {newMatch} from '../src/press-your-luck-score.js';
@@ -213,4 +214,48 @@ test('Caroms GameSession retains object-ball break and center-or-leave foul deci
  assert.equal(game.startShot('new-rack'),true);
  assert.throws(()=>game.resolveShot({shotId:'caroms-foul',context:{}}),/inactive or stale/);
  assert.equal(rulings.length,2,'a stale stroke cannot announce or report a pocket');
+});
+
+
+test('But Wait GameSession keeps break, scratch placement and restart',()=>{
+ const game=createGameSession({game:'but-wait',adjudicate:adjudicateButWaitShot});
+ const events=[];game.subscribe(result=>events.push(result));
+ const context={
+  balls:[0,1,2,3,8,9,10].map(id=>({id,pocketed:false})),
+  shooter:0,groups:[null,null],deployed:{solids:false,stripes:false},
+  firstContact:2,breakShot:true,calledBall:null,calledPocket:null,
+  pocketed:[2,2],pocketEvents:[{id:2,pocketId:'TL'},{id:2,pocketId:'TL'}],
+ };
+ game.startRack();
+ assert.equal(game.breakShot,true);
+ assert.equal(game.startShot('but-wait-break'),true);
+ assert.equal(game.startShot('duplicate-break'),false);
+ const result=game.resolveShot({shotId:'but-wait-break',context});
+ assert.deepEqual(result.pocketed,[2]);
+ assert.equal(result.actions.newGroup,null,'break cannot assign a group');
+ assert.equal(game.resolveShot({shotId:'but-wait-break',context}),result);
+ assert.equal(events.length,1,'one physical pocket and one ruling event');
+ assert.equal(game.settle(),true);
+ assert.equal(game.phase,'aim');
+ assert.equal(game.breakShot,false);
+ assert.equal(game.startShot('but-wait-scratch'),true);
+ const scratch=game.resolveShot({shotId:'but-wait-scratch',context:{
+  ...context,breakShot:false,calledBall:2,calledPocket:'TL',
+  pocketed:[0,2],pocketEvents:[{id:0,pocketId:'TM'},{id:2,pocketId:'TL'}],
+ }});
+ assert.equal(scratch.foul,true);
+ assert.equal(scratch.ballInHand,true);
+ assert.deepEqual(scratch.pocketed,[2],'cue scratch is not a made object ball');
+ assert.equal(game.settle({ballInHand:scratch.ballInHand}),true);
+ assert.equal(game.phase,'place');
+ assert.equal(game.startShot('before-placement'),false);
+ assert.equal(game.confirmPlacement(),true);
+ assert.equal(game.phase,'aim');
+ game.startRack();
+ assert.equal(game.startShot('next-rack-break'),true);
+ assert.throws(()=>game.resolveShot({shotId:'but-wait-scratch',context}),/inactive or stale/);
+ assert.equal(events.length,2);
+ const next=game.resolveShot({shotId:'next-rack-break',context});
+ assert.equal(next.game,'but-wait');
+ assert.equal(events.length,3);
 });
