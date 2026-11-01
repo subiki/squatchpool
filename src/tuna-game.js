@@ -5,7 +5,7 @@ import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,c
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {tunaTargets,tunaRackOrder,tunaJudgeShot} from './tuna-rules.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
-let balls=[],turn=0,money=[0,0],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,shotCall=0,shotPocket='';
+let balls=[],turn=0,money=[0,0],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,shotCall=0,shotPocket='';
 let nextBreaker=0,rackNumber=0;
 const cue=()=>balls.find(b=>b.id===0);
 const shot=createShotLifecycle();
@@ -79,7 +79,7 @@ function pickTableCall(x,y){
   }).sort((a,b)=>a.d-b.d)[0];
   if(target&&target.d<=hit){
    $('call-pocket').value=target.p.id;
-   message('Called '+$('call-ball').value+' to '+target.p.label+'. Aim and '+(breakShot?'BREAK.':'SHOOT.'));
+   message('Called '+$('call-ball').value+' to '+target.p.label+'. Aim and '+(shot.breakShot?'BREAK.':'SHOOT.'));
    updateCallHint();return true;
   }
  }
