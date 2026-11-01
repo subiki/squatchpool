@@ -5,7 +5,9 @@ import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
-import {tunaTargets,tunaRackOrder,tunaJudgeShot} from './tuna-rules.js';
+import {tunaTargets,tunaRackOrder} from './tuna-rules.js';
+import {createShotResultSession} from './shot-result.js';
+import {adjudicateTunaShot} from './tuna-shot-adapter.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let balls=[],turn=0,money=[0,0],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,shotCall=0,shotPocket='';
 let nextBreaker=0,rackNumber=0;
@@ -13,9 +15,14 @@ const cue=()=>balls.find(b=>b.id===0);
 const shot=createShotLifecycle();
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 const telemetry=createGameTelemetry('tuna');
+const resolvedShots=createShotResultSession({game:'tuna',adjudicate:adjudicateTunaShot});
+resolvedShots.subscribe(result=>{
+ if(result.pocketed.length)telemetry.balls(statsRackId,result.shotId,result.pocketed.length);
+ const li=document.createElement('li');li.textContent=result.announcement;$('history').prepend(li);
+});
 let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
-function rack(){rackNumber++;setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;shot.startRack();angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Rack '+rackNumber+' · Player '+(turn+1)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK. No call needed on the break.');update();}
+function rack(){resolvedShots.reset();rackNumber++;setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;shot.startRack();angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Rack '+rackNumber+' · Player '+(turn+1)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK. No call needed on the break.');update();}
 function resetMatch(){money=[0,0];nextBreaker=0;rackNumber=0;$('history').replaceChildren();rack();}
 function update(){
  $('start').disabled=shot.phase!=='done';
@@ -101,17 +108,16 @@ function pickTableCall(x,y){
 }
 function spot(id){const b=balls.find(b=>b.id===id);if(!b)return;const p=findPlacement(balls.filter(other=>other.id!==id),{x:TABLE.width*.7,y:TABLE.height/2});if(p)Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});else throw new Error('Cannot spot ball '+id+' on this layout.');}
 function endShot(){
- const madeCount=new Set(events.filter(e=>e.type==='pocket'&&e.ballId>0).map(e=>e.ballId)).size;
- if(madeCount)telemetry.balls(statsRackId,statsShotId,madeCount);
- const pocketEvents=events.filter(e=>e.type==='pocket'),pocketed=pocketEvents.map(e=>e.ballId),scratch=pocketed.includes(0);
- const result=tunaJudgeShot({balls:preBalls,firstContact,pocketed,calledBall:shotCall,calledPocket:shotPocket,pocketEvents,scratch});
- try{for(const id of result.spotted)spot(id);}catch(error){shot.settle({done:true});message(error.message+' Start a new rack.');update();return;}
- money[turn]+=result.payout;
- const li=document.createElement('li');li.textContent='Player '+(turn+1)+': '+(result.foul?'Foul':result.winning?'Wins the rack':result.credited.length?'Made '+result.credited.join(', '):'Miss')+(result.payout?' · $'+result.payout:'');$('history').prepend(li);
- if(result.winning){nextBreaker=turn;shot.settle({done:true});message('Player '+(turn+1)+' wins Big Tuna Casserole! Start a new rack to play again.');update();return;}
- if(!result.keepTurn)turn=1-turn;
+ const result=resolvedShots.resolve({shotId:statsShotId,context:{
+  player:turn,balls:preBalls,firstContact,shotEvents:events,
+  calledBall:shotCall,calledPocket:shotPocket,
+ }});
+ try{for(const id of result.actions.spotted)spot(id);}catch(error){shot.settle({done:true});message(error.message+' Start a new rack.');update();return;}
+ money[turn]+=result.points;
+ if(result.rackEnd){nextBreaker=turn;shot.settle({done:true});message('Player '+(turn+1)+' wins Big Tuna Casserole! Start a new rack to play again.');update();return;}
+ turn=result.nextPlayer;
  if(result.ballInHand){const b=cue();Object.assign(b,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});const p=findPlacement(balls.filter(other=>other.id!==0));if(!p){shot.settle({done:true});message('No legal cue-ball placement available. Start a new rack.');update();return;}Object.assign(b,p);shot.settle({ballInHand:true});message('Foul. Player '+(turn+1)+' has ball in hand. Tap a clear position, then confirm.');}
- else{shot.settle();message(result.keepTurn?'Good shot. Keep shooting.':'Player '+(turn+1)+' to shoot.');}
+ else{shot.settle();message(result.actions.keepTurn?'Good shot. Keep shooting.':'Player '+(turn+1)+' to shoot.');}
  $('call-ball').value='';$('call-pocket').value='';update();
 }
 function frame(t){
