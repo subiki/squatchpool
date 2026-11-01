@@ -6,6 +6,7 @@ import {tablePoint} from './table-pointer.js';
 import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsEligible,caromsCallRequired} from './caroms-rules.js';
 import {createGameSession} from './game-session.js';
+import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateCaromsShot} from './caroms-shot-adapter.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
@@ -69,6 +70,9 @@ function log(message){
  while($('caroms-log').children.length>14)$('caroms-log').lastElementChild.remove();
 }
 const session=createGameSession({game:'caroms',adjudicate:adjudicateCaromsShot});
+if (typeof document !== 'undefined' && $('table-stage')?.ownerDocument) {
+ attachShotAnnouncer(session,$('table-stage'));
+}
 session.subscribe(result=>{
  if(result.pocketed.length)reportCaromsBalls(state.statsRackId,result.shotId,result.pocketed.length);
  log(result.announcement);
