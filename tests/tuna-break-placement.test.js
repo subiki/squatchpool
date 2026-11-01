@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {TABLE,headStringX} from '../src/physics.js';
 
 // Exercise the real Tuna controller with a minimal DOM, not a copied placement helper.
-test('Tuna requires a legal kitchen break placement on all three tables and permits reposition',async()=>{
+test('Tuna starts ready to break and supports kitchen dragging without confirmation on all table sizes',async()=>{
  const originals={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
  const nodes=new Map(),listeners=new Map(),panel={open:false};
  const ctx=new Proxy({}, {get:(obj,key)=>obj[key]??(()=>{}),set:(obj,key,value)=>{obj[key]=value;return true;}});
@@ -28,6 +28,8 @@ test('Tuna requires a legal kitchen break placement on all three tables and perm
  globalThis.localStorage={getItem:()=>null,setItem(){}};
  globalThis.requestAnimationFrame=()=>{};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
+ const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
+ const release=()=>listeners.get('table:pointerup')();
  try{
   await import('../src/tuna-game.js');
   assert.match(readFileSync(new URL('../tuna.html',import.meta.url),'utf8'),/id="break-reposition"/);
@@ -35,25 +37,25 @@ test('Tuna requires a legal kitchen break placement on all three tables and perm
    node('size').value=String(size);
    node('reset-match').onclick();
    assert.equal(node('table').width,TABLE.width);
-   assert.equal(node('shoot').disabled,true,'break is locked before confirmation');
-   assert.equal(node('start').disabled,true,'next rack is unavailable during active play');
-   assert.equal(node('place').hidden,false,'placement control is visible');
-   assert.equal(node('place').disabled,true,'cannot confirm an untouched break cue');
-   assert.match(node('status').textContent,/kitchen/);
-   tap(headStringX()+TABLE.radius*2,TABLE.height/2);
-   assert.equal(node('place').disabled,true,'cannot confirm outside the kitchen');
-   tap(headStringX()*.55,TABLE.height/2);
-   assert.equal(node('place').disabled,false,'legal kitchen touch enables confirmation, size '+size+' status '+node('status').textContent+' head '+headStringX()+' width '+TABLE.width+' radius '+TABLE.radius);
-   node('place').onclick();
-   assert.equal(node('shoot').disabled,false,'confirmed placement unlocks BREAK');
+   assert.equal(node('shoot').disabled,false,'legal default cue placement permits immediate BREAK');
    assert.equal(node('shoot').textContent,'BREAK');
-   assert.equal(node('break-reposition').hidden,false,'reposition stays available in table kit');
-   node('break-reposition').onclick();
-   assert.equal(node('shoot').disabled,true,'reposition locks BREAK again');
-   tap(headStringX()*.45,TABLE.height/2+TABLE.radius*2);
-   assert.equal(node('place').disabled,false);
-   node('place').onclick();
-   assert.equal(node('shoot').disabled,false);
+   assert.equal(node('start').disabled,true,'cannot advance active rack');
+   assert.equal(node('place').hidden,true,'no break confirmation control');
+   assert.equal(node('break-reposition').hidden,true,'dragging replaces separate reposition control');
+   assert.match(node('status').textContent,/kitchen/);
+   assert.match(node('table-call-hint').textContent,/No call needed/);
+   tap(headStringX()+TABLE.radius*3,TABLE.height/2);
+   release();
+   assert.equal(node('shoot').disabled,false,'tapping beyond kitchen does not lock BREAK');
+   tap(headStringX()*.55,TABLE.height/2);
+   drag(headStringX()*.45,TABLE.height/2+TABLE.radius*2);
+   release();
+   assert.equal(node('shoot').disabled,false,'drag release keeps BREAK enabled');
+   assert.equal(node('place').hidden,true,'drag does not reveal confirmation');
+   node('shoot').onclick();
+   assert.equal(node('shoot').disabled,true,'BREAK immediately starts a physical shot without a call');
+   assert.equal(node('power').value,'68','break consumes power and resets controls');
+
   }
  }finally{
   for(const [name,value] of Object.entries(originals)){if(value===undefined)delete globalThis[name];else globalThis[name]=value;}

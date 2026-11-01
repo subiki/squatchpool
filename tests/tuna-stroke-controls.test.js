@@ -21,7 +21,7 @@ test('Tuna consumes stroke settings at strike and leaves 68% neutral next shot',
  const power=shoot.indexOf("$('power').value='68'",stroke);
  const draw=shoot.indexOf("$('spin-top').value='0'",stroke);
  const english=shoot.indexOf("$('spin-side').value='0'",stroke);
- const moving=shoot.indexOf("phase='moving'",stroke);
+ const moving=shoot.indexOf('shot.startShot()',stroke);
  assert.ok(stroke>=0&&power>stroke&&draw>stroke&&english>stroke&&moving>power&&moving>draw&&moving>english,
   'reset power and both spins immediately after applying them, before movement');
  assert.doesNotMatch(endShot,/\$\('power'\)\.value='65'/,
@@ -33,6 +33,6 @@ test('Tuna protects the current rack and keeps the money-ball shot ledger across
  assert.match(resetMatch,/\$\('history'\)\.replaceChildren\(/,'new match clears the ledger');
  assert.match(resetMatch,/rackNumber=0/,'new match resets the rack counter');
  assert.match(rack,/rackNumber\+\+/,'next rack advances the counter');
- assert.match(update,/\$\('start'\)\.disabled=phase!=='done'/,'cannot advance an unfinished rack');
- assert.match(source,/\$\('start'\)\.onclick=\(\)=>\{if\(phase==='done'\)rack\(\);\}/,'click handler guards unfinished racks');
+ assert.match(update,/\$\('start'\)\.disabled=shot\.phase!=='done'/,'cannot advance an unfinished rack');
+ assert.match(source,/\$\('start'\)\.onclick=\(\)=>\{if\(shot\.phase==='done'\)rack\(\);\}/,'click handler guards unfinished racks');
 });
