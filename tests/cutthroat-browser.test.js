@@ -16,7 +16,12 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
   'Cutthroat uses a guarded dynamic module import so startup errors are visible');
  assert.match(html,/Cutthroat could not start:/,
   'startup failures must explain why the table did not load');
- assert.match(controller,/createShotResultSession\(/);
+ assert.match(controller,/createGameSession\(/);
+ assert.match(controller,/session\.startRack\(\)/);
+ assert.match(controller,/session\.startShot\(shotId\)/);
+ assert.match(controller,/session\.resolveShot\(/);
+ assert.match(controller,/session\.settle\(/);
+ assert.match(controller,/session\.confirmPlacement\(\)/);
  assert.match(controller,/adjudicateCutthroatShot/);
  assert.match(controller,/resolveCutthroatClaim\(/);
  assert.match(controller,/assignCutthroatGroup\(/);
