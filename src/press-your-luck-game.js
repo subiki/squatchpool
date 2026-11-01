@@ -7,12 +7,16 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
 import {newMatch,validateTargetScore} from './press-your-luck-score.js';
 import {createGameSession} from './game-session.js';
+import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicatePressShot} from './press-shot-adapter.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
 const telemetry=createGameTelemetry('press-your-luck');
 const shot=createGameSession({game:'press-your-luck',adjudicate:adjudicatePressShot});
+// Minimal controller test doubles omit DOM ownership; real stages have it.
+const announcerStage=$('table-stage');
+if(announcerStage?.ownerDocument)attachShotAnnouncer(shot,announcerStage);
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 let statsRackId=null,statsShotId=null;
 shot.subscribe(result=>{

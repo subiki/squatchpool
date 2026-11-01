@@ -81,3 +81,26 @@ test('new rulings replace the banner, fade away and unsubscribe on dispose', asy
   game.resolveShot({shotId: 'shot-3', context: {announcement: 'After unmount'}});
   assert.equal(dom.banner.textContent, 'Second shot');
 });
+
+test('Press Your Luck announces settled pressing and bank/kick rulings without re-adjudicating', () => {
+  const dom = fakeStage();
+  const game = createGameSession({
+    game: 'press-your-luck',
+    adjudicate: context => ({
+      legal: true, foul: false, pocketed: [], points: 0,
+      nextPlayer: 0, ballInHand: false, rackEnd: false,
+      announcement: context.announcement, actions: {},
+    }),
+  });
+  const dispose = attachShotAnnouncer(game, dom.stage);
+  game.startRack();
+  game.startShot('press-1');
+  assert.equal(dom.banner.textContent, '', 'no banner until the shot settles');
+  game.resolveShot({shotId: 'press-1', context: {announcement: 'Scratch while pressing: bonus lost!'}});
+  assert.equal(dom.banner.textContent, 'Scratch while pressing: bonus lost!');
+  game.settle();
+  game.startShot('press-2');
+  game.resolveShot({shotId: 'press-2', context: {announcement: 'Bank/kick doubles the rack bonus!'}});
+  assert.equal(dom.banner.textContent, 'Bank/kick doubles the rack bonus!');
+  dispose();
+});
