@@ -16,7 +16,12 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
   'Cutthroat uses a guarded dynamic module import so startup errors are visible');
  assert.match(html,/Cutthroat could not start:/,
   'startup failures must explain why the table did not load');
- assert.match(controller,/createShotResultSession\(/);
+ assert.match(controller,/createGameSession\(/);
+ assert.match(controller,/session\.startRack\(\)/);
+ assert.match(controller,/session\.startShot\(shotId\)/);
+ assert.match(controller,/session\.resolveShot\(/);
+ assert.match(controller,/session\.settle\(/);
+ assert.match(controller,/session\.confirmPlacement\(\)/);
  assert.match(controller,/adjudicateCutthroatShot/);
  assert.match(controller,/resolveCutthroatClaim\(/);
  assert.match(controller,/assignCutthroatGroup\(/);
@@ -73,9 +78,9 @@ test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming
  const game={phase:'claim',breakShot:false,power:68,top:0,side:0,placementValid:true,
   match:{turn:1,winner:null,owners:[0,1,2],pendingClaim:{
    claimant:2,scratcher:0,returnable:[4]},groupChoicePlayer:null}};
- const update=new Function('$','game','names','ranges','remainingCutthroatBalls',
+ const update=new Function('$','game','session','names','ranges','remainingCutthroatBalls',
   'availableGroups','Option',source[0].replace(/\nfunction finishShot\(\)$/,'')+
-  '\nreturn update;')($,game,['Player 1','Player 2','Player 3'],
+  '\nreturn update;')($,game,{breakShot:false},['Player 1','Player 2','Player 3'],
   ['1–5','6–10','11–15'],()=>[1],()=>[],
   class Option{constructor(text,value){this.text=text;this.value=value;}});
  update();

@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {createGameSession} from '../src/game-session.js';
 import {adjudicateTunaShot} from '../src/tuna-shot-adapter.js';
 import {adjudicatePressShot} from '../src/press-shot-adapter.js';
+import {adjudicateCutthroatShot} from '../src/cutthroat-shot-adapter.js';
+import {startCutthroat,assignCutthroatGroup,resolveCutthroatClaim} from '../src/cutthroat-rules.js';
 import {newMatch} from '../src/press-your-luck-score.js';
 
 const balls=()=>Array.from({length:15},(_,i)=>({
@@ -122,4 +124,52 @@ test('Press GameSession retains scratch ball-in-hand placement after a break',()
  assert.equal(game.startShot('before-placement'),false);
  assert.equal(game.confirmPlacement(),true);
  assert.equal(game.startShot('after-placement'),true);
+});
+
+
+test('Cutthroat GameSession keeps group choice, third-seat scratch claim and placement',()=>{
+ const game=createGameSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
+ const rulings=[];
+ game.subscribe(result=>rulings.push(result));
+ game.startRack();
+ assert.equal(game.phase,'aim');
+ assert.equal(game.breakShot,true);
+ assert.equal(game.startShot('cut-break'),true);
+ assert.equal(game.startShot('duplicate-break'),false);
+ const breakResult=game.resolveShot({shotId:'cut-break',context:{
+  match:startCutthroat(),breakShot:true,
+  shotEvents:[{type:'contact',balls:[0,1]},{type:'pocket',ballId:1,pocketId:'TL'}],
+ }});
+ assert.equal(breakResult.actions.match.groupChoicePlayer,0);
+ assert.deepEqual(breakResult.pocketed,[1]);
+ assert.equal(game.resolveShot({shotId:'cut-break',context:{}}),breakResult);
+ assert.equal(rulings.length,1);
+ assert.equal(game.settle(),true);
+ assert.equal(game.breakShot,false);
+ let match=assignCutthroatGroup(breakResult.actions.match,0,0);
+ assert.equal(match.owners[0],0);
+ assert.equal(game.startShot('cut-scratch'),true);
+ const scratch=game.resolveShot({shotId:'cut-scratch',context:{
+  match,shotEvents:[{type:'contact',balls:[0,2]},{type:'pocket',ballId:0,pocketId:'TL'}],
+ }});
+ assert.equal(scratch.foul,true);
+ assert.equal(scratch.ballInHand,true);
+ assert.equal(scratch.nextPlayer,1);
+ assert.equal(scratch.actions.match.pendingClaim.claimant,2);
+ match=resolveCutthroatClaim(scratch.actions.match,2);
+ assert.equal(match.claimedBalls[2],2);
+ assert.equal(game.settle({ballInHand:scratch.ballInHand}),true);
+ assert.equal(game.phase,'place');
+ assert.equal(game.startShot('too-soon'),false);
+ assert.equal(game.confirmPlacement(),true);
+ assert.equal(game.phase,'aim');
+ assert.equal(game.startShot('after-claim'),true);
+ assert.equal(rulings.length,2);
+ game.startRack();
+ assert.throws(()=>game.resolveShot({shotId:'after-claim',context:{match}}),/inactive or stale/);
+ assert.equal(game.breakShot,true);
+ assert.equal(game.startShot('new-cut-break'),true);
+ const newBreak=game.resolveShot({shotId:'new-cut-break',context:{match:startCutthroat(),breakShot:true,shotEvents:[]}});
+ assert.equal(newBreak.game,'cutthroat');
+ assert.equal(rulings.length,3);
 });
