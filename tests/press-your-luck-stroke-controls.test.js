@@ -27,7 +27,7 @@ test('Press Your Luck consumes selected power and spin before resetting controls
  const powerReset=shoot.indexOf("$('power').value='68'",spin);
  const topReset=shoot.indexOf("$('spin-top').value='0'",spin);
  const sideReset=shoot.indexOf("$('spin-side').value='0'",spin);
- const moving=shoot.indexOf('shot.startShot(statsShotId)',spin);
+ const moving=shoot.indexOf('shot.startShot(statsShotId)');
  assert.ok(moving>=0&&moving<speed&&speed>=0&&spin>speed&&
   powerReset>spin&&topReset>spin&&sideReset>spin,
   'reserve a shot before applying physics, then reset power and spin after consumption');
