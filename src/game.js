@@ -4,7 +4,9 @@ import {initStats,newStatsId,reportRack,reportBalls} from './stats.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
+import {createTableRenderer} from './table-renderer.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
+const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const invertAim=bindInvertAim($('#invert-aim'));
@@ -319,20 +321,17 @@ function drawBall(b){
 }
 function render(){
  const w=TABLE.width,h=TABLE.height,r=TABLE.radius,gr=ctx.createRadialGradient(w*.44,h*.42,100,w*.5,h*.5,710);
- gr.addColorStop(0,'#217766');gr.addColorStop(1,'#104638');ctx.fillStyle=gr;ctx.fillRect(0,0,w,h);
- // Rail tops are wood inside the canvas; diamond inlays stay on the wood.
- ctx.fillStyle='#5d402a';ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
- ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
- for(const p of pockets)renderPocket(ctx,p);
- ctx.save();ctx.strokeStyle='#a6865f';ctx.lineWidth=2.5;ctx.lineCap='round';
- ctx.beginPath();for(const f of facings){ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);}
- ctx.stroke();ctx.restore();
- // Visible cushion faces line up with the physics collision planes (ball centers at radius r).
- // The former decorative inset rectangle looked like an invisible second set of rails.
- ctx.save();ctx.strokeStyle='#b58a53';ctx.lineWidth=3;
- ctx.beginPath();
- for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}
- ctx.stroke();ctx.restore();
+ gr.addColorStop(0,'#217766');gr.addColorStop(1,'#104638');
+ // Shared regulation surface, with But Wait's original rainforest felt,
+ // wooden rail tops, pocket facings and cushion colors preserved.
+ renderer.drawSurface(ctx,{
+  cloth:gr,rail:'#5d402a',cushion:'#b58a53',cushionWidth:3,
+  afterPockets:()=>{
+   ctx.save();ctx.strokeStyle='#a6865f';ctx.lineWidth=2.5;ctx.lineCap='round';
+   ctx.beginPath();for(const f of facings){ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);}
+   ctx.stroke();ctx.restore();
+  }
+ });
  // Regulation head string: break cue center must remain behind this line.
  if(state.phase==='placeBreak'){
   ctx.fillStyle='#e6cb7135';ctx.fillRect(2*r,2*r,headStringX()-2*r,h-4*r);
@@ -375,7 +374,7 @@ function render(){
   ctx.fillStyle='#f2d6a6ed';ctx.font='bold 25px system-ui';ctx.textAlign='center';
   ctx.fillText(state.phase==='placeBreak'?'POSITION WHITE BALL BEHIND HEAD STRING':state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
  }
- for(const b of state.balls)if(!b.pocketed)drawBall(b);
+ renderer.drawBalls(ctx,state.balls,drawBall);
  if(state.phase==='placeStash'&&state.pendingStashBall!==null&&state.pendingStashPoint){
   ctx.save();ctx.globalAlpha=.6;
   drawBall(ball(state.pendingStashBall,state.pendingStashPoint.x,state.pendingStashPoint.y));
