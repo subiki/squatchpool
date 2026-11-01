@@ -7,6 +7,7 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
 import {tunaTargets,tunaRackOrder} from './tuna-rules.js';
 import {createGameSession} from './game-session.js';
+import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateTunaShot} from './tuna-shot-adapter.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let balls=[],turn=0,money=[0,0],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,shotCall=0,shotPocket='';
@@ -15,6 +16,7 @@ const cue=()=>balls.find(b=>b.id===0);
 const shot=createGameSession({game:'tuna',adjudicate:adjudicateTunaShot});
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 const telemetry=createGameTelemetry('tuna');
+attachShotAnnouncer(shot,$('table-stage'));
 shot.subscribe(result=>{
  if(result.pocketed.length)telemetry.balls(statsRackId,result.shotId,result.pocketed.length);
  const li=document.createElement('li');li.textContent=result.announcement;$('history').prepend(li);
