@@ -78,7 +78,7 @@ test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming
  const game={phase:'claim',breakShot:false,power:68,top:0,side:0,placementValid:true,
   match:{turn:1,winner:null,owners:[0,1,2],pendingClaim:{
    claimant:2,scratcher:0,returnable:[4]},groupChoicePlayer:null}};
- const update=new Function('
+ const update=new Function('$','game','session','names','ranges','remainingCutthroatBalls',
   'availableGroups','Option',source[0].replace(/\nfunction finishShot\(\)$/,'')+
   '\nreturn update;')($,game,{breakShot:false},['Player 1','Player 2','Player 3'],
   ['1–5','6–10','11–15'],()=>[1],()=>[],
