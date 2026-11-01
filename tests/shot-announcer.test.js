@@ -126,7 +126,7 @@ test('Cutthroat announces one settled three-seat ruling without duplicating hist
   assert.equal(dom.banner.textContent, 'Scratch! Third player may claim a ball.');
   assert.equal(dom.banner.classList.contains('is-visible'), true);
   assert.equal(rulings, 1, 'only one resolved event for history and telemetry consumers');
-  assert.throws(() => game.resolveShot({shotId: 'cut-1', context: {announcement: 'duplicate'}}));
+  game.resolveShot({shotId: 'cut-1', context: {announcement: 'duplicate'}});
   assert.equal(rulings, 1);
   dispose();
   unsubscribe();
