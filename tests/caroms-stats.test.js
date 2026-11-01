@@ -10,8 +10,10 @@ test('Caroms playtest reports a rack only when the 1-ball break is struck',()=>{
  const game=read('src/caroms-game.js');
  assert.match(game,/statsRackId:newCaromsStatsId\(\)/);
  assert.match(game,/if\(state\.breakShot\)reportCaromsRack\(state\.statsRackId\)/);
- assert.match(game,/if\(made\)reportCaromsBalls\(state\.statsRackId,shot\.statsShotId,made\)/);
- assert.match(game,/decision\.pocketed\.filter\(id=>id!==0\)/);
+ assert.match(game,/if\(result\.pocketed\.length\)reportCaromsBalls\(state\.statsRackId,result\.shotId,result\.pocketed\.length\)/);
+ assert.match(game,/resolvedShots\.resolve\(/);
+ assert.match(game,/resolvedShots\.reset\(\)/);
+ assert.match(read('src/caroms-shot-adapter.js'),/decision\.pocketed\.filter\(id=>id>0\)/);
  assert.match(game,/function newMatch\(\)\{\s*matchWins=\[0,0\];newGame\(\)/);
  assert.match(game,/initCaromsStats\(\);newMatch\(\);requestAnimationFrame\(frame\)/);
 });
