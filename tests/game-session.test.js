@@ -4,6 +4,8 @@ import {createGameSession} from '../src/game-session.js';
 import {adjudicateTunaShot} from '../src/tuna-shot-adapter.js';
 import {adjudicatePressShot} from '../src/press-shot-adapter.js';
 import {adjudicateCutthroatShot} from '../src/cutthroat-shot-adapter.js';
+import {adjudicateCaromsShot} from '../src/caroms-shot-adapter.js';
+import {ball} from '../src/physics.js';
 import {startCutthroat,assignCutthroatGroup,resolveCutthroatClaim} from '../src/cutthroat-rules.js';
 import {newMatch} from '../src/press-your-luck-score.js';
 
@@ -172,4 +174,43 @@ test('Cutthroat GameSession keeps group choice, third-seat scratch claim and pla
  const newBreak=game.resolveShot({shotId:'new-cut-break',context:{match:startCutthroat(),breakShot:true,shotEvents:[]}});
  assert.equal(newBreak.game,'cutthroat');
  assert.equal(rulings.length,3);
+});
+
+
+test('Caroms GameSession retains object-ball break and center-or-leave foul decisions',()=>{
+ const game=createGameSession({game:'caroms',adjudicate:adjudicateCaromsShot});
+ const rulings=[];game.subscribe(result=>rulings.push(result));
+ const caromsBalls=()=>Array.from({length:16},(_,id)=>ball(id,100+id*3,200));
+ const contact=(a,b)=>({type:'contact',balls:[a,b]});
+ const rail={type:'rail',ballId:0};
+ game.startRack();
+ assert.equal(game.breakShot,true);
+ assert.equal(game.startShot('caroms-break'),true);
+ assert.equal(game.startShot('duplicate-break'),false);
+ const breakResult=game.resolveShot({shotId:'caroms-break',context:{
+  balls:caromsBalls(),groups:[null,null],shooter:0,shooterBall:1,
+  shotEvents:[contact(1,0),rail],breakShot:true,
+ }});
+ assert.equal(breakResult.legal,true);
+ assert.equal(breakResult.nextPlayer,1);
+ assert.equal(breakResult.rackEnd,false);
+ assert.deepEqual(breakResult.actions.groups,[null,null]);
+ assert.equal(game.resolveShot({shotId:'caroms-break',context:{}}),breakResult);
+ assert.equal(rulings.length,1);
+ assert.equal(game.settle(),true);
+ assert.equal(game.breakShot,false);
+ assert.equal(game.phase,'aim');
+ assert.equal(game.startShot('caroms-foul'),true);
+ const foul=game.resolveShot({shotId:'caroms-foul',context:{
+  balls:caromsBalls(),groups:[null,null],shooter:1,shooterBall:1,
+  shotEvents:[contact(1,3),contact(1,0),rail],breakShot:false,
+ }});
+ assert.equal(foul.foul,true);
+ assert.equal(foul.ballInHand,false,'Caroms uses a center-or-leave decision, not BIH');
+ assert.equal(foul.actions.cueOption,'leave-or-center');
+ assert.equal(game.settle(),true);
+ game.startRack();
+ assert.equal(game.startShot('new-rack'),true);
+ assert.throws(()=>game.resolveShot({shotId:'caroms-foul',context:{}}),/inactive or stale/);
+ assert.equal(rulings.length,2,'a stale stroke cannot announce or report a pocket');
 });
