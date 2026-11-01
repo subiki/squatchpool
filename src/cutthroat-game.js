@@ -3,7 +3,9 @@ import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,c
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
 import {tablePoint} from './table-pointer.js';
-import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,finishCutthroatShot,resolveCutthroatClaim} from './cutthroat-rules.js';
+import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,resolveCutthroatClaim} from './cutthroat-rules.js';
+import {createShotResultSession} from './shot-result.js';
+import {adjudicateCutthroatShot} from './cutthroat-shot-adapter.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 const $=id=>document.getElementById(id);
@@ -18,7 +20,13 @@ function say(message){
  $('cut-log').prepend(li);
  while($('cut-log').children.length>15)$('cut-log').lastElementChild.remove();
 }
+const resolvedShots=createShotResultSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
+resolvedShots.subscribe(result=>{
+ if(result.pocketed.length)reportCutthroatBalls(game.statsRackId,result.shotId,result.pocketed.length);
+ say(result.announcement);
+});
 function newGame(){
+ resolvedShots.reset();
  setTableSize(Number($('cut-size').value));
  try{localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
  canvas.width=Math.round(TABLE.width);canvas.height=Math.round(TABLE.height);
@@ -72,17 +80,11 @@ function update(){
 }
 function finishShot(){
  const shot=game.shot;game.shot=null;
- const pocketed=[...new Set(shot.events.filter(e=>e.type==='pocket'&&e.ballId!==0).map(e=>e.ballId))];
- const scratch=shot.events.some(e=>e.type==='pocket'&&e.ballId===0);
- if(pocketed.length)reportCutthroatBalls(game.statsRackId,shot.statsShotId,pocketed.length);
- const contacted=shot.events.some(e=>e.type==='contact'&&e.balls?.includes(0));
- // The manuscript does not specify non-scratch fouls. Missing all object
- // balls is treated as a turn-ending miss, not a speculative penalty.
- const before=game.match.turn;
- game.match=finishCutthroatShot(game.match,{pocketed,scratch,foul:!contacted&&!shot.breakShot});
+ const result=resolvedShots.resolve({shotId:shot.statsShotId,context:{
+  match:game.match,shotEvents:shot.events,breakShot:shot.breakShot,
+ }});
+ game.match=result.actions.match;
  game.breakShot=false;
- say(names[before]+': '+(pocketed.length?'pocketed '+pocketed.join(', '):'no ball pocketed')+
-  (scratch?' · scratch. Third player decides a claim.':'.'));
  if(game.match.winner!==null){game.phase='done';say(names[game.match.winner]+' wins the rack.');}
  else if(game.match.pendingTurn!==null){game.phase='chooseGroup';}
  else if(game.match.pendingClaim){game.phase='claim';}
