@@ -29,7 +29,7 @@ export function adjudicateCaromsShot({
  return {
   legal:!decision.foul,foul:decision.foul,pocketed,
   points:decision.winner===shooter?1:0,
-  nextPlayer:decision.nextPlayer,
+  nextPlayer:decision.winner!==null?decision.winner:decision.nextPlayer,
   // Caroms uses an explicit center-or-leave choice, not unrestricted BIH.
   ballInHand:false,rackEnd:decision.winner!==null,announcement,
   actions:decision,
