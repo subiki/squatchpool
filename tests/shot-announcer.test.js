@@ -104,3 +104,31 @@ test('Press Your Luck announces settled pressing and bank/kick rulings without r
   assert.equal(dom.banner.textContent, 'Bank/kick doubles the rack bonus!');
   dispose();
 });
+
+
+test('Cutthroat announces one settled three-seat ruling without duplicating history events', () => {
+  const dom = fakeStage();
+  let rulings = 0;
+  const game = createGameSession({
+    game: 'cutthroat',
+    adjudicate: context => ({
+      legal: false, foul: true, pocketed: [], points: 0,
+      nextPlayer: 2, ballInHand: true, rackEnd: false,
+      announcement: context.announcement, actions: {pendingClaim: true},
+    }),
+  });
+  const dispose = attachShotAnnouncer(game, dom.stage);
+  const unsubscribe = game.subscribe(() => { rulings++; });
+  game.startRack();
+  assert.equal(game.startShot('cut-1'), true);
+  assert.equal(dom.banner.textContent, '', 'do not announce before the physics settles');
+  game.resolveShot({shotId: 'cut-1', context: {announcement: 'Scratch! Third player may claim a ball.'}});
+  assert.equal(dom.banner.textContent, 'Scratch! Third player may claim a ball.');
+  assert.equal(dom.banner.classList.contains('is-visible'), true);
+  assert.equal(rulings, 1, 'only one resolved event for history and telemetry consumers');
+  assert.throws(() => game.resolveShot({shotId: 'cut-1', context: {announcement: 'duplicate'}}));
+  assert.equal(rulings, 1);
+  dispose();
+  unsubscribe();
+  assert.equal(dom.banner.removed, true);
+});
