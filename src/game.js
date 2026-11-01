@@ -3,6 +3,7 @@ import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {initStats,newStatsId,reportRack,reportBalls} from './stats.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
+import {tablePoint} from './table-pointer.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
@@ -407,7 +408,7 @@ function frame(timestamp){
  }
  if(state)render();requestAnimationFrame(frame);
 }
-function eventPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*TABLE.width/r.width,y:(e.clientY-r.top)*TABLE.height/r.height};}
+function eventPoint(e){return tablePoint(canvas,e);}
 let dragging=false,draggingBreak=false,breakPositionValid=false;
 // Hit targets are sized in CSS pixels so touch taps remain usable on phones.
 function closestCallBall(point){
