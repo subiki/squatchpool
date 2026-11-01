@@ -5,6 +5,7 @@ import {createTableRenderer} from './table-renderer.js';
 import {tablePoint} from './table-pointer.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,resolveCutthroatClaim} from './cutthroat-rules.js';
 import {createGameSession} from './game-session.js';
+import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateCutthroatShot} from './cutthroat-shot-adapter.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
@@ -21,6 +22,9 @@ function say(message){
  while($('cut-log').children.length>15)$('cut-log').lastElementChild.remove();
 }
 const session=createGameSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
+// Mount only on real DOM stages; minimal controller test doubles omit ownerDocument.
+const announcerStage=$('table-stage');
+if(announcerStage?.ownerDocument)attachShotAnnouncer(session,announcerStage);
 session.subscribe(result=>{
  if(result.pocketed.length)reportCutthroatBalls(game.statsRackId,result.shotId,result.pocketed.length);
  say(result.announcement);
