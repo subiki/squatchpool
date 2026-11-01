@@ -5,9 +5,9 @@ import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
-import {groupOf} from './rules.js';
 import {newMatch,validateTargetScore} from './press-your-luck-score.js';
-import {pressTurn,pressEligible,qualifiesEightBankKick} from './press-your-luck-turn.js';
+import {createShotResultSession} from './shot-result.js';
+import {adjudicatePressShot} from './press-shot-adapter.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
@@ -15,8 +15,14 @@ const telemetry=createGameTelemetry('press-your-luck');
 const shot=createShotLifecycle();
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 let statsRackId=null,statsShotId=null;
+const resolvedShots=createShotResultSession({game:'press-your-luck',adjudicate:adjudicatePressShot});
+resolvedShots.subscribe(result=>{
+ if(result.pocketed.length)telemetry.balls(statsRackId,result.shotId,result.pocketed.length);
+ const li=document.createElement('li');li.textContent=result.announcement;$('history').prepend(li);
+});
 function message(s){$('status').textContent=s;}
 function rack(){
+ resolvedShots.reset();
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];shot.startRack();angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
@@ -106,30 +112,30 @@ function pickTableCall(x,y){
  return false;
 }
 function endShot(){
- const madeCount=new Set(events.filter(e=>e.type==='pocket'&&e.ballId>0).map(e=>e.ballId)).size;
- if(madeCount)telemetry.balls(statsRackId,statsShotId,madeCount);
- const ids=events.filter(e=>e.type==='pocket').map(e=>e.ballId);
- const scratch=ids.includes(0);
- const called=shotCall,pocket=shotPocket;
- const made=events.some(e=>e.type==='pocket'&&e.ballId===called&&e.pocketId===pocket);
- const eightMade=events.some(e=>e.type==='pocket'&&e.ballId===8&&e.pocketId===pocket);
- const illegalEight=ids.includes(8)&&(!eightMade||called!==8);
- const legalCall=shot.breakShot||made||!ids.some(id=>id!==0);
- const assignment=!groups[turn]&&!shot.breakShot&&made&&groupOf(called)&&!scratch&&firstContact!==null&&groupOf(firstContact)===groupOf(called);
- if(assignment){groups[turn]=groupOf(called);groups[1-turn]=groups[turn]==='solids'?'stripes':'solids';}
- const eligible=pressEligible(preBalls,groups[turn]);
- const legalFirst=shot.breakShot?firstContact!==null:!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||Boolean(groupOf(firstContact)):groupOf(firstContact)===groups[turn];
- const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot:shot.breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:qualifiesEightBankKick(events,{declared:shotBank,calledBall:called,calledPocket:pocket}),calledShotMade:made});
- match=result.match;
- if(result.respotEight){const b=balls.find(b=>b.id===8);const p=findPlacement(balls.filter(other=>other.id!==8),{x:TABLE.width/2,y:TABLE.height/2});if(p){Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});}else{message('No room to respot the 8.');shot.settle({done:true});update();return;}}
- if(result.finish){
-  const li=document.createElement('li');li.textContent='Rack '+(match.finished?match.rack:match.rack-1)+': Player '+(result.winner+1)+' wins '+match.lastRack.awarded+' points';$('history').prepend(li);
+ const result=resolvedShots.resolve({shotId:statsShotId,context:{
+  match,balls:preBalls,groups,shooter:turn,shotEvents:events,firstContact,
+  breakShot:shot.breakShot,calledBall:shotCall,calledPocket:shotPocket,
+  declaredBank:shotBank,
+ }});
+ match=result.actions.match;
+ groups=result.actions.groups;
+ if(result.actions.respotEight){
+  const b=balls.find(b=>b.id===8);
+  const p=findPlacement(balls.filter(other=>other.id!==8),{x:TABLE.width/2,y:TABLE.height/2});
+  if(p){Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});}
+  else{message('No room to respot the 8.');shot.settle({done:true});update();return;}
+ }
+ if(result.rackEnd){
   shot.settle({done:true});$('next').hidden=match.finished;
-  message(match.finished?'Player '+(match.winner+1)+' wins the match!':'Rack over. Player '+(result.winner+1)+' breaks next.');update();return;
+  message(match.finished?'Player '+(match.winner+1)+' wins the match!':'Rack over. Player '+(result.actions.winner+1)+' breaks next.');update();return;
  }
  turn=result.nextPlayer;
- if(scratch||result.ballInHand){cue().pocketed=false;cue().vx=cue().vy=cue().wx=cue().wy=cue().wz=0;cue().motion='stationary';const p=findPlacement(balls.filter(b=>b.id!==0));if(p)Object.assign(cue(),p);shot.settle({ballInHand:true});message('Player '+(turn+1)+' has ball in hand. Tap a clear position and confirm.');}
- else{shot.settle();message('Player '+(turn+1)+' to shoot. '+(result.match.bonus[turn]?'Pressing bonus at risk.':''));}
+ if(result.ballInHand){
+  cue().pocketed=false;cue().vx=cue().vy=cue().wx=cue().wy=cue().wz=0;cue().motion='stationary';
+  const p=findPlacement(balls.filter(b=>b.id!==0));if(p)Object.assign(cue(),p);
+  shot.settle({ballInHand:true});message('Player '+(turn+1)+' has ball in hand. Tap a clear position and confirm.');
+ }
+ else{shot.settle();message('Player '+(turn+1)+' to shoot. '+(match.bonus[turn]?'Pressing bonus at risk.':''));}
  $('bank').checked=false;callBall.value='';callPocket.value='';update();
 }
 function frame(t){
