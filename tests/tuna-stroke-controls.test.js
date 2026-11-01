@@ -33,6 +33,6 @@ test('Tuna protects the current rack and keeps the money-ball shot ledger across
  assert.match(resetMatch,/\$\('history'\)\.replaceChildren\(/,'new match clears the ledger');
  assert.match(resetMatch,/rackNumber=0/,'new match resets the rack counter');
  assert.match(rack,/rackNumber\+\+/,'next rack advances the counter');
- assert.match(update,/\$\('start'\)\.disabled=phase!=='done'/,'cannot advance an unfinished rack');
- assert.match(source,/\$\('start'\)\.onclick=\(\)=>\{if\(phase==='done'\)rack\(\);\}/,'click handler guards unfinished racks');
+ assert.match(update,/\$\('start'\)\.disabled=shot\.phase!=='done'/,'cannot advance an unfinished rack');
+ assert.match(source,/\$\('start'\)\.onclick=\(\)=>\{if\(shot\.phase==='done'\)rack\(\);\}/,'click handler guards unfinished racks');
 });
