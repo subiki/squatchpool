@@ -5,15 +5,15 @@ import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForS
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
 import {createTableRenderer} from './table-renderer.js';
-import {createShotResultSession} from './shot-result.js';
+import {createGameSession} from './game-session.js';
 import {adjudicateButWaitShot} from './but-wait-shot-adapter.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const invertAim=bindInvertAim($('#invert-aim'));
-const shotResults=createShotResultSession({game:'but-wait',adjudicate:adjudicateButWaitShot});
-shotResults.subscribe(result=>{
+const session=createGameSession({game:'but-wait',adjudicate:adjudicateButWaitShot});
+session.subscribe(result=>{
  if(result.pocketed.length)reportBalls(state.statsRackId,result.shotId,result.pocketed.length);
  log(result.announcement);
 });
@@ -27,7 +27,7 @@ function log(message){
 }
 function newGame(){
  clearTimeout(botTimer);
- shotResults.reset();
+ session.startRack();
  setTableSize(selectedTableSize);
  for(const button of document.querySelectorAll('.table-size-pick')){
   const chosen=Number(button.dataset.size)===TABLE.size;
@@ -212,6 +212,7 @@ function moveBreakCue(){
 function placeCue({x,y}){
  if(!canPlace(state.balls,x,y,0)){say('That spot is blocked. Try a clear spot.');return;}
  Object.assign(cue(),{x,y,vx:0,vy:0,pocketed:false});
+ session.confirmPlacement();
  state.pendingCue=false;say(person(state.turn)+' has ball in hand.');resume();
 }
 function selectStashBall(id){
@@ -254,10 +255,12 @@ function resetShotControls(){
 function hit(direction=state.angle,power=state.power){
  if(state.phase!=='aim'||!callReady())return;
  const b=cue();if(!b||b.pocketed)return;
+ const statsShotId=newStatsId();
+ if(!session.startShot(statsShotId))return;
  const speed=shotSpeed(power,state.isBreak);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
- state.shot={player:state.turn,statsRackId:state.statsRackId,statsShotId:newStatsId(),balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
+ state.shot={player:state.turn,statsRackId:state.statsRackId,statsShotId,balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
  if(state.isBreak)reportRack(state.statsRackId);
  state.shotNumber++;state.isBreak=false;state.phase='moving';
  resetShotControls();
@@ -267,7 +270,7 @@ function finishShot(){
  if(state.phase!=='moving'||!state.shot)return;
  const shot=state.shot;state.shot=null;
  // Stroke controls were reset at strike, not delayed until balls settled.
- const result=shotResults.resolve({shotId:shot.statsShotId,context:{
+ const result=session.resolveShot({shotId:shot.statsShotId,context:{
   balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,
   pocketed:shot.balls,pocketEvents:shot.pocketEvents,
   calledBall:shot.calledBall,calledPocket:shot.calledPocket,
@@ -275,6 +278,7 @@ function finishShot(){
   preShotReadyForEight:shot.preShotReadyForEight,playerLabel:person(shot.player),
  }});
  const decision=result.actions;
+ session.settle({done:result.rackEnd,ballInHand:result.ballInHand});
  if(decision.newGroup){
   state.groups[shot.player]=decision.newGroup;
   state.groups[otherPlayer(shot.player)]=otherGroup(decision.newGroup);
