@@ -4,7 +4,7 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
 import {tablePoint} from './table-pointer.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,resolveCutthroatClaim} from './cutthroat-rules.js';
-import {createShotResultSession} from './shot-result.js';
+import {createGameSession} from './game-session.js';
 import {adjudicateCutthroatShot} from './cutthroat-shot-adapter.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
@@ -20,13 +20,13 @@ function say(message){
  $('cut-log').prepend(li);
  while($('cut-log').children.length>15)$('cut-log').lastElementChild.remove();
 }
-const resolvedShots=createShotResultSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
-resolvedShots.subscribe(result=>{
+const session=createGameSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
+session.subscribe(result=>{
  if(result.pocketed.length)reportCutthroatBalls(game.statsRackId,result.shotId,result.pocketed.length);
  say(result.announcement);
 });
 function newGame(){
- resolvedShots.reset();
+ session.startRack();
  setTableSize(Number($('cut-size').value));
  try{localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
  canvas.width=Math.round(TABLE.width);canvas.height=Math.round(TABLE.height);
@@ -34,7 +34,7 @@ function newGame(){
  const balls=fullRack();
  const p=kitchenPoint(TABLE.width*.18,TABLE.height/2);
  Object.assign(balls[0],p);
- game={balls,match:startCutthroat(),phase:'placeBreak',breakShot:true,
+ game={balls,match:startCutthroat(),phase:'placeBreak',
   angle:0,power:85,top:0,side:0,shot:null,statsRackId:newCutthroatStatsId(),placementValid:false};
  accumulator=0;
  $('cut-log').replaceChildren();
@@ -58,14 +58,14 @@ function update(){
   game.phase==='chooseGroup'?'Your turn has ended. Choose your earned group before play passes.':
   game.phase==='moving'?'Balls rolling…':
   m.groupChoicePlayer===m.turn?'You earned a group choice. Select 1–5, 6–10 or 11–15 now, or keep shooting.':
-  game.breakShot?'Break the rack; balls pocketed on the break stay down.':
+  session.breakShot?'Break the rack; balls pocketed on the break stay down.':
   'Aim from the white ball, then shoot. Any object ball may be pocketed, including your own.';
- $('cut-reposition').hidden=!(game.phase==='aim'&&game.breakShot);
+ $('cut-reposition').hidden=!(game.phase==='aim'&&session.breakShot);
  $('cut-place').hidden=!placing;
  $('cut-place').disabled=!placing||!game.placementValid;
  $('cut-place').textContent=game.phase==='placeBreak'?'Confirm break position':'Confirm ball in hand';
  $('cut-shoot').disabled=!canShoot;
- $('cut-shoot').textContent=game.breakShot?'BREAK':'SHOOT';
+ $('cut-shoot').textContent=session.breakShot?'BREAK':'SHOOT';
  $('cut-group').hidden=!(m.groupChoicePlayer===m.turn&&['aim','chooseGroup'].includes(game.phase));
  const choices=availableGroups(m);
  $('cut-group-select').replaceChildren(...choices.map(g=>new Option(ranges[g],String(g))));
@@ -79,12 +79,13 @@ function update(){
  $('cut-side-value').textContent=game.side+'%';
 }
 function finishShot(){
- const shot=game.shot;game.shot=null;
- const result=resolvedShots.resolve({shotId:shot.statsShotId,context:{
+ const shot=game.shot;if(!shot)return;
+ game.shot=null;
+ const result=session.resolveShot({shotId:shot.statsShotId,context:{
   match:game.match,shotEvents:shot.events,breakShot:shot.breakShot,
  }});
  game.match=result.actions.match;
- game.breakShot=false;
+ session.settle({done:result.rackEnd,ballInHand:result.ballInHand});
  if(game.match.winner!==null){game.phase='done';say(names[game.match.winner]+' wins the rack.');}
  else if(game.match.pendingTurn!==null){game.phase='chooseGroup';}
  else if(game.match.pendingClaim){game.phase='claim';}
@@ -93,11 +94,13 @@ function finishShot(){
 }
 function shoot(){
  if(game.phase!=='aim')return;
- const b=cue(),speed=shotSpeed(game.power,game.breakShot);
+ const shotId=newCutthroatStatsId();
+ if(!session.startShot(shotId))return;
+ const b=cue(),speed=shotSpeed(game.power,session.breakShot);
  b.vx=Math.cos(game.angle)*speed;b.vy=Math.sin(game.angle)*speed;
  applyCueSpin(b,game.top/100,game.side/100);
- game.shot={events:[],time:0,stillFrames:0,breakShot:game.breakShot,statsShotId:newCutthroatStatsId()};
- if(game.breakShot)reportCutthroatRack(game.statsRackId);
+ game.shot={events:[],time:0,stillFrames:0,breakShot:session.breakShot,statsShotId:shotId};
+ if(session.breakShot)reportCutthroatRack(game.statsRackId);
  game.phase='moving';game.power=68;game.top=0;game.side=0;
  $('cut-power').value='68';$('cut-top').value='0';$('cut-side').value='0';
  update();
@@ -166,13 +169,14 @@ canvas.addEventListener('pointercancel',()=>dragging=false);
 $('cut-place').addEventListener('click',()=>{
  if(!game.placementValid||!['placeBreak','placeCue'].includes(game.phase))return;
  if(game.phase==='placeCue'){
+  if(!session.confirmPlacement())return;
   const b=cue();b.pocketed=false;b.vx=0;b.vy=0;b.wx=0;b.wy=0;b.wz=0;b.motion='stationary';
  }
  game.phase='aim';update();
 });
 $('cut-shoot').addEventListener('click',shoot);
 $('cut-reposition').addEventListener('click',()=>{
- if(game.phase!=='aim'||!game.breakShot)return;
+ if(game.phase!=='aim'||!session.breakShot)return;
  game.phase='placeBreak';game.placementValid=false;update();
 });
 $('cut-new').addEventListener('click',newGame);
