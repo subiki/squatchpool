@@ -21,7 +21,7 @@ test('Tuna consumes stroke settings at strike and leaves 68% neutral next shot',
  const power=shoot.indexOf("$('power').value='68'",stroke);
  const draw=shoot.indexOf("$('spin-top').value='0'",stroke);
  const english=shoot.indexOf("$('spin-side').value='0'",stroke);
- const moving=shoot.indexOf('shot.startShot()',stroke);
+ const moving=shoot.indexOf('shot.startShot(statsShotId)',stroke);
  assert.ok(stroke>=0&&power>stroke&&draw>stroke&&english>stroke&&moving>power&&moving>draw&&moving>english,
   'reset power and both spins immediately after applying them, before movement');
  assert.doesNotMatch(endShot,/\$\('power'\)\.value='65'/,
