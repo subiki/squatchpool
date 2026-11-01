@@ -5,21 +5,28 @@
  * remains authoritative in table-geometry.js.
  */
 export function createTableRenderer({table,pockets,cushions,renderPocket}){
- function drawTable(ctx,balls){
+ // Shared surface accepts mode-specific paint without duplicating regulation geometry.
+ // The afterPockets hook keeps But Wait's detailed pocket facings below the cushions.
+ function drawSurface(ctx,{cloth='#155f49',rail='#76563a',cushion='#c59a61',cushionWidth=2,afterPockets}={}){
   const {width:w,height:h,radius:r}=table;
-  ctx.fillStyle='#155f49';ctx.fillRect(0,0,w,h);
-  ctx.fillStyle='#76563a';
+  ctx.fillStyle=cloth;ctx.fillRect(0,0,w,h);
+  ctx.fillStyle=rail;
   ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
   ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
   for(const pocket of pockets)renderPocket(ctx,pocket);
-  ctx.strokeStyle='#c59a61';ctx.lineWidth=2;ctx.beginPath();
-  for(const cushion of cushions){
-   ctx.moveTo(cushion.x1,cushion.y1);
-   ctx.lineTo(cushion.x2,cushion.y2);
+  afterPockets?.(ctx);
+  ctx.strokeStyle=cushion;ctx.lineWidth=cushionWidth;ctx.beginPath();
+  for(const edge of cushions){
+   ctx.moveTo(edge.x1,edge.y1);ctx.lineTo(edge.x2,edge.y2);
   }
   ctx.stroke();
+ }
+ // A game may supply detailed ball artwork; hidden/pocketed balls never render.
+ function drawBalls(ctx,balls,customDrawBall){
   for(const ball of balls){
    if(ball.pocketed)continue;
+   if(customDrawBall){customDrawBall(ball,ctx);continue;}
+   const r=table.radius;
    ctx.beginPath();ctx.arc(ball.x,ball.y,r,0,Math.PI*2);
    ctx.fillStyle=ball.id===0?'#fff':ball.id===8?'#111':ball.id<=7?'#ddac4b':'#477fc0';
    ctx.fill();ctx.strokeStyle='#ffffff99';ctx.stroke();
@@ -29,6 +36,7 @@ export function createTableRenderer({table,pockets,cushions,renderPocket}){
    }
   }
  }
+ function drawTable(ctx,balls){drawSurface(ctx);drawBalls(ctx,balls);}
  // Explicit striker supports Caroms object-ball shots (not always ball 0).
  function drawAim(ctx,striker,angle){
   if(!striker||striker.pocketed)return;
@@ -40,5 +48,5 @@ export function createTableRenderer({table,pockets,cushions,renderPocket}){
   ctx.moveTo(striker.x-dx*(r+15),striker.y-dy*(r+15));
   ctx.lineTo(striker.x-dx*(r+140),striker.y-dy*(r+140));ctx.stroke();
  }
- return {drawTable,drawAim};
+ return {drawSurface,drawBalls,drawTable,drawAim};
 }
