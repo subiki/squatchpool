@@ -1,6 +1,8 @@
 /** Caroms local pass-and-play preview, isolated from But Wait's production game. */
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,headStringX} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
+import {createTableRenderer} from './table-renderer.js';
+import {tablePoint} from './table-pointer.js';
 import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
 import {respotCaromsBall} from './caroms-placement.js';
@@ -218,41 +220,22 @@ function chooseOption(center,fromBot=false){
  else if(center)log(player(state.turn)+' moved the white ball near table center.');
  state.phase='aim';update();scheduleBot();
 }
+const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 function draw(){
- const w=TABLE.width,h=TABLE.height,r=TABLE.radius;
- ctx.fillStyle='#175f4b';ctx.fillRect(0,0,w,h);
- ctx.fillStyle='#61452f';
- ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
- ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
- for(const p of pockets)renderPocket(ctx,p);
- ctx.strokeStyle='#b58a53';ctx.lineWidth=3;ctx.beginPath();
- for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}
- ctx.stroke();
- ctx.strokeStyle='#ffffff50';ctx.setLineDash([6,8]);ctx.beginPath();
- ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),h-r);ctx.stroke();ctx.setLineDash([]);
- for(const b of state.balls){
-  if(b.pocketed)continue;
-  ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);
-  ctx.fillStyle=b.id===0?'#f8f6ed':b.id===8?'#14171b':groupOf(b.id)==='solids'?'#d9aa41':'#4a80b2';
-  ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#ffffffaa';ctx.stroke();
-  if(b.id!==0){
-   ctx.fillStyle='#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-   ctx.fillText(String(b.id),b.x,b.y);
-  }
- }
- // Match the original called-shot flow: no visible stick or aim guide until
- // the called ball and pocket are locked. Break and slop levels remain exempt.
+ renderer.drawTable(ctx,state.balls);
+ // Caroms-specific head string remains visible on the common table.
+ const r=TABLE.radius;
+ ctx.strokeStyle='#ffffff50';ctx.lineWidth=3;ctx.setLineDash([6,8]);ctx.beginPath();
+ ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),TABLE.height-r);
+ ctx.stroke();ctx.setLineDash([]);
+ // No stick until a required called ball and pocket have both been selected.
  const callPending=!state.breakShot&&
   caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn]))&&
   (state.calledBall===null||state.calledPocket===null);
- if(state.phase==='aim'&&!callPending&&striker()&&!striker().pocketed){
-  const b=striker(),dx=Math.cos(state.angle),dy=Math.sin(state.angle);
-  ctx.strokeStyle='#fce2a8';ctx.lineWidth=3;ctx.setLineDash([9,8]);ctx.beginPath();
-  ctx.moveTo(b.x+dx*(r+4),b.y+dy*(r+4));
-  ctx.lineTo(b.x+dx*300,b.y+dy*300);ctx.stroke();ctx.setLineDash([]);
-  ctx.lineWidth=5;ctx.strokeStyle='#dfb37c';ctx.beginPath();
-  ctx.moveTo(b.x-dx*(r+22),b.y-dy*(r+22));
-  ctx.lineTo(b.x-dx*(r+170),b.y-dy*(r+170));ctx.stroke();
+ const b=striker();
+ if(state.phase==='aim'&&!callPending&&b&&!b.pocketed){
+  // The shared renderer receives the selected OBJECT ball, never the white cue ball.
+  renderer.drawAim(ctx,b,state.angle);
   ctx.strokeStyle='#ffde7b';ctx.lineWidth=3;ctx.beginPath();
   ctx.arc(b.x,b.y,r+5,0,Math.PI*2);ctx.stroke();
  }
@@ -282,11 +265,7 @@ function frame(t){
  if(state)draw();
  requestAnimationFrame(frame);
 }
-function point(e){
- const rect=canvas.getBoundingClientRect();
- return{x:(e.clientX-rect.left)*TABLE.width/rect.width,
-  y:(e.clientY-rect.top)*TABLE.height/rect.height};
-}
+const point=e=>tablePoint(canvas,e);
 function aim(p){
  const b=striker();if(!b||state.phase!=='aim')return;
  const angle=angleFromPointer(b,p,invertAim(),radiansToPixels());
