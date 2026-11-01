@@ -5,7 +5,7 @@ import {createTableRenderer} from './table-renderer.js';
 import {tablePoint} from './table-pointer.js';
 import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsEligible,caromsCallRequired} from './caroms-rules.js';
-import {createShotResultSession} from './shot-result.js';
+import {createGameSession} from './game-session.js';
 import {adjudicateCaromsShot} from './caroms-shot-adapter.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
@@ -68,8 +68,8 @@ function log(message){
  $('caroms-log').prepend(li);
  while($('caroms-log').children.length>14)$('caroms-log').lastElementChild.remove();
 }
-const resolvedShots=createShotResultSession({game:'caroms',adjudicate:adjudicateCaromsShot});
-resolvedShots.subscribe(result=>{
+const session=createGameSession({game:'caroms',adjudicate:adjudicateCaromsShot});
+session.subscribe(result=>{
  if(result.pocketed.length)reportCaromsBalls(state.statsRackId,result.shotId,result.pocketed.length);
  log(result.announcement);
 });
@@ -144,7 +144,7 @@ function update(){
 }
 function newGame(){
  if(matchWinner()>=0)return;
- resolvedShots.reset();
+ session.startRack();
  setTableSize(Number($('caroms-size').value));
  // Share the regulation table-size preference with But Wait across game modes.
  // Private browsing or disabled storage must never prevent a rack from starting.
@@ -174,7 +174,7 @@ function respot(id){
 }
 function finishShot(){
  const shot=state.shot;state.shot=null;
- const result=resolvedShots.resolve({shotId:shot.statsShotId,context:{
+ const result=session.resolveShot({shotId:shot.statsShotId,context:{
   balls:state.balls,groups:state.groups,shooter:shot.player,
   shooterBall:shot.shooterBall,shotEvents:shot.events,level:shot.level,
   breakShot:shot.breakShot,calledBall:shot.calledBall,
@@ -185,6 +185,7 @@ function finishShot(){
  state.groups=decision.groups;
  if(decision.respotCue)respot(0);
  if(decision.respotEight)respot(8);
+ session.settle({done:result.rackEnd});
  state.breakShot=false;
  state.calledBall=null;state.calledPocket=null;
  if(decision.winner!==null){
@@ -205,6 +206,8 @@ function hit(fromBot=false){
   caromsEligible(state.balls,state.groups[state.turn]));
  if(needCall&&(!state.calledBall||!state.calledPocket))return;
  const b=striker();if(!b||b.pocketed||b.id===0)return;
+ const statsShotId=newCaromsStatsId();
+ if(!session.startShot(statsShotId))return;
  const speed=shotSpeed(state.power,state.breakShot);
  b.vx=Math.cos(state.angle)*speed;b.vy=Math.sin(state.angle)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
@@ -212,7 +215,7 @@ function hit(fromBot=false){
   level:level(state.turn),breakShot:state.breakShot,calledBall:state.calledBall,
   calledPocket:state.calledPocket,
   eightEligibleBefore:caromsEligible(state.balls,state.groups[state.turn]),
-  statsShotId:newCaromsStatsId()};
+  statsShotId};
  if(state.breakShot)reportCaromsRack(state.statsRackId);
  state.phase='moving';state.shotNumber++;
  state.power=68;state.spinTop=0;state.spinSide=0;
