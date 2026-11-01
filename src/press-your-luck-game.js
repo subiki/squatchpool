@@ -3,6 +3,7 @@ import {createShotLifecycle,createCuePlacement} from './shot-lifecycle.js';
 import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
+import {createTableRenderer} from './table-renderer.js';
 import {groupOf} from './rules.js';
 import {newMatch,validateTargetScore} from './press-your-luck-score.js';
 import {pressTurn,pressEligible,qualifiesEightBankKick} from './press-your-luck-turn.js';
@@ -38,16 +39,13 @@ function begin(){
  $('history').replaceChildren();rack();
 }
 function cue(){return balls.find(b=>b.id===0);}
+const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 function draw(){
- const {width:w,height:h,radius:r}=TABLE;
- ctx.fillStyle='#155f49';ctx.fillRect(0,0,w,h);ctx.fillStyle='#76563a';
- ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
- for(const p of pockets)renderPocket(ctx,p);
- ctx.strokeStyle='#c59a61';ctx.lineWidth=2;ctx.beginPath();for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}ctx.stroke();
- for(const b of balls){if(b.pocketed)continue;ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);ctx.fillStyle=b.id===0?'#fff':b.id===8?'#111':b.id<=7?'#ddac4b':'#477fc0';ctx.fill();ctx.strokeStyle='#ffffff99';ctx.stroke();if(b.id){ctx.fillStyle='white';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillText(b.id,b.x,b.y);}}
+ renderer.drawTable(ctx,balls);
  drawCallTargets();
- if(shot.phase==='aim'&&(shot.breakShot||callReady())){const b=cue(),dx=Math.cos(angle),dy=Math.sin(angle);ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*240,b.y+dy*240);ctx.stroke();ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+140),b.y-dy*(r+140));ctx.stroke();}
+ if(shot.phase==='aim'&&(shot.breakShot||callReady()))renderer.drawAim(ctx,cue(),angle);
 }
+
 const callReady=()=>Boolean($('call-ball').value&&$('call-pocket').value);
 function updateCallHint(){
  const hint=$('table-call-hint');if(!hint)return;
