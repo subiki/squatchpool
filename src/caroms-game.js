@@ -4,7 +4,9 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
 import {tablePoint} from './table-pointer.js';
 import {groupOf,liveGroupBalls} from './rules.js';
-import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
+import {caromsEligible,caromsCallRequired} from './caroms-rules.js';
+import {createShotResultSession} from './shot-result.js';
+import {adjudicateCaromsShot} from './caroms-shot-adapter.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
 import {initCaromsStats,newCaromsStatsId,reportCaromsRack,reportCaromsBalls} from './caroms-stats.js';
@@ -66,6 +68,11 @@ function log(message){
  $('caroms-log').prepend(li);
  while($('caroms-log').children.length>14)$('caroms-log').lastElementChild.remove();
 }
+const resolvedShots=createShotResultSession({game:'caroms',adjudicate:adjudicateCaromsShot});
+resolvedShots.subscribe(result=>{
+ if(result.pocketed.length)reportCaromsBalls(state.statsRackId,result.shotId,result.pocketed.length);
+ log(result.announcement);
+});
 function eligibleBalls(){
  if(state.breakShot)return state.balls.filter(b=>b.id===1&&!b.pocketed);
  const group=state.groups[state.turn];
@@ -137,6 +144,7 @@ function update(){
 }
 function newGame(){
  if(matchWinner()>=0)return;
+ resolvedShots.reset();
  setTableSize(Number($('caroms-size').value));
  // Share the regulation table-size preference with But Wait across game modes.
  // Private browsing or disabled storage must never prevent a rack from starting.
@@ -166,20 +174,17 @@ function respot(id){
 }
 function finishShot(){
  const shot=state.shot;state.shot=null;
- const decision=caromsTurn({balls:state.balls,groups:state.groups,
-  shooter:shot.player,shooterBall:shot.shooterBall,shotEvents:shot.events,
-  level:shot.level,breakShot:shot.breakShot,calledBall:shot.calledBall,
-  calledPocket:shot.calledPocket,eightEligibleBefore:shot.eightEligibleBefore});
+ const result=resolvedShots.resolve({shotId:shot.statsShotId,context:{
+  balls:state.balls,groups:state.groups,shooter:shot.player,
+  shooterBall:shot.shooterBall,shotEvents:shot.events,level:shot.level,
+  breakShot:shot.breakShot,calledBall:shot.calledBall,
+  calledPocket:shot.calledPocket,eightEligibleBefore:shot.eightEligibleBefore,
+  playerLabel:player(shot.player),
+ }});
+ const decision=result.actions;
  state.groups=decision.groups;
- // Every physically pocketed object ball counts, including slop and illegal shots.
- // White-ball scratches do not count. Reporting never blocks the local match.
- const made=decision.pocketed.filter(id=>id!==0).length;
- if(made)reportCaromsBalls(state.statsRackId,shot.statsShotId,made);
  if(decision.respotCue)respot(0);
  if(decision.respotEight)respot(8);
- log(player(shot.player)+': '+(decision.pocketed.filter(id=>id!==0).join(', ')||'no object balls')+
-  '. '+decision.reason);
- if(decision.newGroup)log(player(shot.player)+' takes '+decision.newGroup+'.');
  state.breakShot=false;
  state.calledBall=null;state.calledPocket=null;
  if(decision.winner!==null){
