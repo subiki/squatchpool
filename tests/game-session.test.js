@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGameSession} from '../src/game-session.js';
 import {adjudicateTunaShot} from '../src/tuna-shot-adapter.js';
+import {adjudicatePressShot} from '../src/press-shot-adapter.js';
+import {newMatch} from '../src/press-your-luck-score.js';
 
 const balls=()=>Array.from({length:15},(_,i)=>({
  id:i+1,pocketed:[11,12,13,14].includes(i+1),
@@ -71,4 +73,53 @@ test('GameSession preserves foul placement and confirmation without a break gate
  assert.equal(game.startShot('legal-shot'),true);
  assert.equal(game.settle({done:true}),true);
  assert.equal(game.phase,'done');
+});
+
+const pressContext={
+ match:newMatch(),balls:Array.from({length:16},(_,id)=>({id,pocketed:false})),
+ groups:[null,null],shooter:0,firstContact:1,breakShot:true,
+ shotEvents:[{type:'contact',balls:[0,1]}],
+ calledBall:0,calledPocket:'',declaredBank:false,
+};
+
+test('Press GameSession publishes one ruling and invalidates old rack shots',()=>{
+ const game=createGameSession({game:'press-your-luck',adjudicate:adjudicatePressShot});
+ const published=[];
+ game.subscribe(result=>published.push(result));
+ game.startRack();
+ assert.equal(game.phase,'aim');
+ assert.equal(game.breakShot,true);
+ assert.equal(game.startShot('press-break'),true);
+ assert.equal(game.startShot('duplicate-strike'),false);
+ const result=game.resolveShot({shotId:'press-break',context:pressContext});
+ assert.equal(result.game,'press-your-luck');
+ assert.equal(game.resolveShot({shotId:'press-break',context:pressContext}),result);
+ assert.equal(published.length,1);
+ assert.equal(game.settle({ballInHand:result.ballInHand,done:result.rackEnd}),true);
+ assert.equal(game.breakShot,false);
+ game.startRack();
+ assert.equal(game.startShot('next-rack-break'),true);
+ assert.throws(()=>game.resolveShot({shotId:'press-break',context:pressContext}),/inactive or stale/);
+ game.resolveShot({shotId:'next-rack-break',context:pressContext});
+ assert.equal(published.length,2);
+});
+
+test('Press GameSession retains scratch ball-in-hand placement after a break',()=>{
+ const game=createGameSession({game:'press-your-luck',adjudicate:adjudicatePressShot});
+ game.startRack();
+ assert.equal(game.startShot('scratch-break'),true);
+ const result=game.resolveShot({shotId:'scratch-break',context:{
+  ...pressContext,shotEvents:[
+   {type:'contact',balls:[0,1]},
+   {type:'pocket',ballId:0,pocketId:'TL'},
+  ],
+ }});
+ assert.equal(result.foul,true);
+ assert.equal(result.ballInHand,true);
+ assert.equal(result.nextPlayer,1);
+ assert.equal(game.settle({ballInHand:result.ballInHand}),true);
+ assert.equal(game.phase,'place');
+ assert.equal(game.startShot('before-placement'),false);
+ assert.equal(game.confirmPlacement(),true);
+ assert.equal(game.startShot('after-placement'),true);
 });
