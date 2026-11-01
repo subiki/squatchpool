@@ -34,14 +34,15 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
  globalThis.requestAnimationFrame=callback=>{nextFrame=callback;};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
+ const release=()=>listeners.get('table:pointerup')({pointerId:1,buttons:0});
  const tick=()=>{time+=1000/60;nextFrame(time);};
  try{
   await import('../src/press-your-luck-game.js');
   for(const size of [7,8,9]){
    node('size').value=String(size);node('start').onclick();
-   assert.equal(node('shoot').disabled,true,'break requires cue placement');
-   tap(headStringX()*.55,TABLE.height/2);node('place').onclick();
-   assert.equal(node('shoot').disabled,false,'break needs no called shot');
+   assert.equal(node('shoot').disabled,false,'legal default cue is immediately ready to BREAK');
+   tap(headStringX()*.55,TABLE.height/2);release();
+   assert.equal(node('shoot').disabled,false,'dragging break cue needs no confirmation');
    assert.match(node('table-call-hint').textContent,/No call needed/);
    node('shoot').onclick();
    let frames=0;
