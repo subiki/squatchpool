@@ -8,7 +8,7 @@ import {createCuePlacement} from '../src/shot-lifecycle.js';
 const source=readFileSync(new URL('../src/press-your-luck-game.js',import.meta.url),'utf8');
 const rack=source.split('function rack(){')[1]?.split('function update(){')[0]||'';
 const update=source.split('function update(){')[1]?.split('function begin(){')[0]||'';
-const shoot=source.split("$('shoot').onclick=()=>{")[1]?.split("$('place').onclick=")[0]||'';
+const shoot=source.split('function fire(fromBot=false){')[1]?.split("$('shoot').onclick=")[0]||'';
 
 test('Press Your Luck starts ready to BREAK with a strong neutral stroke',()=>{
  assert.match(rack,/shot\.startRack\(\)/);
@@ -28,9 +28,9 @@ test('Press Your Luck consumes selected power and spin before resetting controls
  const topReset=shoot.indexOf("$('spin-top').value='0'",spin);
  const sideReset=shoot.indexOf("$('spin-side').value='0'",spin);
  const moving=shoot.indexOf('shot.startShot(statsShotId)',spin);
- assert.ok(speed>=0&&spin>speed&&powerReset>spin&&topReset>spin&&sideReset>spin&&
-  moving>powerReset&&moving>topReset&&moving>sideReset,
-  'shot must consume chosen settings before resetting and starting movement');
+ assert.ok(moving>=0&&moving<speed&&speed>=0&&spin>speed&&
+  powerReset>spin&&topReset>spin&&sideReset>spin,
+  'reserve a shot before applying physics, then reset power and spin after consumption');
 });
 
 test('Press Your Luck uses shared break placement without a confirmation gate',()=>{
