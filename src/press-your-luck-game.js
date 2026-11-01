@@ -163,7 +163,7 @@ function frame(t){
  draw();
  requestAnimationFrame(frame);
 }
-const tablePoint=e=>pointerToTable(canvas,e);
+function tablePoint(e){return pointerToTable(canvas,e);}
 
 function aimPointer(e,allowCall=false){
  if(!['aim','place'].includes(shot.phase))return;
