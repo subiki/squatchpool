@@ -1,11 +1,14 @@
 /** Three-seat Coin-Op Cutthroat: original Episode 4 rules, shared 120 Hz table physics. */
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
+import {createTableRenderer} from './table-renderer.js';
+import {tablePoint} from './table-pointer.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,finishCutthroatShot,resolveCutthroatClaim} from './cutthroat-rules.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 const $=id=>document.getElementById(id);
 const canvas=$('cut-table'),ctx=canvas.getContext('2d');
+const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 const invertAim=bindInvertAim($('invert-aim'));
 const names=['Player 1','Player 2','Player 3'];
 const ranges=['1–5','6–10','11–15'];
@@ -111,27 +114,8 @@ function placeCue(p){
  update();
 }
 function draw(){
- const {width:w,height:h,radius:r}=TABLE;
- ctx.fillStyle='#175f4b';ctx.fillRect(0,0,w,h);
- ctx.fillStyle='#61452f';ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
- ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
- for(const p of pockets)renderPocket(ctx,p);
- ctx.strokeStyle='#b58a53';ctx.lineWidth=3;ctx.beginPath();
- for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}ctx.stroke();
- for(const b of game.balls){
-  if(b.pocketed)continue;
-  ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);
-  ctx.fillStyle=b.id===0?'#f8f6ed':b.id===8?'#17191c':b.id<=7?'#d9aa41':'#4a80b2';
-  ctx.fill();ctx.strokeStyle='#ffffffaa';ctx.lineWidth=1.5;ctx.stroke();
-  if(b.id){ctx.fillStyle='#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(String(b.id),b.x,b.y);}
- }
- if(game.phase==='aim'){
-  const b=cue(),dx=Math.cos(game.angle),dy=Math.sin(game.angle);
-  ctx.strokeStyle='#fce2a8';ctx.lineWidth=3;ctx.setLineDash([9,8]);ctx.beginPath();
-  ctx.moveTo(b.x+dx*(r+4),b.y+dy*(r+4));ctx.lineTo(b.x+dx*280,b.y+dy*280);ctx.stroke();ctx.setLineDash([]);
-  ctx.lineWidth=5;ctx.strokeStyle='#dfb37c';ctx.beginPath();
-  ctx.moveTo(b.x-dx*(r+22),b.y-dy*(r+22));ctx.lineTo(b.x-dx*(r+170),b.y-dy*(r+170));ctx.stroke();
- }
+ renderer.drawTable(ctx,game.balls);
+ if(game.phase==='aim')renderer.drawAim(ctx,cue(),game.angle);
 }
 function frame(t){
  const elapsed=lastTime?Math.min(.25,Math.max(0,(t-lastTime)/1000)):0;lastTime=t;
@@ -155,9 +139,7 @@ function frame(t){
  requestAnimationFrame(frame);
 }
 function point(e){
- const rect=canvas.getBoundingClientRect();
- return{x:(e.clientX-rect.left)*TABLE.width/rect.width,
-  y:(e.clientY-rect.top)*TABLE.height/rect.height};
+ return tablePoint(canvas,e);
 }
 function aim(p){
  const angle=angleFromPointer(cue(),p,invertAim(),TABLE.radius);
