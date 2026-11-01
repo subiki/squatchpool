@@ -1,4 +1,5 @@
 import {readInvertAim,angleFromPointer} from './aim-preference.js';
+import {tablePoint as pointerToTable} from './table-pointer.js';
 import {createShotLifecycle,createCuePlacement} from './shot-lifecycle.js';
 import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
@@ -144,11 +145,8 @@ function frame(t){
  draw();
  requestAnimationFrame(frame);
 }
-function tablePoint(e){
- const box=canvas.getBoundingClientRect();
- return {x:(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,
-         y:(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight};
-}
+function tablePoint(e){return pointerToTable(canvas,e);}
+
 function pointer(e,allowCall=false){
  if(!['aim','place'].includes(shot.phase))return;
  const {x,y}=tablePoint(e);
