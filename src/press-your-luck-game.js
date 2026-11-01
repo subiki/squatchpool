@@ -1,4 +1,5 @@
 import {readInvertAim,angleFromPointer} from './aim-preference.js';
+import {createShotLifecycle,createCuePlacement} from './shot-lifecycle.js';
 import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
@@ -6,16 +7,18 @@ import {groupOf} from './rules.js';
 import {newMatch,validateTargetScore} from './press-your-luck-score.js';
 import {pressTurn,pressEligible,qualifiesEightBankKick} from './press-your-luck-turn.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
-let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],phase='ready',angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,breakShot=true,breakPlacementValid=false;
+let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
 const telemetry=createGameTelemetry('press-your-luck');
+const shot=createShotLifecycle();
+const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 let statsRackId=null,statsShotId=null;
 function message(s){$('status').textContent=s;}
 function rack(){
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
- balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];phase='placeBreak';breakShot=true;breakPlacementValid=false;angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
+ balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];shot.startRack();angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
- $('place').hidden=false;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Tap or drag the cue ball within the kitchen, then confirm its position.');update();
+ $('place').hidden=true;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · Player '+(turn+1)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK.');update();
 }
 function update(){
  $('score').textContent='Player 1: '+match.scores[0]+' · Player 2: '+match.scores[1]+' · Target '+match.targetScore;
@@ -24,9 +27,9 @@ function update(){
  const options=balls.filter(b=>!b.pocketed&&b.id);
  callBall.replaceChildren(new Option('Choose ball',''),...options.map(b=>new Option(String(b.id),String(b.id))));
  if(options.some(b=>String(b.id)===selectedCall))callBall.value=selectedCall;
- $('shoot').disabled=phase!=='aim'||(!breakShot&&!callReady());$('shoot').textContent=breakShot?'BREAK':'SHOOT';
- const placing=phase==='place'||phase==='placeBreak';$('place').hidden=!placing;$('place').disabled=!placing||(phase==='placeBreak'&&!breakPlacementValid);$('place').textContent=phase==='placeBreak'?'Confirm break position':'Confirm cue placement';
- $('break-reposition').hidden=!(breakShot&&phase==='aim');
+ $('shoot').disabled=shot.phase!=='aim'||(!shot.breakShot&&!callReady());$('shoot').textContent=shot.breakShot?'BREAK':'SHOOT';
+ const placing=shot.phase==='place';$('place').hidden=!placing;$('place').disabled=!placing;$('place').textContent='Confirm cue placement';
+ $('break-reposition').hidden=true;
  // Keep call selection on the felt; dropdowns remain an accessible fallback.
  updateCallHint();
 }
@@ -43,24 +46,23 @@ function draw(){
  ctx.strokeStyle='#c59a61';ctx.lineWidth=2;ctx.beginPath();for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}ctx.stroke();
  for(const b of balls){if(b.pocketed)continue;ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);ctx.fillStyle=b.id===0?'#fff':b.id===8?'#111':b.id<=7?'#ddac4b':'#477fc0';ctx.fill();ctx.strokeStyle='#ffffff99';ctx.stroke();if(b.id){ctx.fillStyle='white';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font='bold 11px system-ui';ctx.fillText(b.id,b.x,b.y);}}
  drawCallTargets();
- if(phase==='aim'&&(breakShot||callReady())){const b=cue(),dx=Math.cos(angle),dy=Math.sin(angle);ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*240,b.y+dy*240);ctx.stroke();ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+140),b.y-dy*(r+140));ctx.stroke();}
+ if(shot.phase==='aim'&&(shot.breakShot||callReady())){const b=cue(),dx=Math.cos(angle),dy=Math.sin(angle);ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*240,b.y+dy*240);ctx.stroke();ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+140),b.y-dy*(r+140));ctx.stroke();}
 }
 const callReady=()=>Boolean($('call-ball').value&&$('call-pocket').value);
 function updateCallHint(){
  const hint=$('table-call-hint');if(!hint)return;
- $('shoot').disabled=phase!=='aim'||(!breakShot&&!callReady());
- $('undo-call').disabled=phase!=='aim'||breakShot||!($('call-ball').value||$('call-pocket').value);
+ $('shoot').disabled=shot.phase!=='aim'||(!shot.breakShot&&!callReady());
+ $('undo-call').disabled=shot.phase!=='aim'||shot.breakShot||!($('call-ball').value||$('call-pocket').value);
  const called=$('call-ball').value,pocket=pockets.find(p=>p.id===$('call-pocket').value);
- hint.textContent=phase==='placeBreak'?'Place and confirm the break cue ball first.':
-  phase==='place'?'Place and confirm the cue ball first.':
-  phase!=='aim'?'Shot in progress or rack complete.':
-  breakShot?'Break: aim and shoot. No call needed.':
+ hint.textContent=shot.phase==='place'?'Place and confirm the cue ball first.':
+  shot.phase!=='aim'?'Shot in progress or rack complete.':
+  shot.breakShot?'Break: aim and shoot. No call needed.':
   !called?'1. Tap a ball on the table to call it.':
   !pocket?'2. Tap a glowing pocket on the table.':
   'Called '+called+' to '+pocket.label+'. Aim and tap SHOOT.';
 }
 function drawCallTargets(){
- if(phase!=='aim'||breakShot)return;
+ if(shot.phase!=='aim'||shot.breakShot)return;
  const called=Number($('call-ball').value);
  if(!called)return;
  const b=balls.find(ball=>ball.id===called&&!ball.pocketed);
@@ -78,7 +80,7 @@ function drawCallTargets(){
  ctx.restore();
 }
 function pickTableCall(x,y){
- if(phase!=='aim'||breakShot)return false;
+ if(shot.phase!=='aim'||shot.breakShot)return false;
  const scale=Math.max(canvas.width/(canvas.clientWidth||canvas.width),canvas.height/(canvas.clientHeight||canvas.height));
  // The six glowing pocket buttons are the touch targets, not just the
  // pocket mouths. Once a ball is called, prioritize them over nearby balls.
@@ -113,22 +115,22 @@ function endShot(){
  const made=events.some(e=>e.type==='pocket'&&e.ballId===called&&e.pocketId===pocket);
  const eightMade=events.some(e=>e.type==='pocket'&&e.ballId===8&&e.pocketId===pocket);
  const illegalEight=ids.includes(8)&&(!eightMade||called!==8);
- const legalCall=breakShot||made||!ids.some(id=>id!==0);
- const assignment=!groups[turn]&&!breakShot&&made&&groupOf(called)&&!scratch&&firstContact!==null&&groupOf(firstContact)===groupOf(called);
+ const legalCall=shot.breakShot||made||!ids.some(id=>id!==0);
+ const assignment=!groups[turn]&&!shot.breakShot&&made&&groupOf(called)&&!scratch&&firstContact!==null&&groupOf(firstContact)===groupOf(called);
  if(assignment){groups[turn]=groupOf(called);groups[1-turn]=groups[turn]==='solids'?'stripes':'solids';}
  const eligible=pressEligible(preBalls,groups[turn]);
- const legalFirst=breakShot?firstContact!==null:!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||Boolean(groupOf(firstContact)):groupOf(firstContact)===groups[turn];
- const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:qualifiesEightBankKick(events,{declared:shotBank,calledBall:called,calledPocket:pocket}),calledShotMade:made});
+ const legalFirst=shot.breakShot?firstContact!==null:!groups[turn]?Boolean(groupOf(firstContact)):eligible?firstContact===8||Boolean(groupOf(firstContact)):groupOf(firstContact)===groups[turn];
+ const result=pressTurn({match,balls:preBalls,groups,shooter:turn,shotEvents:events,breakShot:shot.breakShot,legalShot:Boolean(legalFirst)&&!illegalEight&&legalCall,eightAttempt:called===8&&!ids.includes(8),bankOrKick:qualifiesEightBankKick(events,{declared:shotBank,calledBall:called,calledPocket:pocket}),calledShotMade:made});
  match=result.match;
- if(result.respotEight){const b=balls.find(b=>b.id===8);const p=findPlacement(balls.filter(other=>other.id!==8),{x:TABLE.width/2,y:TABLE.height/2});if(p){Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});}else{message('No room to respot the 8.');phase='done';update();return;}}
+ if(result.respotEight){const b=balls.find(b=>b.id===8);const p=findPlacement(balls.filter(other=>other.id!==8),{x:TABLE.width/2,y:TABLE.height/2});if(p){Object.assign(b,p,{pocketed:false,vx:0,vy:0,wx:0,wy:0,wz:0,motion:'stationary'});}else{message('No room to respot the 8.');shot.settle({done:true});update();return;}}
  if(result.finish){
   const li=document.createElement('li');li.textContent='Rack '+(match.finished?match.rack:match.rack-1)+': Player '+(result.winner+1)+' wins '+match.lastRack.awarded+' points';$('history').prepend(li);
-  phase='done';$('next').hidden=match.finished;
+  shot.settle({done:true});$('next').hidden=match.finished;
   message(match.finished?'Player '+(match.winner+1)+' wins the match!':'Rack over. Player '+(result.winner+1)+' breaks next.');update();return;
  }
- turn=result.nextPlayer;breakShot=false;
- if(scratch||result.ballInHand){cue().pocketed=false;cue().vx=cue().vy=cue().wx=cue().wy=cue().wz=0;cue().motion='stationary';const p=findPlacement(balls.filter(b=>b.id!==0));if(p)Object.assign(cue(),p);phase='place';message('Player '+(turn+1)+' has ball in hand. Tap a clear position and confirm.');}
- else{phase='aim';message('Player '+(turn+1)+' to shoot. '+(result.match.bonus[turn]?'Pressing bonus at risk.':''));}
+ turn=result.nextPlayer;
+ if(scratch||result.ballInHand){cue().pocketed=false;cue().vx=cue().vy=cue().wx=cue().wy=cue().wz=0;cue().motion='stationary';const p=findPlacement(balls.filter(b=>b.id!==0));if(p)Object.assign(cue(),p);shot.settle({ballInHand:true});message('Player '+(turn+1)+' has ball in hand. Tap a clear position and confirm.');}
+ else{shot.settle();message('Player '+(turn+1)+' to shoot. '+(result.match.bonus[turn]?'Pressing bonus at risk.':''));}
  $('bank').checked=false;callBall.value='';callPocket.value='';update();
 }
 function frame(t){
@@ -136,7 +138,7 @@ function frame(t){
  // without advancing an unbounded number of 120 Hz steps in one paint.
  const elapsed=previous?Math.min(.25,Math.max(0,(t-previous)/1000)):0;
  previous=t;
- if(phase==='moving'){
+ if(shot.phase==='moving'){
   acc=Math.min(.35,acc+elapsed);
   let n=0;
   while(acc>=1/120&&n++<24){
@@ -162,36 +164,42 @@ function frame(t){
  draw();
  requestAnimationFrame(frame);
 }
-function aimPointer(e,allowCall=false){if(!['aim','place','placeBreak'].includes(phase))return;const box=canvas.getBoundingClientRect(),border=canvas.clientLeft,insideWidth=canvas.clientWidth,insideHeight=canvas.clientHeight,x=(e.clientX-box.left-border)*canvas.width/insideWidth,y=(e.clientY-box.top-border)*canvas.height/insideHeight;if(phase==='placeBreak'){
-  // A tap beyond the head string cannot teleport the cue back into the kitchen.
-  const p=x>=headStringX()?{x,y}:kitchenPoint(x,y);
-  breakPlacementValid=canPlaceBreakCue(balls,p.x,p.y);
-  if(breakPlacementValid)Object.assign(cue(),p);
-  $('notice').textContent=breakPlacementValid?'Break position valid. Confirm placement.':'Place the entire cue ball behind the head string.';
-  update();return;
+function tablePoint(e){
+ const box=canvas.getBoundingClientRect();
+ return {x:(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,
+         y:(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight};
+}
+function aimPointer(e,allowCall=false){
+ if(!['aim','place'].includes(shot.phase))return;
+ const {x,y}=tablePoint(e);
+ if(shot.phase==='place'){
+  $('notice').textContent=cuePlacement.placeBallInHand({x,y})?'Cue position valid. Confirm placement.':'Cue overlaps a ball or rail. Choose an open spot.';
+  draw();return;
  }
- if(phase==='place'){if(canPlace(balls,x,y,0)){cue().x=x;cue().y=y;draw();$('notice').textContent='Cue position valid. Confirm placement.';}else $('notice').textContent='Cue overlaps a ball or rail. Choose an open spot.';return;}
  if(allowCall&&pickTableCall(x,y))return;
- if(!breakShot&&!callReady())return;
- const b=cue();const next=angleFromPointer(b,{x,y},$('invert-aim').checked,TABLE.radius);if(next!==null)angle=next;}
+ if(!shot.breakShot&&!callReady())return;
+ const next=angleFromPointer(cue(),{x,y},$('invert-aim').checked,TABLE.radius);
+ if(next!==null)angle=next;
+}
 canvas.addEventListener('pointerdown',e=>{
  canvas.setPointerCapture(e.pointerId);
- // Drag the cue itself to reposition after confirmation, without stealing ordinary aim taps.
- if(phase==='aim'&&breakShot){const box=canvas.getBoundingClientRect();const x=(e.clientX-box.left-canvas.clientLeft)*canvas.width/canvas.clientWidth,y=(e.clientY-box.top-canvas.clientTop)*canvas.height/canvas.clientHeight;
-  if(Math.hypot(x-cue().x,y-cue().y)<=TABLE.radius*2.5){phase='placeBreak';breakPlacementValid=false;}
- }
+ if(shot.phase==='aim'&&shot.breakShot&&cuePlacement.pointerDown(tablePoint(e))){update();return;}
  aimPointer(e,true);
 });
-canvas.addEventListener('pointermove',e=>{if(e.buttons)aimPointer(e,false);});
-$('shoot').onclick=()=>{if(phase!=='aim')return;if(!breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';phase='moving';$('shoot').disabled=true;};
-$('place').onclick=()=>{
- if(phase==='placeBreak'&&breakPlacementValid){phase='aim';message('Break position confirmed. Aim, then tap BREAK.');update();}
- else if(phase==='place'){phase='aim';message('Player '+(turn+1)+' to shoot.');update();}
-};
-$('break-reposition').onclick=()=>{if(phase==='aim'&&breakShot){phase='placeBreak';breakPlacementValid=false;message('Tap or drag the cue ball within the kitchen, then confirm.');update();}};
+canvas.addEventListener('pointermove',e=>{
+ if(!e.buttons)return;
+ if(shot.breakShot&&cuePlacement.pointerMove(tablePoint(e))){update();return;}
+ aimPointer(e,false);
+});
+canvas.addEventListener('pointerup',()=>{
+ if(cuePlacement.pointerUp()){message('Cue positioned. Aim and press BREAK.');update();}
+});
+canvas.addEventListener('pointercancel',()=>{cuePlacement.pointerUp();});
+$('shoot').onclick=()=>{if(shot.phase!=='aim')return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';shot.startShot();$('shoot').disabled=true;};
+$('place').onclick=()=>{if(shot.confirmPlacement()){message('Player '+(turn+1)+' to shoot.');update();}};
 $('call-ball').addEventListener('change',()=>{callPocket.value='';updateCallHint();});
 $('call-pocket').addEventListener('change',updateCallHint);
-$('undo-call').onclick=()=>{if(phase!=='aim'||breakShot)return;callBall.value='';callPocket.value='';message('Call cleared. Tap a ball to call a new shot.');updateCallHint();};
+$('undo-call').onclick=()=>{if(shot.phase!=='aim'||shot.breakShot)return;callBall.value='';callPocket.value='';message('Call cleared. Tap a ball to call a new shot.');updateCallHint();};
 $('next').onclick=rack;$('start').onclick=begin;
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 $('invert-aim').onchange=()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}};
