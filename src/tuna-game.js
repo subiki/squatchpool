@@ -16,7 +16,9 @@ const cue=()=>balls.find(b=>b.id===0);
 const shot=createGameSession({game:'tuna',adjudicate:adjudicateTunaShot});
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 const telemetry=createGameTelemetry('tuna');
-attachShotAnnouncer(shot,$('table-stage'));
+// Minimal controller test doubles omit DOM ownership; real elements always have it.
+const announcerStage=$('table-stage');
+if(announcerStage?.ownerDocument)attachShotAnnouncer(shot,announcerStage);
 shot.subscribe(result=>{
  if(result.pocketed.length)telemetry.balls(statsRackId,result.shotId,result.pocketed.length);
  const li=document.createElement('li');li.textContent=result.announcement;$('history').prepend(li);
