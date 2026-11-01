@@ -14,8 +14,9 @@ const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const invertAim=bindInvertAim($('#invert-aim'));
 const session=createGameSession({game:'but-wait',adjudicate:adjudicateButWaitShot});
-if (typeof document !== 'undefined' && document.getElementById('table-stage')?.ownerDocument) {
- attachShotAnnouncer(session,document.getElementById('table-stage'));
+const announcerStage = document.getElementById?.('table-stage');
+if (announcerStage?.ownerDocument) {
+ attachShotAnnouncer(session,announcerStage);
 }
 session.subscribe(result=>{
  if(result.pocketed.length)reportBalls(state.statsRackId,result.shotId,result.pocketed.length);
