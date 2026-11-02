@@ -78,9 +78,9 @@ test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming
  const game={phase:'claim',breakShot:false,power:68,top:0,side:0,placementValid:true,
   match:{turn:1,winner:null,owners:[0,1,2],pendingClaim:{
    claimant:2,scratcher:0,returnable:[4]},groupChoicePlayer:null}};
- const update=new Function('$','game','session','names','ranges','remainingCutthroatBalls',
+ const update=new Function('$','game','session','seatName','botSeat','scheduleBot','ranges','remainingCutthroatBalls',
   'availableGroups','Option',source[0].replace(/\nfunction finishShot\(\)$/,'')+
-  '\nreturn update;')($,game,{breakShot:false},['Player 1','Player 2','Player 3'],
+  '\nreturn update;')($,game,{breakShot:false},seat=>'Player '+(seat+1),()=>false,()=>{},
   ['1–5','6–10','11–15'],()=>[1],()=>[],
   class Option{constructor(text,value){this.text=text;this.value=value;}});
  update();
@@ -121,4 +121,17 @@ test('Cutthroat break placement rejects out-of-kitchen taps and permits a fresh 
  assert.match(controller,/placementValid:false/,'break requires an actual placement before confirmation');
  assert.match(controller,/game\.phase='placeBreak';game\.placementValid=false;update\(\)/,
   'reposition control returns to kitchen placement without firing a shot');
+});
+
+test('Cutthroat offers all legal solo/local seat counts and a physical, cancellable bot turn',()=>{
+ assert.match(html,/id="cut-players"/);
+ for(const value of ['1','2','3'])assert.match(html,new RegExp('<option value="'+value+'"'));
+ assert.match(controller,/const botSeat=seat=>seat>=Number/);
+ assert.match(controller,/planBotShot\(\{balls:game\.balls,targets,pockets,radius:TABLE\.radius,table:TABLE/);
+ assert.match(controller,/shoot\(true\)/,'bot uses the real physics stroke path');
+ assert.match(controller,/assignCutthroatGroup\(game\.match,chooser,group\)/);
+ assert.match(controller,/resolveCutthroatClaim\(game\.match,id\)/);
+ assert.match(controller,/function cancelBot\(\)\{botGeneration\+\+/);
+ assert.match(controller,/\$\('cut-players'\)\.addEventListener\('change',newGame\)/);
+ assert.doesNotMatch(controller,/\.click\(\)/,'bot must not impersonate a human clicking UI buttons');
 });
