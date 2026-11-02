@@ -5,7 +5,7 @@ import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
-import {tunaTargets,tunaRackOrder} from './tuna-rules.js';
+import {tunaTargets,tunaRackOrder,tunaCanWin} from './tuna-rules.js';
 import {createGameSession} from './game-session.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateTunaShot} from './tuna-shot-adapter.js';
@@ -41,7 +41,7 @@ function scheduleBot(){
   }
   if(shot.phase!=='aim')return;
   // Tuna has TWO ascending first-contact sequences; never target arbitrary balls.
-  const targets=tunaTargets(balls);
+  const targets=tunaTargets(balls).filter(id=>id!==10||tunaCanWin(balls));
   const plan=planBotShot({balls,targets,pockets,radius:TABLE.radius,table:TABLE,breakShot:shot.breakShot});
   if(!plan){message('Squatch Bot has no legal target. Start a new rack.');return;}
   $('call-ball').value=shot.breakShot?'':String(plan.ballId);
