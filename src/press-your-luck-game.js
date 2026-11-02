@@ -10,6 +10,7 @@ import {createGameSession} from './game-session.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicatePressShot} from './press-shot-adapter.js';
 import {planBotShot} from './bot-shot-planner.js';
+import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {groupOf} from './rules.js';
 const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
@@ -20,17 +21,16 @@ const shot=createGameSession({game:'press-your-luck',adjudicate:adjudicatePressS
 const announcerStage=$('table-stage');
 if(announcerStage?.ownerDocument)attachShotAnnouncer(shot,announcerStage);
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
-let statsRackId=null,statsShotId=null,botTimer=null,botGeneration=0;
+let statsRackId=null,statsShotId=null;
+const botScheduler=createBotTurnScheduler();
 const solo=()=>$('opponent').value==='bot';
 const isBotTurn=()=>solo()&&turn===1;
 const playerName=i=>i===1&&solo()?'Squatch Bot':'Player '+(i+1);
-function cancelBot(){botGeneration++;if(botTimer!==null)clearTimeout(botTimer);botTimer=null;}
+function cancelBot(){botScheduler.cancel();}
 function scheduleBot(){
- if(botTimer!==null||!isBotTurn()||!['aim','place'].includes(shot.phase))return;
- const generation=botGeneration;
- botTimer=setTimeout(()=>{
-  botTimer=null;
-  if(generation!==botGeneration||!isBotTurn())return;
+ if(botScheduler.pending||!isBotTurn()||!['aim','place'].includes(shot.phase))return;
+ botScheduler.schedule(()=>{
+  if(!isBotTurn())return;
   if(shot.phase==='place'){
    if(shot.confirmPlacement()){message('Squatch Bot placed the cue ball.');update();}
    return;
