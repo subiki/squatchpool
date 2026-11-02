@@ -37,9 +37,10 @@ test('Press Your Luck uses shared break placement without a confirmation gate',(
  const html=readFileSync(new URL('../press-your-luck.html',import.meta.url),'utf8');
  assert.match(html,/id="table-stage"/);
  assert.match(source,/createCuePlacement\(\{getBalls:/);
- assert.match(source,/cuePlacement\.pointerDown\(tablePoint\(e\)\)/);
- assert.match(source,/cuePlacement\.pointerMove\(tablePoint\(e\)\)/);
- assert.match(source,/cuePlacement\.pointerUp\(\)/);
+ assert.match(source,/cuePlacement\.pointerDown\(tablePoint\(e\),e\.pointerId\)/);
+ assert.match(source,/cuePlacement\.pointerMove\(tablePoint\(e\),e\.pointerId\)/);
+ assert.match(source,/cuePlacement\.pointerUp\(e\.pointerId\)/);
+ assert.match(rack,/cuePlacement\.cancel\(\)/);
  assert.match(update,/const placing=shot\.phase==='place'/);
  assert.doesNotMatch(source,/Confirm break position/);
 });
@@ -64,4 +65,14 @@ test('Press Your Luck shared kitchen placement respects 7, 8 and 9 ft boundaries
   assert.equal(control.pointerUp(),true);
  }
  setTableSize(9);
+});
+
+test('Press Your Luck cancels touch drag when BREAK starts and never moves the cue during physics',()=>{
+ const move=source.split("canvas.addEventListener('pointermove',e=>{")[1]?.split("canvas.addEventListener('pointerup'")[0]||'';
+ assert.match(move,/if\(shot\.phase==='aim'&&shot\.breakShot\)/,
+  'cue dragging must be restricted to the aiming phase');
+ assert.match(shoot,/if\(!shot\.startShot\(statsShotId\)\)return;cuePlacement\.cancel\(\)/,
+  'successful shot start must release the active pointer before physics');
+ assert.match(source,/\$\('opponent'\)\.onchange=\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);update\(\);\}/,
+  'switching opponents must release any active touch drag');
 });
