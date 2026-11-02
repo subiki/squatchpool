@@ -6,6 +6,7 @@ import {tablePoint} from './table-pointer.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,resolveCutthroatClaim} from './cutthroat-rules.js';
 import {createGameSession} from './game-session.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
+import {planBotShot} from './bot-shot-planner.js';
 import {adjudicateCutthroatShot} from './cutthroat-shot-adapter.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
@@ -13,9 +14,11 @@ const $=id=>document.getElementById(id);
 const canvas=$('cut-table'),ctx=canvas.getContext('2d');
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 const invertAim=bindInvertAim($('invert-aim'));
-const names=['Player 1','Player 2','Player 3'];
+const botSeat=seat=>seat>=Number($('cut-players')?.value||3);
+const seatName=seat=>botSeat(seat)?'Squatch Bot '+(seat+1):'Player '+(seat+1);
 const ranges=['1–5','6–10','11–15'];
-let game,lastTime=0,accumulator=0,dragging=false;
+let game,lastTime=0,accumulator=0,dragging=false,botTimer=null,botGeneration=0;
+function cancelBot(){botGeneration++;if(botTimer!==null)clearTimeout(botTimer);botTimer=null;}
 function say(message){
  const li=document.createElement('li');li.textContent=message;
  $('cut-log').prepend(li);
@@ -30,6 +33,7 @@ session.subscribe(result=>{
  say(result.announcement);
 });
 function newGame(){
+ cancelBot();
  session.startRack();
  setTableSize(Number($('cut-size').value));
  try{localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
@@ -52,13 +56,13 @@ function update(){
  const canShoot=game.phase==='aim';
  const claim=m.pendingClaim;
  const actor=game.phase==='claim'&&claim?claim.claimant:m.turn;
- $('cut-turn').textContent=m.winner!==null?names[m.winner]+' wins!':names[actor]+' · '+(placing?'place the white ball':game.phase==='moving'?'balls moving':game.phase==='claim'?'scratch claim':game.phase==='chooseGroup'?'choose group':'shooting');
- $('cut-scores').textContent=m.owners.map((group,i)=>names[i]+': '+(group===null?'unassigned':ranges[group])+
+ $('cut-turn').textContent=m.winner!==null?seatName(m.winner)+' wins!':seatName(actor)+' · '+(placing?'place the white ball':game.phase==='moving'?'balls moving':game.phase==='claim'?'scratch claim':game.phase==='chooseGroup'?'choose group':'shooting');
+ $('cut-scores').textContent=m.owners.map((group,i)=>seatName(i)+': '+(group===null?'unassigned':ranges[group])+
   (group===null?'':' · '+remainingCutthroatBalls(m,group).length+' left')).join('  |  ');
  $('cut-status').textContent=m.winner!==null?'Last player with a ball on the table wins. Start a new rack to play again.':
   game.phase==='placeBreak'?'Tap or drag the cue ball behind the head string, then confirm break position.':
   game.phase==='placeCue'?'Scratch: incoming player has ball in hand. Tap an open place on the felt.':
-  game.phase==='claim'&&claim?names[claim.claimant]+' may claim one on-table ball from '+names[claim.scratcher]+', or decline.':
+  game.phase==='claim'&&claim?seatName(claim.claimant)+' may claim one on-table ball from '+seatName(claim.scratcher)+', or decline.':
   game.phase==='chooseGroup'?'Your turn has ended. Choose your earned group before play passes.':
   game.phase==='moving'?'Balls rolling…':
   m.groupChoicePlayer===m.turn?'You earned a group choice. Select 1–5, 6–10 or 11–15 now, or keep shooting.':
@@ -66,9 +70,9 @@ function update(){
   'Aim from the white ball, then shoot. Any object ball may be pocketed, including your own.';
  $('cut-reposition').hidden=!(game.phase==='aim'&&session.breakShot);
  $('cut-place').hidden=!placing;
- $('cut-place').disabled=!placing||!game.placementValid;
+ $('cut-place').disabled=!placing||!game.placementValid||botSeat(m.turn);
  $('cut-place').textContent=game.phase==='placeBreak'?'Confirm break position':'Confirm ball in hand';
- $('cut-shoot').disabled=!canShoot;
+ $('cut-shoot').disabled=!canShoot||botSeat(m.turn);
  $('cut-shoot').textContent=session.breakShot?'BREAK':'SHOOT';
  $('cut-group').hidden=!(m.groupChoicePlayer===m.turn&&['aim','chooseGroup'].includes(game.phase));
  const choices=availableGroups(m);
@@ -77,10 +81,13 @@ function update(){
  // Keep required group/third-seat decisions usable inside fullscreen, not behind the page.
  if(game.phase==='claim'||game.phase==='chooseGroup'||m.groupChoicePlayer===m.turn) $('cut-options').open=true;
  $('cut-claim-select').replaceChildren(new Option('Decline claim',''),...(claim?.returnable||[]).map(id=>new Option('Claim ball '+id,String(id))));
- for(const id of ['cut-power','cut-top','cut-side'])$(id).disabled=!canShoot;
+ $('cut-group-confirm').disabled=botSeat(m.turn);
+ $('cut-claim-confirm').disabled=!!claim&&botSeat(claim.claimant);
+ for(const id of ['cut-power','cut-top','cut-side'])$(id).disabled=!canShoot||botSeat(m.turn);
  $('cut-power-value').textContent=game.power+'%';
  $('cut-top-value').textContent=game.top+'%';
  $('cut-side-value').textContent=game.side+'%';
+ scheduleBot();
 }
 function finishShot(){
  const shot=game.shot;if(!shot)return;
@@ -90,14 +97,14 @@ function finishShot(){
  }});
  game.match=result.actions.match;
  session.settle({done:result.rackEnd,ballInHand:result.ballInHand});
- if(game.match.winner!==null){game.phase='done';say(names[game.match.winner]+' wins the rack.');}
+ if(game.match.winner!==null){game.phase='done';say(seatName(game.match.winner)+' wins the rack.');}
  else if(game.match.pendingTurn!==null){game.phase='chooseGroup';}
  else if(game.match.pendingClaim){game.phase='claim';}
  else game.phase='aim';
  update();
 }
-function shoot(){
- if(game.phase!=='aim')return;
+function shoot(fromBot=false){
+ if(game.phase!=='aim'||(botSeat(game.match.turn)&&!fromBot))return;
  const shotId=newCutthroatStatsId();
  if(!session.startShot(shotId))return;
  const b=cue(),speed=shotSpeed(game.power,session.breakShot);
@@ -155,53 +162,49 @@ function aim(p){
  if(angle!==null)game.angle=angle;
 }
 canvas.addEventListener('pointerdown',e=>{
+ if(botSeat(game.match.turn))return;
  if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));
  else if(game.phase==='aim')aim(point(e));
  else return;
  dragging=true;canvas.setPointerCapture(e.pointerId);
 });
 canvas.addEventListener('pointermove',e=>{
- if(!dragging)return;
+ if(!dragging||botSeat(game.match.turn))return;
  if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));
  else if(game.phase==='aim')aim(point(e));
 });
 canvas.addEventListener('pointerup',e=>{
- if(dragging&&game.phase==='aim')aim(point(e));
+ if(!botSeat(game.match.turn)&&dragging&&game.phase==='aim')aim(point(e));
  dragging=false;
 });
 canvas.addEventListener('pointercancel',()=>dragging=false);
-$('cut-place').addEventListener('click',()=>{
- if(!game.placementValid||!['placeBreak','placeCue'].includes(game.phase))return;
+function confirmPlacement(fromBot=false){
+ if(!game.placementValid||!['placeBreak','placeCue'].includes(game.phase)||
+    (botSeat(game.match.turn)&&!fromBot))return;
  if(game.phase==='placeCue'){
   if(!session.confirmPlacement())return;
   const b=cue();b.pocketed=false;b.vx=0;b.vy=0;b.wx=0;b.wy=0;b.wz=0;b.motion='stationary';
  }
  game.phase='aim';update();
-});
-$('cut-shoot').addEventListener('click',shoot);
-$('cut-reposition').addEventListener('click',()=>{
- if(game.phase!=='aim'||!session.breakShot)return;
- game.phase='placeBreak';game.placementValid=false;update();
-});
-$('cut-new').addEventListener('click',newGame);
-$('cut-size').addEventListener('change',newGame);
-$('cut-group-confirm').addEventListener('click',()=>{
- if(!['aim','chooseGroup'].includes(game.phase)||game.match.groupChoicePlayer!==game.match.turn)return;
- const g=Number($('cut-group-select').value),chooser=game.match.turn;
- game.match=assignCutthroatGroup(game.match,chooser,g);
- say(names[chooser]+' chose '+ranges[g]+'.');
+}
+function chooseGroup(group,fromBot=false){
+ if(!['aim','chooseGroup'].includes(game.phase)||game.match.groupChoicePlayer!==game.match.turn||
+    (botSeat(game.match.turn)&&!fromBot))return;
+ const chooser=game.match.turn;
+ game.match=assignCutthroatGroup(game.match,chooser,group);
+ say(seatName(chooser)+' chose '+ranges[group]+'.');
  if(game.match.winner!==null)game.phase='done';
  else if(game.match.pendingClaim)game.phase='claim';
  else if(game.phase==='chooseGroup')game.phase='aim';
  update();
-});
-$('cut-claim-confirm').addEventListener('click',()=>{
- if(game.phase!=='claim'||!game.match.pendingClaim)return;
- const id=$('cut-claim-select').value;
+}
+function resolveClaim(id,fromBot=false){
+ if(game.phase!=='claim'||!game.match.pendingClaim||
+    (botSeat(game.match.pendingClaim.claimant)&&!fromBot))return;
  const claimant=game.match.pendingClaim.claimant;
- game.match=resolveCutthroatClaim(game.match,id?Number(id):null);
- say(names[claimant]+(id?' claimed ball '+id+'.':' declined the scratch claim.'));
- if(game.match.winner!==null){game.phase='done';}
+ game.match=resolveCutthroatClaim(game.match,id);
+ say(seatName(claimant)+(id!==null?' claimed ball '+id+'.':' declined the scratch claim.'));
+ if(game.match.winner!==null)game.phase='done';
  else{
   const b=cue(),p=findPlacement(game.balls);
   if(p){Object.assign(b,p);game.placementValid=true;}
@@ -209,12 +212,62 @@ $('cut-claim-confirm').addEventListener('click',()=>{
   game.phase='placeCue';
  }
  update();
+}
+function scheduleBot(){
+ if(botTimer!==null||!game)return;
+ const m=game.match,phase=game.phase;
+ const actor=phase==='claim'?m.pendingClaim?.claimant:m.turn;
+ if(actor===undefined||!botSeat(actor)||!['placeBreak','placeCue','aim','chooseGroup','claim'].includes(phase))return;
+ const generation=botGeneration;
+ botTimer=setTimeout(()=>{
+  botTimer=null;
+  if(generation!==botGeneration||!game)return;
+  const current=game.match,now=game.phase;
+  const currentActor=now==='claim'?current.pendingClaim?.claimant:current.turn;
+  if(currentActor===undefined||!botSeat(currentActor))return;
+  if(now==='claim'){
+   resolveClaim(current.pendingClaim.returnable[0]??null,true);return;
+  }
+  if(current.groupChoicePlayer===current.turn&&['aim','chooseGroup'].includes(now)){
+   const choices=availableGroups(current);
+   if(choices.length)chooseGroup(choices[0],true);
+   return;
+  }
+  if(now==='placeBreak'||now==='placeCue'){
+   const p=now==='placeBreak'?kitchenPoint(TABLE.width*.18,TABLE.height/2):findPlacement(game.balls);
+   if(!p){say('Squatch Bot could not find a legal cue placement.');return;}
+   game.placementValid=now==='placeBreak'?
+    canPlaceBreakCue(game.balls,p.x,p.y):canPlace(game.balls,p.x,p.y,0);
+   if(!game.placementValid){say('Squatch Bot has no legal cue placement.');return;}
+   Object.assign(cue(),p);confirmPlacement(true);return;
+  }
+  if(now!=='aim')return;
+  const targets=game.balls.filter(b=>b.id>0&&!b.pocketed).map(b=>b.id);
+  const plan=planBotShot({balls:game.balls,targets,pockets,radius:TABLE.radius,table:TABLE,breakShot:session.breakShot});
+  if(!plan){say('Squatch Bot has no available object-ball target.');return;}
+  game.angle=plan.angle;game.power=plan.power;game.top=0;game.side=0;
+  shoot(true);
+ },650);
+}
+$('cut-place').addEventListener('click',()=>confirmPlacement());
+$('cut-shoot').addEventListener('click',()=>shoot());
+$('cut-reposition').addEventListener('click',()=>{
+ if(game.phase!=='aim'||!session.breakShot||botSeat(game.match.turn))return;
+ game.phase='placeBreak';game.placementValid=false;update();
+});
+$('cut-new').addEventListener('click',newGame);
+$('cut-size').addEventListener('change',newGame);
+$('cut-players').addEventListener('change',newGame);
+$('cut-group-confirm').addEventListener('click',()=>chooseGroup(Number($('cut-group-select').value)));
+$('cut-claim-confirm').addEventListener('click',()=>{
+ const id=$('cut-claim-select').value;
+ resolveClaim(id?Number(id):null);
 });
 for(const [id,key] of [['cut-power','power'],['cut-top','top'],['cut-side','side']])
  $(id).addEventListener('input',e=>{game[key]=Number(e.target.value);update();});
 window.addEventListener('keydown',e=>{
  const tag=e.target?.tagName?.toLowerCase();
- if(!game||game.phase!=='aim'||e.target?.isContentEditable||
+ if(!game||game.phase!=='aim'||botSeat(game.match.turn)||e.target?.isContentEditable||
   (tag&&!['body','html','canvas'].includes(tag))||e.altKey||e.ctrlKey||e.metaKey)return;
  if(e.key==='ArrowLeft'){game.angle-=.025;e.preventDefault();}
  if(e.key==='ArrowRight'){game.angle+=.025;e.preventDefault();}
