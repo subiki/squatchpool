@@ -32,8 +32,8 @@ export function createCuePlacement({getBalls,getCue}){
   if(dragging)return false;
   const cue=getCue();
   if(point.x>=headStringX()&&Math.hypot(point.x-cue.x,point.y-cue.y)>TABLE.radius*2.5)return false;
+  if(!placeBreak(point))return false;
   dragging=true;activePointer=pointerId;
-  placeBreak(point);
   return true;
  }
  function pointerMove(point,pointerId=null){
