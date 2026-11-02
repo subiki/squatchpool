@@ -42,7 +42,7 @@ test('Tuna bot integration uses shared physical shot path and cancels stale turn
  const controller=readFileSync(new URL('../src/tuna-game.js',import.meta.url),'utf8');
  const page=readFileSync(new URL('../tuna.html',import.meta.url),'utf8');
  assert.match(page,/id="opponent"[\s\S]*?value="bot"/);
- assert.match(controller,/const targets=tunaTargets\(balls\)/);
+ assert.ok(controller.includes('const targets=tunaTargets(balls).filter(id=>id!==10||tunaCanWin(balls));'));
  assert.match(controller,/planBotShot\(/);
  assert.match(controller,/updateCallHint\(\);fire\(true\)/);
  assert.match(controller,/function fire\(bot=false\)/);
