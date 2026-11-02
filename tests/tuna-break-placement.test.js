@@ -29,7 +29,7 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
  globalThis.requestAnimationFrame=()=>{};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
- const release=()=>listeners.get('table:pointerup')();
+ const release=()=>listeners.get('table:pointerup')({pointerId:1});
  try{
   await import('../src/tuna-game.js');
   assert.match(readFileSync(new URL('../tuna.html',import.meta.url),'utf8'),/id="break-reposition"/);
