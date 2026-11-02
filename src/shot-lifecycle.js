@@ -21,30 +21,36 @@ export function createShotLifecycle(){
 // Pointer coordinates are in canvas/table units. Breaks never require a second
 // confirmation: the cue starts legally positioned, and release returns to aim.
 export function createCuePlacement({getBalls,getCue}){
- let dragging=false;
+ let dragging=false,activePointer=null;
  function placeBreak(point){
   const p=kitchenPoint(point.x,point.y);
   if(!canPlaceBreakCue(getBalls(),p.x,p.y))return false;
   Object.assign(getCue(),p);
   return true;
  }
- function pointerDown(point){
+ function pointerDown(point,pointerId=null){
+  if(dragging)return false;
   const cue=getCue();
   if(point.x>=headStringX()&&Math.hypot(point.x-cue.x,point.y-cue.y)>TABLE.radius*2.5)return false;
-  dragging=true;
+  dragging=true;activePointer=pointerId;
   placeBreak(point);
   return true;
  }
- function pointerMove(point){
-  if(!dragging)return false;
+ function pointerMove(point,pointerId=null){
+  if(!dragging||(activePointer!==null&&activePointer!==pointerId))return false;
   placeBreak(point);
   return true;
  }
- function pointerUp(){const wasDragging=dragging;dragging=false;return wasDragging;}
+ function pointerUp(pointerId=null){
+  if(!dragging||(activePointer!==null&&activePointer!==pointerId))return false;
+  dragging=false;activePointer=null;return true;
+ }
+ function cancel(){dragging=false;activePointer=null;}
  function placeBallInHand(point){
   if(!canPlace(getBalls(),point.x,point.y,0))return false;
   Object.assign(getCue(),point);
   return true;
  }
- return {placeBreak,pointerDown,pointerMove,pointerUp,placeBallInHand};
+ return {placeBreak,pointerDown,pointerMove,pointerUp,placeBallInHand,cancel,
+  get dragging(){return dragging;}};
 }
