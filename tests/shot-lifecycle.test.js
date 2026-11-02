@@ -43,3 +43,25 @@ for(const size of [7,8,9])test(`break cue drags legally on ${size}ft table witho
  assert.equal(placement.pointerUp(),false);
  assert.equal(placement.pointerDown({x:TABLE.width*.75,y}),false,'tapping near rack should aim, not teleport cue');
 });
+
+
+test('Press shared break placement keeps one touch owner and cancels on rack restart',()=>{
+ setTableSize(9);
+ const balls=fullRack(),cue=balls[0];
+ Object.assign(cue,kitchenPoint(TABLE.width*.18,TABLE.height/2));
+ const placement=createCuePlacement({getBalls:()=>balls,getCue:()=>cue});
+ assert.equal(placement.pointerDown({x:TABLE.width*.12,y:TABLE.height*.5},11),true);
+ const first={x:cue.x,y:cue.y};
+ assert.equal(placement.pointerDown({x:TABLE.width*.15,y:TABLE.height*.7},22),false);
+ assert.equal(placement.pointerMove({x:TABLE.width*.15,y:TABLE.height*.7},22),false);
+ assert.deepEqual({x:cue.x,y:cue.y},first,'second finger cannot move the cue');
+ assert.equal(placement.pointerUp(22),false,'second finger cannot release owner');
+ assert.equal(placement.dragging,true);
+ assert.equal(placement.pointerMove({x:TABLE.width*.14,y:TABLE.height*.6},11),true);
+ assert.equal(placement.pointerUp(11),true);
+ assert.equal(placement.dragging,false);
+ assert.equal(placement.pointerDown({x:TABLE.width*.12,y:TABLE.height*.5},33),true);
+ placement.cancel();
+ assert.equal(placement.pointerMove({x:TABLE.width*.16,y:TABLE.height*.6},33),false);
+ assert.equal(placement.pointerUp(33),false);
+});
