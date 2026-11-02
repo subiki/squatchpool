@@ -7,6 +7,7 @@ import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBa
 import {createGameSession} from './game-session.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {planBotShot} from './bot-shot-planner.js';
+import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {adjudicateCutthroatShot} from './cutthroat-shot-adapter.js';
 import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
@@ -17,8 +18,9 @@ const invertAim=bindInvertAim($('invert-aim'));
 const botSeat=seat=>seat>=Number($('cut-players')?.value||3);
 const seatName=seat=>botSeat(seat)?'Squatch Bot '+(seat+1):'Player '+(seat+1);
 const ranges=['1–5','6–10','11–15'];
-let game,lastTime=0,accumulator=0,dragging=false,botTimer=null,botGeneration=0;
-function cancelBot(){botGeneration++;if(botTimer!==null)clearTimeout(botTimer);botTimer=null;}
+let game,lastTime=0,accumulator=0,dragging=false;
+const botTurns=createBotTurnScheduler();
+function cancelBot(){botTurns.cancel();}
 function say(message){
  const li=document.createElement('li');li.textContent=message;
  $('cut-log').prepend(li);
@@ -214,14 +216,12 @@ function resolveClaim(id,fromBot=false){
  update();
 }
 function scheduleBot(){
- if(botTimer!==null||!game)return;
+ if(botTurns.pending||!game)return;
  const m=game.match,phase=game.phase;
  const actor=phase==='claim'?m.pendingClaim?.claimant:m.turn;
  if(actor===undefined||!botSeat(actor)||!['placeBreak','placeCue','aim','chooseGroup','claim'].includes(phase))return;
- const generation=botGeneration;
- botTimer=setTimeout(()=>{
-  botTimer=null;
-  if(generation!==botGeneration||!game)return;
+ botTurns.schedule(()=>{
+  if(!game)return;
   const current=game.match,now=game.phase;
   const currentActor=now==='claim'?current.pendingClaim?.claimant:current.turn;
   if(currentActor===undefined||!botSeat(currentActor))return;
