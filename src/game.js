@@ -85,12 +85,14 @@ function updateCallUI(){
  }
  const picking=canPickCall();
  const pickingBall=picking&&state.callBall===null;
- const pickingPocket=picking&&state.callBall!==null&&!state.callPocket;
+ const pickingPocket=picking&&state.callBall!==null;
  const p=pockets.find(p=>p.id===state.callPocket);
  $('#call-ball-status').textContent=state.callBall===null?'Ball: —':'Ball: '+state.callBall;
  $('#call-pocket-status').textContent=p?'Pocket: '+p.label:'Pocket: —';
  $('#undo-call').disabled=!picking||(state.callBall===null&&!state.callPocket);
  $('#pocket-targets').hidden=!pickingPocket;
+ for(const button of document.querySelectorAll('.pocket-pick'))
+  button.setAttribute('aria-pressed',String(pickingPocket&&button.dataset.pocket===state.callPocket));
  const choices=$('#ball-picks');
  choices.hidden=!pickingBall;
  if(pickingBall){
@@ -456,6 +458,10 @@ canvas.addEventListener('pointerdown',e=>{
  if(state.phase==='placeCue'&&human(state.turn)){placeCue(p);return;}
  if(state.phase==='placeStash'&&human(otherPlayer(state.turn))){previewStash(p);return;}
  if(state.phase!=='aim'||!human(state.turn))return;
+ if(!state.isBreak&&state.callBall!==null){
+  const pocket=closestCallPocket(p);
+  if(pocket){selectCallPocket(pocket.id);return;}
+ }
  if(!state.isBreak&&!callReady()){
   if(state.callBall===null){
    const target=closestCallBall(p);
