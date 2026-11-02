@@ -38,7 +38,7 @@ details>div{padding:12px 16px}li{margin:6px 0}
 
 
 <h1>Coin-Op Cutthroat</h1>
-<p class="notice"><strong>Three local players · pass and play.</strong> Protect your own balls: 1–5, 6–10 or 11–15. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
+<p class="notice"><strong>Solo with two Squatch Bots, two humans and a bot, or three local players.</strong> Protect your own balls: 1–5, 6–10 or 11–15. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
 <section class="game-rules-layout"><details id="cut-rules"><summary>How to play · source rules &amp; controls</summary><div>
 <ol><li>Three players use all 15 numbered balls. Player 1 breaks; balls pocketed on the break stay down.</li>
 <li>After your first legal pocket, select an available group (1–5, 6–10, or 11–15) by the end of your turn.</li>
@@ -49,7 +49,7 @@ details>div{padding:12px 16px}li{margin:6px 0}
 <p><strong>Source:</strong> <a href="./archive.html#episode-4">Original Episode 4 rules</a>. <strong>Playtest interpretation:</strong> A non-scratch shot that misses all object balls ends the turn; no additional foul penalty is imposed because the original manuscript does not specify one.</p>
 </div></details></section>
 
-<div class="controls"><button id="cut-new" type="button">New rack</button>
+<div class="controls"><label>Players<select id="cut-players"><option value="1">Solo · 1 human + 2 bots</option><option value="2">2 humans + 1 bot</option><option value="3" selected>3 local humans</option></select></label><button id="cut-new" type="button">New rack</button>
 <label>Table size<select id="cut-size"><option value="7">7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label></div>
 <div id="cut-turn" aria-live="polite"></div><p id="cut-scores"></p><p id="cut-status" role="status" aria-live="polite"></p>
 
