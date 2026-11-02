@@ -23,9 +23,10 @@ test('Tuna consumes stroke settings at strike and leaves 68% neutral next shot',
  const power=shoot.indexOf("$('power').value='68'",stroke);
  const draw=shoot.indexOf("$('spin-top').value='0'",stroke);
  const english=shoot.indexOf("$('spin-side').value='0'",stroke);
- const moving=shoot.indexOf('shot.startShot(statsShotId)',stroke);
- assert.ok(stroke>=0&&power>stroke&&draw>stroke&&english>stroke&&moving>power&&moving>draw&&moving>english,
-  'reset power and both spins immediately after applying them, before movement');
+ const moving=shoot.indexOf('shot.startShot(statsShotId)');
+ const speed=shoot.indexOf('shotSpeed(',moving);
+ assert.ok(moving>=0&&speed>moving&&stroke>speed&&power>stroke&&draw>stroke&&english>stroke,
+  'reserve a moving shot before physics, then reset power and both spins after applying them');
  assert.doesNotMatch(endShot,/\$\('power'\)\.value='65'/,
   'settling a shot must not overwrite the neutral power');
 });
