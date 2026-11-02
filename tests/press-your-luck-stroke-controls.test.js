@@ -37,9 +37,10 @@ test('Press Your Luck uses shared break placement without a confirmation gate',(
  const html=readFileSync(new URL('../press-your-luck.html',import.meta.url),'utf8');
  assert.match(html,/id="table-stage"/);
  assert.match(source,/createCuePlacement\(\{getBalls:/);
- assert.match(source,/cuePlacement\.pointerDown\(tablePoint\(e\)\)/);
- assert.match(source,/cuePlacement\.pointerMove\(tablePoint\(e\)\)/);
- assert.match(source,/cuePlacement\.pointerUp\(\)/);
+ assert.match(source,/cuePlacement\.pointerDown\(tablePoint\(e\),e\.pointerId\)/);
+ assert.match(source,/cuePlacement\.pointerMove\(tablePoint\(e\),e\.pointerId\)/);
+ assert.match(source,/cuePlacement\.pointerUp\(e\.pointerId\)/);
+ assert.match(rack,/cuePlacement\.cancel\(\)/);
  assert.match(update,/const placing=shot\.phase==='place'/);
  assert.doesNotMatch(source,/Confirm break position/);
 });
