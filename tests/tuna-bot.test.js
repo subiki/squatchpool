@@ -47,6 +47,9 @@ test('Tuna bot integration uses shared physical shot path and cancels stale turn
  assert.match(controller,/updateCallHint\(\);fire\(true\)/);
  assert.match(controller,/function fire\(bot=false\)/);
  assert.match(controller,/shot\.startShot\(statsShotId\)/);
- assert.match(controller,/function cancelBot\(\)\{botGeneration\+\+/);
- assert.match(controller,/if\(generation!==botGeneration\|\|!isBotTurn\(\)\)return/);
+ assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);\}/);
+ assert.match(controller,/botScheduler\.pending/);
+ assert.match(controller,/botScheduler\.schedule\(\(\)=>\{/);
+ assert.doesNotMatch(controller,/botTimer|botGeneration|setTimeout\(/,
+  'bot turn cancellation belongs to the shared scheduler');
 });
