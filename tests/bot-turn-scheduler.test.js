@@ -41,3 +41,22 @@ test('Press Your Luck bot shares cancellable turn scheduling with Cutthroat',()=
  assert.match(controller,/\$\('opponent'\)\.onchange=\(\)=>\{cancelBot\(\);update\(\);\}/,
   'switching to local players must cancel a pending bot action');
 });
+
+test('Big Tuna bot shares the cancellable scheduler across rack, reset and opponent changes',()=>{
+ const controller=readFileSync(new URL('../src/tuna-game.js',import.meta.url),'utf8');
+ assert.match(controller,/createBotTurnScheduler\(\)/);
+ assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);\}/);
+ assert.match(controller,/botScheduler\.pending/);
+ assert.match(controller,/botScheduler\.schedule\(\(\)=>\{/);
+ assert.doesNotMatch(controller,/botTimer|botGeneration|setTimeout\(/,
+  'Big Tuna must not retain an independent timer or generation');
+ assert.match(controller,/function rack\(\)\{cancelBot\(\)/);
+ assert.match(controller,/function resetMatch\(\)\{cancelBot\(\)/);
+ assert.match(controller,/function endShot\(\)\{\s*cancelBot\(\)/);
+ assert.match(controller,/\$\('opponent'\)\.onchange=resetMatch/,
+  'switching between bot and local seats resets and cancels the pending turn');
+ assert.match(controller,/const targets=tunaTargets\(balls\)/,
+  'bot still uses legal Tuna first-contact sequences');
+ assert.match(controller,/planBotShot\(\{balls,targets,pockets/,
+  'bot still fires a physical planned shot');
+});
