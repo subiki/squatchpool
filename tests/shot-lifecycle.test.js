@@ -65,3 +65,15 @@ test('Press shared break placement keeps one touch owner and cancels on rack res
  assert.equal(placement.pointerMove({x:TABLE.width*.16,y:TABLE.height*.6},33),false);
  assert.equal(placement.pointerUp(33),false);
 });
+
+test('invalid break placement never captures the pointer',()=>{
+ setTableSize(9);
+ const balls=fullRack(),cue=balls[0];
+ Object.assign(cue,kitchenPoint(TABLE.width*.18,TABLE.height/2));
+ const placement=createCuePlacement({getBalls:()=>balls,getCue:()=>cue});
+ assert.equal(placement.pointerDown({x:NaN,y:NaN},17),false);
+ assert.equal(placement.dragging,false);
+ assert.equal(placement.pointerMove({x:TABLE.width*.14,y:TABLE.height*.5},17),false);
+ assert.equal(placement.pointerDown({x:TABLE.width*.14,y:TABLE.height*.5},18),true);
+ assert.equal(placement.pointerUp(18),true);
+});
