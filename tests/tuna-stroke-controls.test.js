@@ -6,7 +6,9 @@ const source=readFileSync(new URL('../src/tuna-game.js',import.meta.url),'utf8')
 const rack=source.split('function rack(){')[1]?.split('function resetMatch(){')[0]||'';
 const resetMatch=source.split('function resetMatch(){')[1]?.split('function update(){')[0]||'';
 const update=source.split('function update(){')[1]?.split('function draw(){')[0]||'';
-const shoot=source.split("$('shoot').onclick=()=>{")[1]?.split("$('place').onclick=")[0]||'';
+const shoot=source.includes('function fire(bot=false){')
+ ?source.split('function fire(bot=false){')[1]?.split("$('shoot').onclick=()=>fire();")[0]||''
+ :source.split("$('shoot').onclick=()=>{")[1]?.split("$('place').onclick=")[0]||'';
 const endShot=source.split('function endShot(){')[1]?.split('function frame(')[0]||'';
 
 test('Tuna starts each rack with a calibrated 85% break and neutral spin',()=>{
