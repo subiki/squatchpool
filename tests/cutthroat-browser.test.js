@@ -131,7 +131,8 @@ test('Cutthroat offers all legal solo/local seat counts and a physical, cancella
  assert.match(controller,/shoot\(true\)/,'bot uses the real physics stroke path');
  assert.match(controller,/assignCutthroatGroup\(game\.match,chooser,group\)/);
  assert.match(controller,/resolveCutthroatClaim\(game\.match,id\)/);
- assert.match(controller,/function cancelBot\(\)\{botGeneration\+\+/);
+ assert.match(controller,/createBotTurnScheduler\(\)/);
+ assert.match(controller,/function cancelBot\(\)\{botTurns\.cancel\(\)/);
  assert.match(controller,/\$\('cut-players'\)\.addEventListener\('change',newGame\)/);
  assert.doesNotMatch(controller,/\.click\(\)/,'bot must not impersonate a human clicking UI buttons');
 });
