@@ -52,7 +52,7 @@ function scheduleBot(){
  },650);
 }
 function message(s){$('status').textContent=s;}
-function rack(){cancelBot();rackNumber++;setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;shot.startRack();angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Rack '+rackNumber+' · '+playerName(turn)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK. No call needed on the break.');update();}
+function rack(){cancelBot();cuePlacement.cancel();rackNumber++;setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;balls=fullRack();Object.assign(cue(),kitchenPoint(TABLE.width*.18,TABLE.height/2));const order=tunaRackOrder();balls.filter(b=>b.id>0).forEach((b,i)=>b.id=order[i]);turn=nextBreaker;shot.startRack();angle=0;events=[];previous=0;acc=0;statsRackId=newGameStatsId();statsShotId=null;$('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('call-ball').value='';$('call-pocket').value='';message('Rack '+rackNumber+' · '+playerName(turn)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK. No call needed on the break.');update();}
 function resetMatch(){cancelBot();money=[0,0];nextBreaker=0;rackNumber=0;$('history').replaceChildren();rack();}
 function update(){
  $('start').disabled=shot.phase!=='done';
@@ -199,20 +199,23 @@ function pointer(e,allowCall=false){
  if(a!==null)angle=a;
 }
 canvas.addEventListener('pointerdown',e=>{
- if(isBotTurn())return;
+ if(isBotTurn()||!['aim','place'].includes(shot.phase)||cuePlacement.dragging)return;
  canvas.setPointerCapture(e.pointerId);
- if(shot.phase==='aim'&&shot.breakShot&&cuePlacement.pointerDown(tablePoint(e))){update();return;}
+ if(shot.phase==='aim'&&shot.breakShot&&cuePlacement.pointerDown(tablePoint(e),e.pointerId)){update();return;}
  pointer(e,true);
 });
 canvas.addEventListener('pointermove',e=>{
- if(isBotTurn()||!e.buttons)return;
- if(shot.breakShot&&cuePlacement.pointerMove(tablePoint(e))){update();return;}
+ if(isBotTurn()||!e.buttons||!['aim','place'].includes(shot.phase))return;
+ if(shot.phase==='aim'&&shot.breakShot){
+  if(cuePlacement.pointerMove(tablePoint(e),e.pointerId)){update();return;}
+  if(cuePlacement.dragging)return;
+ }
  pointer(e,false);
 });
-canvas.addEventListener('pointerup',()=>{
- if(cuePlacement.pointerUp()){message('Cue positioned. Aim and press BREAK.');update();}
+canvas.addEventListener('pointerup',e=>{
+ if(cuePlacement.pointerUp(e.pointerId)&&shot.phase==='aim'){message('Cue positioned. Aim and press BREAK.');update();}
 });
-canvas.addEventListener('pointercancel',()=>{cuePlacement.pointerUp();});
+canvas.addEventListener('pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
 function fire(bot=false){
  if(shot.phase!=='aim'||(isBotTurn()&&!bot))return;
  if(!shot.breakShot&&!callReady()){
@@ -222,12 +225,14 @@ function fire(bot=false){
  }
  shotCall=Number($('call-ball').value);shotPocket=$('call-pocket').value;
  preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;
- statsShotId=newGameStatsId();if(shot.breakShot)telemetry.rack(statsRackId);
+ statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;
+ cuePlacement.cancel();
+ if(shot.breakShot)telemetry.rack(statsRackId);
  const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);
  b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;
  applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);
  $('power').value='68';$('spin-top').value='0';$('spin-side').value='0';
- shot.startShot(statsShotId);$('shoot').disabled=true;
+ $('shoot').disabled=true;
 }
 $('shoot').onclick=()=>fire();
 $('place').onclick=()=>{if(!isBotTurn()&&shot.confirmPlacement()){message(playerName(turn)+' to shoot.');update();}};

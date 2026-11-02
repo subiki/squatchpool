@@ -29,7 +29,7 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
  globalThis.requestAnimationFrame=()=>{};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
- const release=()=>listeners.get('table:pointerup')();
+ const release=()=>listeners.get('table:pointerup')({pointerId:1});
  try{
   await import('../src/tuna-game.js');
   assert.match(readFileSync(new URL('../tuna.html',import.meta.url),'utf8'),/id="break-reposition"/);
@@ -49,10 +49,20 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    assert.equal(node('shoot').disabled,false,'tapping beyond kitchen does not lock BREAK');
    tap(headStringX()*.55,TABLE.height/2);
    drag(headStringX()*.45,TABLE.height/2+TABLE.radius*2);
+   const beforeSecondary=node('status').textContent;
+   listeners.get('table:pointerdown')({clientX:headStringX()*.35,clientY:TABLE.height/2,pointerId:2,buttons:1});
+   listeners.get('table:pointermove')({clientX:headStringX()*.30,clientY:TABLE.height/2,pointerId:2,buttons:1});
+   listeners.get('table:pointerup')({pointerId:2});
+   assert.equal(node('status').textContent,beforeSecondary,'second finger cannot release the first finger drag');
    release();
+   assert.match(node('status').textContent,/Cue positioned/,'only the initiating finger releases cue placement');
    assert.equal(node('shoot').disabled,false,'drag release keeps BREAK enabled');
    assert.equal(node('place').hidden,true,'drag does not reveal confirmation');
    node('shoot').onclick();
+   const statusAtStrike=node('status').textContent;
+   listeners.get('table:pointermove')({clientX:headStringX()*.25,clientY:TABLE.height/2,pointerId:1,buttons:1});
+   listeners.get('table:pointerup')({pointerId:1});
+   assert.equal(node('status').textContent,statusAtStrike,'stale held-finger input cannot re-enter cue placement during a shot');
    assert.equal(node('shoot').disabled,true,'BREAK immediately starts a physical shot without a call');
    assert.equal(node('power').value,'68','break consumes power and resets controls');
 
