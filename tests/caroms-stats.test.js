@@ -23,14 +23,13 @@ test('Caroms playtest reports a rack only when the 1-ball break is struck',()=>{
 test('Caroms stats panel is visible above the game table and honest about outages',()=>{
  const html=read('caroms.html');
  assert.ok(html.indexOf('<squatch-header>')<html.indexOf('id="caroms-table"'));
- const header=read('src/site-header.js');
- assert.match(header,/caroms-stats-game/);
- assert.match(header,/caroms-stats-site/);
- assert.match(header,/caroms-stats-status/);
- assert.match(header,/Awaiting game totals/);
+ for(const id of ['current-game-stats-players','current-game-stats-racks','current-game-stats-balls','current-game-stats-status']){
+  const at=html.indexOf('id="'+id+'"');
+  assert.ok(at>html.indexOf('id="table-stage"')&&at<html.indexOf('id="caroms-table"'));
+ }
  const adapter=read('src/caroms-stats.js');
- assert.match(adapter,/gameId:GAME_ID/);
- assert.match(adapter,/Statistics unavailable; you can still play/);
+ assert.match(adapter,/createGameTelemetry\('caroms'\)/);
+ assert.match(read('src/game-telemetry.js'),/Statistics unavailable/);
 });
 
 test('Caroms has a distinct 16-event cap for the provisional break 8 re-spot',()=>{
