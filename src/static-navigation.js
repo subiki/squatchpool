@@ -25,7 +25,8 @@ export function attachStaticNavigation(win=globalThis.window){
   try{
    if(route(url)!==route(current)||url.search!==current.search){
     // Request the precached static file even on extensionless production URLs.
-    const response=await win.fetch((route(url)==='/'?'/index.html':route(url)+'.html')+url.search);
+    const pagePath=route(url)==='/'?'/index.html':route(url)+'.html';
+    const response=await win.fetch(pagePath+url.search);
     if(!response.ok)throw new Error('Page unavailable');
     const next=new win.DOMParser().parseFromString(await response.text(),'text/html');
     if(ticket!==pending)return;
@@ -33,7 +34,7 @@ export function attachStaticNavigation(win=globalThis.window){
     if(!main||!sources.length||main.querySelector('script'))throw new Error('Unsupported page');
     const styles=await Promise.all(sources.map(async source=>{
      if(source.tagName!=='LINK')return doc.importNode(source,true);
-     const href=new URL(source.getAttribute('href'),url);
+     const href=new URL(source.getAttribute('href'),new URL(pagePath,url));
      if(href.origin!==url.origin)throw new Error('Unsupported stylesheet');
      if(!sheets.has(href.href))sheets.set(href.href,win.fetch(href.href).then(async response=>{
       if(!response.ok)throw new Error('Styles unavailable');
