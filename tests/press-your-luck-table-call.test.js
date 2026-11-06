@@ -23,14 +23,20 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};},
    getContext(){return ctx;},setPointerCapture(){},
    addEventListener(event,fn){listeners.set(id+':'+event,fn);},
+   setAttribute(name,value){this[name]=value;},
    removeEventListener(event,fn){if(listeners.get(id+':'+event)===fn)listeners.delete(id+':'+event);},
    replaceChildren(...children){this.children=children;if(id==='call-ball')this.value=children[0]?.value??'';},
    prepend(){},
   });
   return nodes.get(id);
  }
- globalThis.document={getElementById:node,querySelector:s=>s==='.kit-more'?panel:null,createElement:()=>({textContent:''})};
- globalThis.window={addEventListener:(event,fn)=>listeners.set('window:'+event,fn),removeEventListener:(event,fn)=>{if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
+ const root={getElementById:node,querySelector:s=>s==='.kit-more'?panel:null,setAttribute(){},focus(){}};
+ globalThis.document={getElementById:node,querySelector:s=>s==='main'?root:s==='.kit-more'?panel:null,querySelectorAll:()=>[],createElement:()=>({textContent:''}),
+  addEventListener:(event,fn)=>listeners.set('document:'+event,fn),removeEventListener:event=>listeners.delete('document:'+event)};
+ root.ownerDocument=globalThis.document;
+ globalThis.window={document:globalThis.document,location:{href:'https://squatch.example/press-your-luck',origin:'https://squatch.example'},
+  history:{state:null,scrollRestoration:'auto',replaceState(state){this.state=state;}},scrollTo(){},confirm:()=>false,
+  addEventListener:(event,fn)=>listeners.set('window:'+event,fn),removeEventListener:(event,fn)=>{if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
  globalThis.localStorage={getItem:()=>null,setItem(){}};
  globalThis.requestAnimationFrame=callback=>{nextFrame=callback;return ++frames;};
@@ -64,6 +70,10 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    node('shoot').onclick();
    listeners.get('window:beforeunload')(exiting);
    assert.equal(exiting.prevented,true,'actual break protects the unfinished rack from document exit');
+   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules.html',hasAttribute:()=>false,target:''})},preventDefault(){this.prevented=true;}};
+   listeners.get('document:click')(navigation);
+   assert.equal(navigation.prevented,true);
+   assert.equal(listeners.has('table:pointerdown'),true,'cancelled in-shell leave preserves the actual controller');
    let frames=0;
    while(!/Tap a ball/.test(node('table-call-hint').textContent)&&frames++<2700)tick();
    assert.ok(frames<2700,'break must settle and expose table call on '+size+' ft');
@@ -122,7 +132,7 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
   staleFrame(time+1000);staleClick();
   assert.equal(frames,atExit,'stale callbacks cannot restart physics');
   assert.ok(cancelled>0,'outgoing RAF is cancelled');
-  listeners.get('window:pageshow')({persisted:true});
+  await listeners.get('window:pageshow')({persisted:true});
   assert.equal(frames,atExit+1,'history restore starts exactly one frame loop');
   assert.equal(node('shoot').textContent,'BREAK');
   assert.equal(node('power').value,'85','history restore starts one fresh match');
