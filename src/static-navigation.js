@@ -1,29 +1,31 @@
 import {mountGameHub} from './game-hub.js';
-// Only the launcher and static information views share a document. Games keep native links
-// until their controller mount/unmount lifecycle is proven.
+// Only views with a proven mount/dispose lifecycle share this document.
+const PRESS='/press-your-luck';
 const route=url=>{
  const path=url.pathname.replace(/\/+$/,'').replace(/\.html$/,'');
  return !path||path==='/index'?'/':path;
 };
-const supported=url=>['/','/rules','/archive'].includes(route(url));
+const supported=url=>['/','/rules','/archive',PRESS].includes(route(url));
 
-export function attachStaticNavigation(win=globalThis.window){
+export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js')}={}){
  if(!win?.document)return ()=>{};
  const doc=win.document;
- let current=new URL(win.location.href),entry=0,currentEntry=0,pending=0;
+ let current=new URL(win.location.href),entry=0,currentEntry=0,currentIndex=0,pending=0,reverting=false;
  if(!supported(current))return ()=>{};
- let disposeView=route(current)==='/'?mountGameHub(doc):()=>{};
+ let view=initialView||{dispose:route(current)==='/'?mountGameHub(doc):()=>{}};
+ const replacing=url=>route(url)!==route(current)||url.search!==current.search;
+ const canLeave=()=>!view?.isRackInProgress||win.confirm('Leave this unfinished rack? Its progress will be lost.');
  const sheets=new Map();
  const positions=new Map();
  const previousRestoration=win.history.scrollRestoration;
  win.history.scrollRestoration='manual';
- win.history.replaceState({...win.history.state,squatchStatic:0},'',current.href);
+ win.history.replaceState({...win.history.state,squatchStatic:0,squatchIndex:0},'',current.href);
 
- async function navigate(url,{pop=false,id}={}){
+ async function navigate(url,{pop=false,id,index}={}){
   const ticket=++pending;
   positions.set(currentEntry,{x:win.scrollX,y:win.scrollY});
   try{
-   if(route(url)!==route(current)||url.search!==current.search){
+   if(replacing(url)){
     // Request the precached static file even on extensionless production URLs.
     const pagePath=route(url)==='/'?'/index.html':route(url)+'.html';
     const response=await win.fetch(pagePath+url.search);
@@ -39,7 +41,7 @@ export function attachStaticNavigation(win=globalThis.window){
      if(!sheets.has(href.href))sheets.set(href.href,win.fetch(href.href).then(async response=>{
       if(!response.ok)throw new Error('Styles unavailable');
       const css=await response.text();
-      // These two page sheets are self-contained. New asset-relative sheets
+      // These page sheets are self-contained. New asset-relative sheets
       // retain normal document navigation rather than changing URL resolution.
       if(/url\s*\(|@import/i.test(css))throw new Error('Unsupported stylesheet');
       return css;
@@ -47,11 +49,12 @@ export function attachStaticNavigation(win=globalThis.window){
      const style=doc.createElement('style');style.setAttribute('data-page-style','');
      style.textContent=await sheets.get(href.href);return style;
     }));
+    const press=route(url)===PRESS?await loadPress():null;
     if(ticket!==pending)return;
     const oldMain=doc.querySelector('main');
     oldMain.querySelectorAll('audio,video').forEach(media=>media.pause());
     const mounted=doc.importNode(main,true);
-    disposeView();
+    view?.dispose();view=null;
     oldMain.replaceWith(mounted);
     doc.querySelectorAll('[data-page-style]').forEach(style=>style.remove());
     doc.head.append(...styles);
@@ -59,12 +62,17 @@ export function attachStaticNavigation(win=globalThis.window){
     const footer=next.querySelector('body > footer');
     if(footer)mounted.after(doc.importNode(footer,true));
     doc.title=next.title;
-    disposeView=route(url)==='/'?mountGameHub(doc):()=>{};
+    view=press?press.mountPressGame(mounted):{dispose:route(url)==='/'?mountGameHub(doc):()=>{}};
+   }else if(!view){
+    const press=route(url)===PRESS?await loadPress():null;
+    if(ticket!==pending)return;
+    view=press?press.mountPressGame(doc.querySelector('main')):{dispose:route(url)==='/'?mountGameHub(doc):()=>{}};
    }
-   if(pop)currentEntry=id??++entry;
+   if(pop){currentEntry=id??++entry;currentIndex=index??id??currentIndex;}
    else{
     currentEntry=++entry;
-    win.history.pushState({squatchStatic:currentEntry},'',url.href);
+    currentIndex++;
+    win.history.pushState({squatchStatic:currentEntry,squatchIndex:currentIndex},'',url.href);
    }
    current=url;
    for(const link of doc.querySelectorAll('.squatch-header-nav a')){
@@ -79,7 +87,7 @@ export function attachStaticNavigation(win=globalThis.window){
    else if(anchor)anchor.scrollIntoView();
    else win.scrollTo(0,0);
   }catch{
-   if(ticket===pending)win.location.assign(url.href);
+   if(ticket===pending){view?.dispose();view=null;win.location.assign(url.href);}
   }
  }
  function click(event){
@@ -89,22 +97,36 @@ export function attachStaticNavigation(win=globalThis.window){
   const url=new URL(link.href,win.location.href);
   if(url.origin!==win.location.origin||!supported(url))return;
   event.preventDefault();
+  if(replacing(url)&&!canLeave()){pending++;return;}
   if(url.href!==current.href)void navigate(url);
   else pending++; // Choosing the current view cancels a pending destination.
  }
  function pop(event){
+  if(reverting){reverting=false;return;}
   const url=new URL(win.location.href);
   if(!supported(url)){win.location.assign(url.href);return;}
-  void navigate(url,{pop:true,id:event.state?.squatchStatic});
+  if(replacing(url)&&!canLeave()){
+   pending++;
+   const delta=currentIndex-(event.state?.squatchIndex??event.state?.squatchStatic??currentIndex);
+   if(delta){reverting=true;win.history.go(delta);}
+   else win.history.replaceState({...win.history.state,squatchStatic:currentEntry,squatchIndex:currentIndex},'',current.href);
+   return;
+  }
+  void navigate(url,{pop:true,id:event.state?.squatchStatic,index:event.state?.squatchIndex});
  }
+ const hide=()=>{pending++;view?.dispose();view=null;};
+ const show=event=>{if(event.persisted)return navigate(new URL(win.location.href),{pop:true,id:win.history.state?.squatchStatic,index:win.history.state?.squatchIndex});};
  doc.addEventListener('click',click);
  win.addEventListener('popstate',pop);
+ win.addEventListener('pagehide',hide);win.addEventListener('pageshow',show);
  return ()=>{
   pending++;
-  disposeView();
+  view?.dispose();view=null;
   doc.removeEventListener('click',click);win.removeEventListener('popstate',pop);
+  win.removeEventListener('pagehide',hide);win.removeEventListener('pageshow',show);
   win.history.scrollRestoration=previousRestoration;
  };
 }
 
-attachStaticNavigation();
+// Direct Press pages seed the shell from their standalone controller entry.
+if(globalThis.window?.location?.href&&route(new URL(window.location.href))!==PRESS)attachStaticNavigation();
