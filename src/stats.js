@@ -85,7 +85,7 @@ function put(id,value){
  const node=document.querySelector('#'+id);
  if(node)node.textContent=formatTotal(value);
 }
-function renderStats(data){
+export function renderStats(data){
  for(const field of ['players','racks','balls']){
   put('site-stats-'+field,data.site[field]);
   const game=data.games.find(g=>g.id===CURRENT_GAME);
