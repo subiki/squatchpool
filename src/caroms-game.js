@@ -113,7 +113,16 @@ function update(){
  // Required calls and foul choices must remain reachable in table fullscreen.
  if((needCall&&canAim&&(!state.calledBall||!state.calledPocket))||
     (state.phase==='option'&&!isBot()))$('caroms-more').open=true;
- $('caroms-turn').textContent=state.phase==='done'?'Rack complete':player(state.turn)+(state.breakShot?' · 1-ball break':' · '+level(state.turn));
+ $('caroms-turn').textContent=state.phase==='done'?'RACK FINAL':state.phase==='moving'?'BALLS IN MOTION':state.breakShot?'BREAK':state.phase==='option'?'FOUL DECISION':'LIVE';
+ for(let i=0;i<2;i++){
+  $('caroms-hud-score-'+i).textContent=String(matchWins[i]);
+  const g=state.groups[i],remaining=g?liveGroupBalls(state.balls,g).length:null;
+  $('caroms-hud-group-'+i).textContent=g?g+' · '+remaining+' left':'Open table';
+  $('caroms-hud-p'+i).setAttribute('data-active',String(state.phase!=='done'&&state.turn===i));
+ }
+ $('caroms-hud-name-1').textContent=solo()?'SQUATCH BOT':'PLAYER 2';
+ $('caroms-hud-possession').textContent=state.phase==='done'?player(state.winner)+' wins':player(state.turn)+(state.phase==='option'?' choosing foul option':' shooting');
+ $('caroms-rack-actions').hidden=state.phase!=='done';
  $('caroms-score').textContent='Best of 3 · Racks: '+player(0)+' '+matchWins[0]+' – '+player(1)+' '+matchWins[1]+' · '+
   state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
   (g?' ('+liveGroupBalls(state.balls,g).length+' left)':'')).join('   ·   ');
@@ -128,7 +137,8 @@ function update(){
  // The foul-option decision belongs to the incoming player, not the human
  // watching a solo Squatch Bot turn.
  for(const id of ['caroms-center','caroms-leave'])$(id).disabled=state.phase!=='option'||isBot();
- $('caroms-new').disabled=matchWinner()>=0;
+ $('caroms-new').disabled=state.phase!=='done'||matchWinner()>=0;
+ $('caroms-new').hidden=matchWinner()>=0;
  $('caroms-shoot').disabled=!canAim||state.shooterBall===null||
   (needCall&&(!state.calledBall||!state.calledPocket));
  $('caroms-shoot').textContent=state.breakShot?'BREAK WITH THE 1':'SHOOT';
@@ -349,6 +359,7 @@ for(const i of [0,1])$('caroms-level-'+i).addEventListener('change',update);
 $('caroms-shoot').addEventListener('click',hit);
 $('caroms-new').addEventListener('click',newGame);
 $('caroms-match-reset').addEventListener('click',newMatch);
+$('caroms-match-settings').addEventListener('click',newMatch);
 $('caroms-size').addEventListener('change',newMatch);
 $('caroms-mode').addEventListener('change',newMatch);
 $('caroms-center').addEventListener('click',()=>chooseOption(true));
