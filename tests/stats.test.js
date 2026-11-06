@@ -228,6 +228,36 @@ test('live statistics table preserves server totals and leaves unknown metrics u
  }
 });
 
+test('read-only header uses the shared full statistics table without storage or telemetry writes',async()=>{
+ const keys=['document','fetch','localStorage'];
+ const originals=Object.fromEntries(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ const nodes=new Map(),requests=[];
+ const node=tag=>({tag,children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;}});
+ const find=id=>{if(!nodes.has(id))nodes.set(id,node('div'));return nodes.get(id);};
+ try{
+  globalThis.document={getElementById:find,querySelector:selector=>find(selector.slice(1)),createElement:node};
+  Object.defineProperty(globalThis,'localStorage',{configurable:true,get(){throw new Error('Header must not touch gameplay storage');}});
+  globalThis.fetch=async(url,options)=>{
+   requests.push({url,options});
+   return {ok:true,json:async()=>({site:{players:4,racks:11,balls:54},games:[
+    {id:game,title:'But Wait',players:4,racks:5,balls:27},
+    {id:'caroms',title:'Caroms',players:3,racks:5,balls:26},
+   ]})};
+  };
+  await import('../src/hub-stats.js');
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.deepEqual(requests,[{url:'/api/stats',options:{cache:'no-store'}}],'header makes one read-only request');
+  const table=find('site-stats-breakdown').children[0];
+  assert.equal(table.tag,'table','secondary headers must not regress to a racks-only paragraph list');
+  const body=table.children.find(n=>n.tag==='tbody');
+  assert.deepEqual(body.children.map(row=>row.children.map(cell=>cell.textContent)),[
+   ['But Wait','4','5','27'],['Caroms','3','5','26'],['Site total','4','11','54'],
+  ]);
+ }finally{
+  for(const key of keys){if(originals[key])Object.defineProperty(globalThis,key,originals[key]);else delete globalThis[key];}
+ }
+});
+
 test('But Wait still initializes when localStorage getter denies access',()=>{
  const keys=['localStorage','document','window','fetch'];
  const original=Object.fromEntries(keys.map(key=>[key,
