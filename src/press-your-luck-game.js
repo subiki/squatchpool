@@ -243,6 +243,7 @@ canvas.addEventListener('pointerup',e=>{
  if(cuePlacement.pointerUp(e.pointerId)){message('Cue positioned. Aim and press BREAK.');update();}
 });
 canvas.addEventListener('pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
+canvas.addEventListener('lostpointercapture',e=>{cuePlacement.pointerUp(e.pointerId);});
 function fire(fromBot=false){if(shot.phase!=='aim'||(isBotTurn()&&!fromBot))return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;cuePlacement.cancel();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';$('shoot').disabled=true;}
 $('shoot').onclick=()=>fire(false);
 $('place').onclick=()=>{if(!isBotTurn()&&shot.confirmPlacement()){message('Player '+(turn+1)+' to shoot.');update();}};
