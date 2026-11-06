@@ -38,7 +38,7 @@ test('Press Your Luck bot shares cancellable turn scheduling with Cutthroat',()=
   'bot turn timing must have one shared owner');
  assert.match(controller,/function rack\(\)\{\s*cancelBot\(\)/,
   'new rack must cancel a pending bot action');
- assert.match(controller,/\$\('opponent'\)\.onchange=\(\)=>\{cancelBot\(\);(?:cuePlacement\.cancel\(\);)?update\(\);\}/,
+ assert.match(controller,/bind\(\$\('opponent'\),'onchange',\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);update\(\);\}\)/,
   'switching to local players must cancel a pending bot action');
 });
 

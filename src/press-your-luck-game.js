@@ -13,15 +13,36 @@ import {adjudicatePressShot} from './press-shot-adapter.js';
 import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {groupOf} from './rules.js';
-const $=id=>document.getElementById(id),canvas=$('table'),ctx=canvas.getContext('2d');
+import {mountTableKit} from './table-kit-controls.js';
+const mountedGames=new WeakMap();
+export function mountPressGame(root=globalThis.document){
+ mountedGames.get(root)?.dispose();
+ const document=root.ownerDocument||root,cleanups=[];
+ let disposed=false,frameId=null;
+ const requestAnimationFrame=callback=>{
+  if(!disposed)frameId=globalThis.requestAnimationFrame(time=>{if(!disposed)callback(time);});
+ };
+ function listen(node,event,callback){
+  const handler=(...args)=>{if(!disposed)callback(...args);};
+  node.addEventListener(event,handler);
+  cleanups.push(()=>node.removeEventListener?.(event,handler));
+ }
+ function bind(node,property,callback){
+  const previous=node[property],handler=(...args)=>{if(!disposed)return callback(...args);};
+  node[property]=handler;
+  cleanups.push(()=>{if(node[property]===handler)node[property]=previous;});
+ }
+ const $=id=>root.getElementById?.(id)||root.querySelector('#'+id),canvas=$('table'),ctx=canvas.getContext('2d');
+ cleanups.push(mountTableKit(root));
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
-const telemetry=createGameTelemetry('press-your-luck');
+const telemetry=createGameTelemetry('press-your-luck',{root});
+cleanups.push(()=>telemetry.dispose());
 const shot=createGameSession({game:'press-your-luck',adjudicate:adjudicatePressShot});
-attachMatchExitGuard(shot);
+cleanups.push(attachMatchExitGuard(shot));
 // Minimal controller test doubles omit DOM ownership; real stages have it.
 const announcerStage=$('table-stage');
-if(announcerStage?.ownerDocument)attachShotAnnouncer(shot,announcerStage);
+if(announcerStage?.ownerDocument)cleanups.push(attachShotAnnouncer(shot,announcerStage));
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 let statsRackId=null,statsShotId=null;
 const botScheduler=createBotTurnScheduler();
@@ -53,17 +74,17 @@ function scheduleBot(){
  },650);
 }
 
-shot.subscribe(result=>{
+cleanups.push(shot.subscribe(result=>{
  if(result.pocketed.length)telemetry.balls(statsRackId,result.shotId,result.pocketed.length);
  const li=document.createElement('li');li.textContent=result.announcement;$('history').prepend(li);
-});
+}));
 function message(s){$('status').textContent=s;}
 function rack(){
  cancelBot();cuePlacement.cancel();
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];shot.startRack();angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
- $('place').hidden=true;document.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · '+playerName(turn)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK.');update();
+ $('place').hidden=true;root.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · '+playerName(turn)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK.');update();
 }
 function update(){
  $('score').textContent='Player 1: '+match.scores[0]+' · '+playerName(1)+': '+match.scores[1]+' · Target '+match.targetScore;
@@ -224,7 +245,7 @@ function aimPointer(e,allowCall=false){
  const next=angleFromPointer(cue(),{x,y},$('invert-aim').checked,TABLE.radius);
  if(next!==null)angle=next;
 }
-canvas.addEventListener('pointerdown',e=>{
+listen(canvas,'pointerdown',e=>{
  if(isBotTurn())return;
  canvas.setPointerCapture(e.pointerId);
  if(shot.phase==='aim'&&shot.breakShot){
@@ -233,7 +254,7 @@ canvas.addEventListener('pointerdown',e=>{
  }
  aimPointer(e,true);
 });
-canvas.addEventListener('pointermove',e=>{
+listen(canvas,'pointermove',e=>{
  if(!e.buttons)return;
  if(shot.phase==='aim'&&shot.breakShot){
   if(cuePlacement.pointerMove(tablePoint(e),e.pointerId)){update();return;}
@@ -241,20 +262,33 @@ canvas.addEventListener('pointermove',e=>{
  }
  aimPointer(e,false);
 });
-canvas.addEventListener('pointerup',e=>{
+listen(canvas,'pointerup',e=>{
  if(cuePlacement.pointerUp(e.pointerId)){message('Cue positioned. Aim and press BREAK.');update();}
 });
-canvas.addEventListener('pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
-canvas.addEventListener('lostpointercapture',e=>{cuePlacement.pointerUp(e.pointerId);});
+listen(canvas,'pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
+listen(canvas,'lostpointercapture',e=>{cuePlacement.pointerUp(e.pointerId);});
 function fire(fromBot=false){if(shot.phase!=='aim'||(isBotTurn()&&!fromBot))return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;cuePlacement.cancel();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';$('shoot').disabled=true;}
-$('shoot').onclick=()=>fire(false);
-$('place').onclick=()=>{if(!isBotTurn()&&shot.confirmPlacement()){message('Player '+(turn+1)+' to shoot.');update();}};
-$('call-ball').addEventListener('change',()=>{callPocket.value='';updateCallHint();});
-$('call-pocket').addEventListener('change',updateCallHint);
-$('undo-call').onclick=()=>{if(shot.phase!=='aim'||shot.breakShot)return;callBall.value='';callPocket.value='';message('Call cleared. Tap a ball to call a new shot.');updateCallHint();};
-$('next').onclick=rack;$('start').onclick=begin;
-$('opponent').onchange=()=>{cancelBot();cuePlacement.cancel();update();};
+bind($('shoot'),'onclick',()=>fire(false));
+bind($('place'),'onclick',()=>{if(!isBotTurn()&&shot.confirmPlacement()){message('Player '+(turn+1)+' to shoot.');update();}});
+listen($('call-ball'),'change',()=>{callPocket.value='';updateCallHint();});
+listen($('call-pocket'),'change',updateCallHint);
+bind($('undo-call'),'onclick',()=>{if(shot.phase!=='aim'||shot.breakShot)return;callBall.value='';callPocket.value='';message('Call cleared. Tap a ball to call a new shot.');updateCallHint();});
+bind($('next'),'onclick',rack);bind($('start'),'onclick',begin);
+bind($('opponent'),'onchange',()=>{cancelBot();cuePlacement.cancel();update();});
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
-$('invert-aim').onchange=()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}};
-$('size').onchange=()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}};
+bind($('invert-aim'),'onchange',()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}});
+bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}});
+const controller={
+ get isRackInProgress(){return shot.isRackInProgress;},
+ dispose(){
+  if(disposed)return;
+  disposed=true;cancelBot();cuePlacement.cancel();
+  globalThis.cancelAnimationFrame?.(frameId);
+  for(const cleanup of cleanups.splice(0).reverse())cleanup();
+  if(mountedGames.get(root)===controller)mountedGames.delete(root);
+ },
+};
+mountedGames.set(root,controller);
 begin();requestAnimationFrame(frame);
+return controller;
+}

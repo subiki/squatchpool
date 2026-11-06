@@ -6,10 +6,10 @@ import {pockets} from '../src/table-geometry.js';
 // Drive the real Press Your Luck controller: the call drawer must not be
 // required for touch play, and the cue must wait until the call is complete.
 test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft',async()=>{
- const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
+ const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
  const nodes=new Map(),listeners=new Map(),positions=new Map();
  const panel={open:false,removeAttribute(name){if(name==='open')this.open=false;},setAttribute(name){if(name==='open')this.open=true;}};
- let nextFrame=()=>{},time=0,cueDraws=0;
+ let nextFrame=()=>{},time=0,cueDraws=0,frames=0,cancelled=0;
  const ctx=new Proxy({
   fillRect(x,y,w,h){if(x===0&&y===0&&w===TABLE.width&&h===TABLE.height)positions.clear();},
   fillText(value,x,y){if(/^\d+$/.test(String(value)))positions.set(String(value),{x,y});},
@@ -23,22 +23,24 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};},
    getContext(){return ctx;},setPointerCapture(){},
    addEventListener(event,fn){listeners.set(id+':'+event,fn);},
+   removeEventListener(event,fn){if(listeners.get(id+':'+event)===fn)listeners.delete(id+':'+event);},
    replaceChildren(...children){this.children=children;if(id==='call-ball')this.value=children[0]?.value??'';},
    prepend(){},
   });
   return nodes.get(id);
  }
  globalThis.document={getElementById:node,querySelector:s=>s==='.kit-more'?panel:null,createElement:()=>({textContent:''})};
- globalThis.window={addEventListener:(event,fn)=>listeners.set('window:'+event,fn)};
+ globalThis.window={addEventListener:(event,fn)=>listeners.set('window:'+event,fn),removeEventListener:(event,fn)=>{if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
  globalThis.localStorage={getItem:()=>null,setItem(){}};
- globalThis.requestAnimationFrame=callback=>{nextFrame=callback;};
+ globalThis.requestAnimationFrame=callback=>{nextFrame=callback;return ++frames;};
+ globalThis.cancelAnimationFrame=()=>{cancelled++;};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const release=()=>listeners.get('table:pointerup')({pointerId:1,buttons:0});
  const tick=()=>{time+=1000/60;nextFrame(time);};
  try{
-  await import('../src/press-your-luck-game.js');
+  await import('../src/press-your-luck-entry.js');
   for(const size of [7,8,9]){
    node('size').value=String(size);node('start').onclick();
    const exiting={preventDefault(){this.prevented=true;}};
@@ -110,6 +112,21 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    assert.equal(node('shoot').disabled,true,'called shot begins moving');
    assert.equal(node('power').value,'68','power resets after the shot');
   }
+  const staleFrame=nextFrame,staleClick=node('shoot').onclick;
+  const atExit=frames;
+  listeners.get('window:pagehide')();
+  assert.equal(listeners.has('table:pointerdown'),false,'unmount removes canvas input');
+  assert.equal(listeners.has('window:beforeunload'),false,'unmount removes navigation guard');
+  assert.equal(listeners.has('window:online'),false,'unmount removes telemetry retry listener');
+  assert.equal(node('shoot').onclick,undefined,'unmount restores control properties');
+  staleFrame(time+1000);staleClick();
+  assert.equal(frames,atExit,'stale callbacks cannot restart physics');
+  assert.ok(cancelled>0,'outgoing RAF is cancelled');
+  listeners.get('window:pageshow')({persisted:true});
+  assert.equal(frames,atExit+1,'history restore starts exactly one frame loop');
+  assert.equal(node('shoot').textContent,'BREAK');
+  assert.equal(node('power').value,'85','history restore starts one fresh match');
+  listeners.get('window:pagehide')();
  }finally{
   for(const [name,value] of Object.entries(originals)){if(value===undefined)delete globalThis[name];else globalThis[name]=value;}
  }

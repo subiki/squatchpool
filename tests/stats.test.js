@@ -307,6 +307,26 @@ test('compact games display their own live totals through the existing client an
  }
 });
 
+test('disposed game telemetry ignores late snapshots, retry callbacks and new events',async()=>{
+ const saved={fetch:globalThis.fetch,window:globalThis.window};
+ let resolve,online,removed=false,requests=0;
+ const node={textContent:'fresh view'};
+ try{
+  globalThis.fetch=()=>{requests++;return new Promise(done=>{resolve=done;});};
+  globalThis.window={addEventListener:(name,fn)=>{online=fn;},removeEventListener:(name,fn)=>{removed=fn===online;}};
+  const tracker=createGameTelemetry('press-your-luck',{root:{getElementById:()=>node}});
+  tracker.dispose();tracker.dispose();
+  tracker.rack(R1);online();
+  resolve({ok:true,json:async()=>({site:{},games:[{id:'press-your-luck',players:1,racks:2,balls:3}]})});
+  await new Promise(done=>setImmediate(done));
+  assert.equal(node.textContent,'fresh view','outgoing response must not repaint the next view');
+  assert.equal(requests,1,'disposal creates no retry or rack event');
+  assert.equal(removed,true,'online listener is released');
+ }finally{
+  for(const [key,value] of Object.entries(saved)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
+ }
+});
+
 test('But Wait still initializes when localStorage getter denies access',()=>{
  const keys=['localStorage','document','window','fetch'];
  const original=Object.fromEntries(keys.map(key=>[key,
