@@ -12,7 +12,9 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  };
  const elements=new Map(),events=new Map();
  const markers=['TL','TM','TR','BL','BM','BR'].map(id=>({
-  dataset:{pocket:id},addEventListener(event,fn){events.set('pocket-'+id+':'+event,fn);}
+  dataset:{pocket:id},attributes:{},
+  setAttribute(name,value){this.attributes[name]=String(value);},
+  addEventListener(event,fn){events.set('pocket-'+id+':'+event,fn);}
  }));
  const sizeButtons=['7','8','9'].map(size=>({
   dataset:{size},pressed:false,attributes:{},
@@ -131,7 +133,12 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   const waitingForPocket=cueDraws;tick();
   assert.equal(cueDraws,waitingForPocket,'stick hidden until called pocket');
   events.get('pocket-TM:click')();
-  assert.equal(element('#pocket-targets').hidden,true);
+  assert.equal(element('#pocket-targets').hidden,false,'pocket targets stay visible until shot');
+  assert.equal(markers[1].attributes['aria-pressed'],'true','called pocket is selected');
+  events.get('pocket-BR:click')();
+  assert.equal(element('#call-pocket-status').textContent.includes('Pocket: '),true);
+  assert.equal(markers[1].attributes['aria-pressed'],'false','previous pocket is deselected');
+  assert.equal(markers[5].attributes['aria-pressed'],'true','new pocket is selected');
   assert.equal(element('#table-status').textContent,'AIM & SHOOT');
   assert.equal(element('#shoot').disabled,false);
   tick();assert.ok(cueDraws>waitingForPocket,'cue appears after complete call');

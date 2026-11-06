@@ -10,18 +10,24 @@ test('Caroms playtest reports a rack only when the 1-ball break is struck',()=>{
  const game=read('src/caroms-game.js');
  assert.match(game,/statsRackId:newCaromsStatsId\(\)/);
  assert.match(game,/if\(state\.breakShot\)reportCaromsRack\(state\.statsRackId\)/);
- assert.match(game,/if\(made\)reportCaromsBalls\(state\.statsRackId,shot\.statsShotId,made\)/);
- assert.match(game,/decision\.pocketed\.filter\(id=>id!==0\)/);
+ assert.match(game,/if\(result\.pocketed\.length\)reportCaromsBalls\(state\.statsRackId,result\.shotId,result\.pocketed\.length\)/);
+ assert.match(game,/session\.resolveShot\(/);
+ assert.match(game,/session\.startRack\(\)/);
+ assert.match(game,/session\.startShot\(statsShotId\)/);
+ assert.match(game,/session\.settle\(\{done:result\.rackEnd\}\)/);
+ assert.match(read('src/caroms-shot-adapter.js'),/decision\.pocketed\.filter\(id=>id>0\)/);
  assert.match(game,/function newMatch\(\)\{\s*matchWins=\[0,0\];newGame\(\)/);
  assert.match(game,/initCaromsStats\(\);newMatch\(\);requestAnimationFrame\(frame\)/);
 });
 
 test('Caroms stats panel is visible above the game table and honest about outages',()=>{
  const html=read('caroms.html');
- assert.ok(html.indexOf('id="caroms-stats-game"')<html.indexOf('id="caroms-table"'));
- assert.match(html,/id="caroms-stats-site"/);
- assert.match(html,/id="caroms-stats-status"/);
- assert.match(html,/Statistics unavailable until connected/);
+ assert.ok(html.indexOf('<squatch-header>')<html.indexOf('id="caroms-table"'));
+ const header=read('src/site-header.js');
+ assert.match(header,/caroms-stats-game/);
+ assert.match(header,/caroms-stats-site/);
+ assert.match(header,/caroms-stats-status/);
+ assert.match(header,/Awaiting game totals/);
  const adapter=read('src/caroms-stats.js');
  assert.match(adapter,/gameId:GAME_ID/);
  assert.match(adapter,/Statistics unavailable; you can still play/);
