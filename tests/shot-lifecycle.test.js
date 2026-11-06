@@ -71,7 +71,11 @@ test('invalid break placement never captures the pointer',()=>{
  const balls=fullRack(),cue=balls[0];
  Object.assign(cue,kitchenPoint(TABLE.width*.18,TABLE.height/2));
  const placement=createCuePlacement({getBalls:()=>balls,getCue:()=>cue});
- assert.equal(placement.pointerDown({x:NaN,y:NaN},17),false);
+ for(const point of [{x:NaN,y:NaN},{x:Infinity,y:0},{x:0,y:-Infinity}]){
+  const before={x:cue.x,y:cue.y};
+  assert.equal(placement.pointerDown(point,17),false);
+  assert.deepEqual({x:cue.x,y:cue.y},before,'invalid coordinates must not move cue');
+ }
  assert.equal(placement.dragging,false);
  assert.equal(placement.pointerMove({x:TABLE.width*.14,y:TABLE.height*.5},17),false);
  assert.equal(placement.pointerDown({x:TABLE.width*.14,y:TABLE.height*.5},18),true);

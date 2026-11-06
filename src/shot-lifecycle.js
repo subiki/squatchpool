@@ -23,6 +23,7 @@ export function createShotLifecycle(){
 export function createCuePlacement({getBalls,getCue}){
  let dragging=false,activePointer=null;
  function placeBreak(point){
+  if(!Number.isFinite(point.x)||!Number.isFinite(point.y))return false;
   const p=kitchenPoint(point.x,point.y);
   if(!canPlaceBreakCue(getBalls(),p.x,p.y))return false;
   Object.assign(getCue(),p);
