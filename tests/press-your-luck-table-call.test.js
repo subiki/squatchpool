@@ -6,7 +6,7 @@ import {pockets} from '../src/table-geometry.js';
 // Drive the real Press Your Luck controller: the call drawer must not be
 // required for touch play, and the cue must wait until the call is complete.
 test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft',async()=>{
- const originals={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
+ const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
  const nodes=new Map(),listeners=new Map(),positions=new Map();
  const panel={open:false,removeAttribute(name){if(name==='open')this.open=false;},setAttribute(name){if(name==='open')this.open=true;}};
  let nextFrame=()=>{},time=0,cueDraws=0;
@@ -29,6 +29,7 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
   return nodes.get(id);
  }
  globalThis.document={getElementById:node,querySelector:s=>s==='.kit-more'?panel:null,createElement:()=>({textContent:''})};
+ globalThis.window={addEventListener:(event,fn)=>listeners.set('window:'+event,fn)};
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
  globalThis.localStorage={getItem:()=>null,setItem(){}};
  globalThis.requestAnimationFrame=callback=>{nextFrame=callback;};
@@ -40,6 +41,9 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
   await import('../src/press-your-luck-game.js');
   for(const size of [7,8,9]){
    node('size').value=String(size);node('start').onclick();
+   const exiting={preventDefault(){this.prevented=true;}};
+   listeners.get('window:beforeunload')(exiting);
+   assert.equal(exiting.prevented,undefined,'untouched rack may be left without a warning');
    assert.equal(node('shoot').disabled,false,'legal default cue is immediately ready to BREAK');
    tap(headStringX()*.55,TABLE.height/2);release();
    assert.equal(node('shoot').disabled,false,'dragging break cue needs no confirmation');
@@ -56,6 +60,8 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    assert.match(node('status').textContent,/Cue positioned/,'capture loss must allow a fresh pointer to place the cue');
    assert.match(node('table-call-hint').textContent,/No call needed/);
    node('shoot').onclick();
+   listeners.get('window:beforeunload')(exiting);
+   assert.equal(exiting.prevented,true,'actual break protects the unfinished rack from document exit');
    let frames=0;
    while(!/Tap a ball/.test(node('table-call-hint').textContent)&&frames++<2700)tick();
    assert.ok(frames<2700,'break must settle and expose table call on '+size+' ft');

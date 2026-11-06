@@ -13,12 +13,15 @@ export function createGameSession({game,adjudicate}){
  const lifecycle=createShotLifecycle();
  const results=createShotResultSession({game,adjudicate});
  let activeShotId=null;
+ let hasStruck=false;
  return {
   get phase(){return lifecycle.phase;},
   get breakShot(){return lifecycle.breakShot;},
+  get isRackInProgress(){return hasStruck&&lifecycle.phase!=='done';},
   subscribe:results.subscribe,
   startRack(){
    activeShotId=null;
+   hasStruck=false;
    results.reset();
    lifecycle.startRack();
   },
@@ -26,6 +29,7 @@ export function createGameSession({game,adjudicate}){
    if(!shotId)throw new Error('A strike requires a stable shotId');
    if(!lifecycle.startShot())return false;
    activeShotId=shotId;
+   hasStruck=true;
    return true;
   },
   resolveShot({shotId,context}){

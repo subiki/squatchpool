@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGameSession} from '../src/game-session.js';
+import {attachMatchExitGuard} from '../src/match-navigation.js';
 import {adjudicateTunaShot} from '../src/tuna-shot-adapter.js';
 import {adjudicatePressShot} from '../src/press-shot-adapter.js';
 import {adjudicateCutthroatShot} from '../src/cutthroat-shot-adapter.js';
@@ -18,6 +19,41 @@ const tunaContext={
  shotEvents:[{type:'pocket',ballId:15,pocketId:'TL'}],
  calledBall:15,calledPocket:'TL',
 };
+
+test('navigation guard protects only struck unfinished racks and releases on disposal',()=>{
+ const session=createGameSession({game:'tuna',adjudicate:adjudicateTunaShot});
+ const listeners=new Map();
+ const dispose=attachMatchExitGuard(session,{
+  addEventListener:(name,fn)=>listeners.set(name,fn),
+  removeEventListener:(name,fn)=>{if(listeners.get(name)===fn)listeners.delete(name);},
+ });
+ const warns=()=>{
+  let prevented=false;
+  const event={returnValue:undefined,preventDefault(){prevented=true;}};
+  listeners.get('beforeunload')?.(event);
+  if(prevented)assert.equal(event.returnValue,'');
+  return prevented;
+ };
+ assert.equal(warns(),false,'loading a page must not trap navigation');
+ session.startRack();
+ assert.equal(warns(),false,'cue placement and aim before first strike are safe to leave');
+ assert.throws(()=>session.startShot(null),/shotId/);
+ assert.equal(warns(),false,'a rejected strike must not dirty the rack');
+ session.startShot('break');
+ assert.equal(warns(),true,'moving balls are progress');
+ session.settle({ballInHand:true});
+ assert.equal(warns(),true,'foul placement must not silently discard the rack');
+ session.confirmPlacement();
+ assert.equal(warns(),true,'aiming after a strike is still unfinished play');
+ session.startShot('finish');session.settle({done:true});
+ assert.equal(warns(),false,'rack completion allows normal navigation');
+ session.startRack();
+ assert.equal(warns(),false,'restart clears previous rack progress');
+ session.startShot('new-break');
+ dispose();dispose();
+ assert.equal(listeners.size,0,'unmount releases the navigation listener');
+ assert.doesNotThrow(()=>attachMatchExitGuard(session,null)());
+});
 
 test('Tuna GameSession owns break, one ruling event, and next-shot phase',()=>{
  const game=createGameSession({game:'tuna',adjudicate:adjudicateTunaShot});
