@@ -1,14 +1,14 @@
 # Squatch Pool · The 4T's
 
-**Status: v0.1 proof of concept in progress (not yet release-verified).** A mobile-friendly, self-contained browser pool game set at the Squatches' secret watering hole in the Pacific Northwest temperate rainforest.
+**Status: five original game pages exist; shared-architecture consolidation and five-mode play acceptance are in progress (not yet production-release-verified).** A mobile-friendly, self-contained browser pool game set at the Squatches' secret watering hole in the Pacific Northwest temperate rainforest.
 
 ## Release direction
 
 **Fun first, process second.** Ship small improvements, playtest with real people, and increase automation only when repeated failures justify it. We are **not** adopting full test-driven development or coverage quotas during the proof of concept. A passing test suite is not proof that the game is fun or release-ready.
 
-Our release gates, aggressive *targets* and maturity policy live in [docs/ROADMAP.md](docs/ROADMAP.md) (tracking [#33](https://github.com/subiki/squatchpool/issues/33)). **Current focus: v0.1 — one complete, understandable, fun match** with correct opponent-selected surprise-ball strategy, believable rails and pockets, usable phone/desktop controls and restart. Missing acceptance evidence means a gate is still open. Later rainforest storytelling, additional games, and site/domain migration are parallel or subsequent work, never blockers for fixing the playable prototype.
+**Execution entrypoint:** [AGENTS.md](AGENTS.md) → [docs/BACKLOG.md](docs/BACKLOG.md) → [#206 shared break/shot lifecycle](https://github.com/subiki/squatchpool/issues/206). Architecture runs **#206 → #207 → #209 → #208 → #210**, while production uptime is protected through [#128](https://github.com/subiki/squatchpool/issues/128). [#159](https://github.com/subiki/squatchpool/issues/159) tracks final five-game desktop/touch/offline/stats acceptance. [docs/ROADMAP.md](docs/ROADMAP.md) contains outcome gates rather than outdated calendar-based priorities; [docs/DELIVERY.md](docs/DELIVERY.md) has the lean branch-to-production loop. Older v0.1 checklist entries below document prototype history, **not** the next task.
 
-For contributors and agents: read [AGENTS.md](AGENTS.md) and [docs/DELIVERY.md](docs/DELIVERY.md). Existing game tests include a headless real-game click regression, but browser playtesting is the release decision.
+**No full TDD, coverage quotas or framework rewrite:** favor small reversible playable fixes, existing checks, real browser playtesting and verifiable production delivery.
 
 ## Deployment timestamp (Pacific time)
 

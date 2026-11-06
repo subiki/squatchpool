@@ -9,7 +9,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   ['document','window','Option','fetch','requestAnimationFrame','localStorage'].map(k=>[k,globalThis[k]]));
  const elements=new Map(),listeners=new Map();
  let aimLineEnd=null;
- const ctx=new Proxy({lineTo(x,y){if(this.strokeStyle==='#fce2a8')aimLineEnd={x,y};}},
+ const ctx=new Proxy({lineTo(x,y){if(this.strokeStyle==='#f4e1a3')aimLineEnd={x,y};}},
   {get:(obj,key)=>key in obj?obj[key]:()=>{},
   set:(obj,key,value)=>{obj[key]=value;return true;}});
  let frame=()=>{},now=0;
