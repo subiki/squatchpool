@@ -1,13 +1,19 @@
-// Only script-free information views share a document. Games keep native links
+import {mountGameHub} from './game-hub.js';
+// Only the launcher and static information views share a document. Games keep native links
 // until their controller mount/unmount lifecycle is proven.
-const route=url=>url.pathname.replace(/\/+$/,'').replace(/\.html$/,'');
-const supported=url=>['/rules','/archive'].includes(route(url));
+const route=url=>{
+ const path=url.pathname.replace(/\/+$/,'').replace(/\.html$/,'');
+ return !path||path==='/index'?'/':path;
+};
+const supported=url=>['/','/rules','/archive'].includes(route(url));
 
 export function attachStaticNavigation(win=globalThis.window){
  if(!win?.document)return ()=>{};
  const doc=win.document;
  let current=new URL(win.location.href),entry=0,currentEntry=0,pending=0;
  if(!supported(current))return ()=>{};
+ let disposeView=route(current)==='/'?mountGameHub(doc):()=>{};
+ const sheets=new Map();
  const positions=new Map();
  const previousRestoration=win.history.scrollRestoration;
  win.history.scrollRestoration='manual';
@@ -19,21 +25,40 @@ export function attachStaticNavigation(win=globalThis.window){
   try{
    if(route(url)!==route(current)||url.search!==current.search){
     // Request the precached static file even on extensionless production URLs.
-    const response=await win.fetch(route(url)+'.html'+url.search);
+    const response=await win.fetch((route(url)==='/'?'/index.html':route(url)+'.html')+url.search);
     if(!response.ok)throw new Error('Page unavailable');
     const next=new win.DOMParser().parseFromString(await response.text(),'text/html');
     if(ticket!==pending)return;
-    const main=next.querySelector('main'),style=next.querySelector('style[data-page-style]');
-    if(!main||!style||main.querySelector('script'))throw new Error('Unsupported page');
+    const main=next.querySelector('main'),sources=[...next.querySelectorAll('[data-page-style]')];
+    if(!main||!sources.length||main.querySelector('script'))throw new Error('Unsupported page');
+    const styles=await Promise.all(sources.map(async source=>{
+     if(source.tagName!=='LINK')return doc.importNode(source,true);
+     const href=new URL(source.getAttribute('href'),url);
+     if(href.origin!==url.origin)throw new Error('Unsupported stylesheet');
+     if(!sheets.has(href.href))sheets.set(href.href,win.fetch(href.href).then(async response=>{
+      if(!response.ok)throw new Error('Styles unavailable');
+      const css=await response.text();
+      // These two page sheets are self-contained. New asset-relative sheets
+      // retain normal document navigation rather than changing URL resolution.
+      if(/url\s*\(|@import/i.test(css))throw new Error('Unsupported stylesheet');
+      return css;
+     }).catch(error=>{sheets.delete(href.href);throw error;}));
+     const style=doc.createElement('style');style.setAttribute('data-page-style','');
+     style.textContent=await sheets.get(href.href);return style;
+    }));
+    if(ticket!==pending)return;
     const oldMain=doc.querySelector('main');
     oldMain.querySelectorAll('audio,video').forEach(media=>media.pause());
     const mounted=doc.importNode(main,true);
+    disposeView();
     oldMain.replaceWith(mounted);
-    doc.querySelector('style[data-page-style]').replaceWith(doc.importNode(style,true));
+    doc.querySelectorAll('[data-page-style]').forEach(style=>style.remove());
+    doc.head.append(...styles);
     doc.querySelector('body > footer')?.remove();
     const footer=next.querySelector('body > footer');
     if(footer)mounted.after(doc.importNode(footer,true));
     doc.title=next.title;
+    disposeView=route(url)==='/'?mountGameHub(doc):()=>{};
    }
    if(pop)currentEntry=id??++entry;
    else{
@@ -75,6 +100,7 @@ export function attachStaticNavigation(win=globalThis.window){
  win.addEventListener('popstate',pop);
  return ()=>{
   pending++;
+  disposeView();
   doc.removeEventListener('click',click);win.removeEventListener('popstate',pop);
   win.history.scrollRestoration=previousRestoration;
  };

@@ -2,12 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {GAMES,rankedGames} from '../src/game-catalog.js';
+import {mountGameHub} from '../src/game-hub.js';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('Caroms remains offered as bot or local two-player beta',()=>{
  const home=read('index.html'),caroms=read('caroms.html');
  assert.match(home,/id="game-list"/,'homepage has the real game catalog mount');
- assert.match(home,/src="\/src\/game-hub\.js"/,'homepage loads dynamic game cards');
+ assert.match(home,/src="\/src\/static-navigation\.js"/,'homepage mounts dynamic cards through the static shell');
  const game=GAMES.find(g=>g.id==='caroms');
  assert.equal(game.url,'/caroms.html');
  assert.match(game.players,/Solo.*Squatch Bot.*2.*players/);
@@ -19,6 +20,35 @@ test('Caroms remains offered as bot or local two-player beta',()=>{
  assert.match(caroms,/First to two racks wins this playtest match/);
  assert.match(caroms,/content="Play original Caroms.*solo against Squatch Bot/);
  assert.match(read('rules.html'),/href="\.\/caroms\.html">Play now/);
+});
+
+test('Home remounts five ranked game cards without stale renders or repeated ranking requests',async()=>{
+ const previous={document:globalThis.document,fetch:globalThis.fetch};
+ const node=tag=>({tag,children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;},setAttribute(){}});
+ const view=()=>{const list=node('div'),note=node('p');return {list,note,querySelector:selector=>selector==='#game-list'?list:note};};
+ let resolve,requests=0;
+ try{
+  globalThis.document={createElement:node};
+  globalThis.fetch=()=>{requests++;return new Promise(done=>{resolve=done;});};
+  const first=view(),second=view(),dispose=mountGameHub(first);
+  assert.equal(first.list.children.length,5,'all games remain playable while ranking loads');
+  dispose();mountGameHub(second);
+  resolve({ok:true,json:async()=>({games:GAMES.map(game=>({id:game.id,racks:game.id==='tuna'?25:3}))})});
+  await new Promise(done=>setImmediate(done));
+  assert.equal(requests,1);
+  assert.equal(first.note.textContent,undefined,'disposed Home cannot receive a late update');
+  assert.equal(second.list.children.length,5);
+  assert.equal(second.list.children[0].children.at(-1).href,'/tuna.html','real server ranking is restored on remount');
+  const third=view();mountGameHub(third);await new Promise(done=>setImmediate(done));
+  assert.equal(requests,1,'returning Home reuses its ranking snapshot');
+  assert.equal(third.list.children[0].children.at(-1).href,'/tuna.html');
+ }finally{
+  for(const [key,value] of Object.entries(previous)){if(value===undefined)delete globalThis[key];else globalThis[key]=value;}
+ }
+});
+
+test('static shell page styles remain self-contained for offline swaps',()=>{
+ for(const file of ['src/world.css','src/game-hub.css'])assert.doesNotMatch(read(file),/url\s*\(|@import/i);
 });
 
 test('homepage gives five original games equal cards and shows Arcade separately',()=>{
