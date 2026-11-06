@@ -359,6 +359,7 @@ for(const i of [0,1])$('caroms-level-'+i).addEventListener('change',update);
 $('caroms-shoot').addEventListener('click',hit);
 $('caroms-new').addEventListener('click',newGame);
 $('caroms-match-reset').addEventListener('click',newMatch);
+$('caroms-match-settings').addEventListener('click',newMatch);
 $('caroms-size').addEventListener('change',newMatch);
 $('caroms-mode').addEventListener('change',newMatch);
 $('caroms-center').addEventListener('click',()=>chooseOption(true));

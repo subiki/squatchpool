@@ -85,8 +85,9 @@ test('Caroms keeps required actions inside the fullscreen table',()=>{
  }
  assert.ok(html.indexOf('id="caroms-shoot"')>html.indexOf('id="caroms-table"'));
  assert.ok(html.indexOf('id="caroms-new"')>start,'contextual next rack stays inside fullscreen');
+ assert.ok(html.indexOf('id="caroms-match-reset"')>start,'final new match stays available inside fullscreen');
  const settings=html.slice(html.indexOf('id="caroms-setup-panel"'),start);
- assert.match(settings,/id="caroms-match-reset"/,'new match remains reachable in settings during an unfinished rack');
+ assert.match(settings,/id="caroms-match-settings"/,'new match remains reachable in settings during an unfinished rack');
  assert.match(html,/<div class="caroms-rack-actions" id="caroms-rack-actions" hidden>/);
  assert.doesNotMatch(html,/<details[^>]*\bopen\b[^>]*id="caroms-more"/);
  const controller=readFileSync(new URL('../src/caroms-game.js',import.meta.url),'utf8');
