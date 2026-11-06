@@ -6,6 +6,7 @@ import {tablePoint} from './table-pointer.js';
 import {groupOf,liveGroupBalls} from './rules.js';
 import {caromsEligible,caromsCallRequired} from './caroms-rules.js';
 import {createGameSession} from './game-session.js';
+import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateCaromsShot} from './caroms-shot-adapter.js';
 import {respotCaromsBall} from './caroms-placement.js';
@@ -70,6 +71,7 @@ function log(message){
  while($('caroms-log').children.length>14)$('caroms-log').lastElementChild.remove();
 }
 const session=createGameSession({game:'caroms',adjudicate:adjudicateCaromsShot});
+attachMatchExitGuard(session);
 if (typeof document !== 'undefined' && $('table-stage')?.ownerDocument) {
  attachShotAnnouncer(session,$('table-stage'));
 }

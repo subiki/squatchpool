@@ -5,6 +5,7 @@ import {createTableRenderer} from './table-renderer.js';
 import {tablePoint} from './table-pointer.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,resolveCutthroatClaim} from './cutthroat-rules.js';
 import {createGameSession} from './game-session.js';
+import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
@@ -27,6 +28,7 @@ function say(message){
  while($('cut-log').children.length>15)$('cut-log').lastElementChild.remove();
 }
 const session=createGameSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
+attachMatchExitGuard(session);
 // Mount only on real DOM stages; minimal controller test doubles omit ownerDocument.
 const announcerStage=$('table-stage');
 if(announcerStage?.ownerDocument)attachShotAnnouncer(session,announcerStage);

@@ -6,6 +6,7 @@ import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
 import {createTableRenderer} from './table-renderer.js';
 import {createGameSession} from './game-session.js';
+import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateButWaitShot} from './but-wait-shot-adapter.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
@@ -14,6 +15,7 @@ const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const invertAim=bindInvertAim($('#invert-aim'));
 const session=createGameSession({game:'but-wait',adjudicate:adjudicateButWaitShot});
+attachMatchExitGuard(session);
 const announcerStage = document.getElementById?.('table-stage');
 if (announcerStage?.ownerDocument) {
  attachShotAnnouncer(session,announcerStage);

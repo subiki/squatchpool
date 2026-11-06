@@ -7,6 +7,7 @@ import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
 import {tunaTargets,tunaRackOrder,tunaCanWin} from './tuna-rules.js';
 import {createGameSession} from './game-session.js';
+import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateTunaShot} from './tuna-shot-adapter.js';
 import {planBotShot} from './bot-shot-planner.js';
@@ -16,6 +17,7 @@ let balls=[],turn=0,money=[0,0],angle=0,events=[],firstContact=null,preBalls=[],
 let nextBreaker=0,rackNumber=0;
 const cue=()=>balls.find(b=>b.id===0);
 const shot=createGameSession({game:'tuna',adjudicate:adjudicateTunaShot});
+attachMatchExitGuard(shot);
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 const telemetry=createGameTelemetry('tuna');
 // Minimal controller test doubles omit DOM ownership; real elements always have it.
