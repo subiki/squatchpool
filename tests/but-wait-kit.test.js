@@ -13,7 +13,7 @@ test('But Wait keeps break, called shots, stash and spin inside fullscreen table
  for(const id of ['table','pocket-targets','stash-panel','stash-solid','stash-stripe',
   'stash-confirm','power','shoot','invert-aim','kit-fullscreen','move-cue',
   'but-wait-more','call-panel','call-ball-status','call-pocket-status',
-  'undo-call','ball-picks','spin-top','spin-side','control-hint']){
+  'undo-call','ball-picks','spin-top','spin-side','control-hint','new-game']){
   assert.ok(section.includes('id="'+id+'"'),id+' must remain usable in fullscreen');
  }
  assert.ok(section.indexOf('id="table"')<section.indexOf('id="shoot"'));
