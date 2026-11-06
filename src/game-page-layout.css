@@ -50,3 +50,10 @@
 .table-stage .game-live-stats{display:flex;flex:0 0 auto;align-items:baseline;flex-wrap:wrap;gap:4px 14px;padding:8px 12px;background:#142b22;color:#c7d8ca;font-size:.8rem;border-bottom:1px solid #5c765f}
 .game-live-stats b{color:#ffe2a5;font-variant-numeric:tabular-nums}
 .game-live-stats small{flex-basis:100%;font-size:.75rem}
+
+/* Rack completion and restart stay reachable without leaving table fullscreen. */
+.table-stage .kit-rack-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:8px 0 0;padding-top:8px;border-top:1px solid #55705e}
+.table-stage .kit-rack-actions[hidden]{display:none!important}
+.table-stage .kit-rack-actions button{min-height:44px;padding:9px 12px;border:1px solid #69826a;border-radius:9px;background:#294736;color:#f3ebd7;font:inherit;font-weight:750;cursor:pointer}
+.table-stage .kit-rack-actions button[data-rack-action="next"]{background:#efc77c;color:#19271e;border-color:#efc77c}
+.table-stage .kit-rack-actions button:disabled{opacity:.5;cursor:not-allowed}
