@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import {onRequestGet,onRequestPost} from '../functions/api/stats.js';
 import {createStatsClient,initStats} from '../src/stats.js';
 import {createGameTelemetry} from '../src/game-telemetry.js';
+import {initCaromsStats} from '../src/caroms-stats.js';
+import {initCutthroatStats} from '../src/cutthroat-stats.js';
 
 const A='55555555-5555-4555-8555-555555555555';
 const B='66666666-6666-4666-8666-666666666666';
@@ -274,11 +276,18 @@ test('compact games display their own live totals through the existing client an
    return {ok:available,status:available?200:503,json:async()=>({site:{players:5,racks:9,balls:12},games:missing?[]:[
     {id:'press-your-luck',players:3,racks:0,balls:10},
     {id:'tuna',players:2,racks:9,balls:2},
+    {id:'caroms',players:4,racks:6,balls:16},
+    {id:'cutthroat',players:1,racks:2,balls:0},
    ]})};
   };
-  for(const [gameId,values] of [['press-your-luck',['3','0','10']],['tuna',['2','9','2']]]){
+  for(const [gameId,values,init] of [
+   ['press-your-luck',['3','0','10'],()=>createGameTelemetry('press-your-luck')],
+   ['tuna',['2','9','2'],()=>createGameTelemetry('tuna')],
+   ['caroms',['4','6','16'],initCaromsStats],
+   ['cutthroat',['1','2','0'],initCutthroatStats],
+  ]){
    available=true;missing=false;requests.length=0;
-   createGameTelemetry(gameId);
+   init();
    await new Promise(resolve=>setImmediate(resolve));
    assert.deepEqual(requests,[{url:'/api/stats',options:{cache:'no-store'}}],'rendering must not add another client or request');
    const totals=()=>['players','racks','balls'].map(field=>find('current-game-stats-'+field).textContent);
