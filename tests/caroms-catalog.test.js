@@ -18,7 +18,7 @@ test('Caroms remains offered as bot or local two-player beta',()=>{
  assert.match(caroms,/Solo bot or two local players/);
  assert.match(caroms,/First to two racks wins this playtest match/);
  assert.match(caroms,/content="Play original Caroms.*solo against Squatch Bot/);
- assert.match(read('rules.html'),/href="\.\/caroms\.html">Play Caroms/);
+ assert.match(read('rules.html'),/href="\.\/caroms\.html">Play now/);
 });
 
 test('homepage gives five original games equal cards and shows Arcade separately',()=>{
