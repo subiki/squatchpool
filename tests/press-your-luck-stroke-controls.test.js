@@ -68,11 +68,11 @@ test('Press Your Luck shared kitchen placement respects 7, 8 and 9 ft boundaries
 });
 
 test('Press Your Luck cancels touch drag when BREAK starts and never moves the cue during physics',()=>{
- const move=source.split("canvas.addEventListener('pointermove',e=>{")[1]?.split("canvas.addEventListener('pointerup'")[0]||'';
+ const move=source.split("listen(canvas,'pointermove',e=>{")[1]?.split("listen(canvas,'pointerup'")[0]||'';
  assert.match(move,/if\(shot\.phase==='aim'&&shot\.breakShot\)/,
   'cue dragging must be restricted to the aiming phase');
  assert.match(shoot,/if\(!shot\.startShot\(statsShotId\)\)return;cuePlacement\.cancel\(\)/,
   'successful shot start must release the active pointer before physics');
- assert.match(source,/\$\('opponent'\)\.onchange=\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);update\(\);\}/,
+ assert.match(source,/bind\(\$\('opponent'\),'onchange',\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);update\(\);\}\)/,
   'switching opponents must release any active touch drag');
 });

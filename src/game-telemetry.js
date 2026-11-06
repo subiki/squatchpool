@@ -1,13 +1,15 @@
 /** Shared, optional rack/shot telemetry for compact playable games. */
 import {createStatsClient,newStatsId} from './stats.js';
 export const newGameStatsId=()=>newStatsId();
-export function createGameTelemetry(gameId){
+export function createGameTelemetry(gameId,{root=globalThis.document}={}){
  let storage=null,client=null;
+ let disposed=false,online=null;
+ const target=globalThis.window;
  let hasTotals=false;
  const fields=['players','racks','balls'];
  const put=(id,value)=>{
-  if(typeof document==='undefined')return;
-  const node=document.getElementById?.(id);
+  if(disposed||!root)return;
+  const node=root.getElementById?.(id)||root.querySelector?.('#'+id);
   if(node)node.textContent=value;
  };
  try{storage=globalThis.localStorage??null;}catch{}
@@ -29,14 +31,14 @@ export function createGameTelemetry(gameId){
    },
   });
   void client.refresh();void client.flush();
-  if(typeof window!=='undefined')window.addEventListener('online',()=>{
-   void client.flush();void client.refresh();
-  });
+  online=()=>{if(!disposed){void client.flush();void client.refresh();}};
+  target?.addEventListener('online',online);
  }catch{
   // Usage statistics must never prevent the game from loading or shooting.
  }
  return{
   rack:rackId=>client?.rack(rackId),
   balls:(rackId,shotId,count)=>client?.balls(rackId,shotId,count),
+  dispose(){disposed=true;target?.removeEventListener?.('online',online);client=null;},
  };
 }

@@ -1,9 +1,25 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {mountTableKit} from '../src/table-kit-controls.js';
 
 const html=readFileSync(new URL('../but-wait.html',import.meta.url),'utf8');
 const controller=readFileSync(new URL('../src/game.js',import.meta.url),'utf8');
+
+test('fullscreen kit releases listeners and ignores late failures after unmount',async()=>{
+ const listeners=new Map(),button={textContent:'',setAttribute(){},addEventListener:(name,fn)=>listeners.set('button:'+name,fn),removeEventListener:name=>listeners.delete('button:'+name)};
+ let reject;
+ const stage={requestFullscreen:()=>new Promise((resolve,fail)=>{reject=fail;})};
+ const doc={getElementById:id=>id==='table-stage'?stage:button,addEventListener:(name,fn)=>listeners.set(name,fn),removeEventListener:name=>listeners.delete(name)};
+ const dispose=mountTableKit(doc);
+ assert.match(button.textContent,/Fullscreen/);
+ doc.fullscreenElement=stage;listeners.get('fullscreenchange')();
+ assert.match(button.textContent,/Exit fullscreen/);
+ doc.fullscreenElement=null;
+ const pending=listeners.get('button:click')();
+ dispose();button.textContent='fresh view';reject(new Error('cancelled'));await pending;
+ assert.equal(listeners.size,0);assert.equal(button.textContent,'fresh view');
+});
 
 test('But Wait keeps break, called shots, stash and spin inside fullscreen table',()=>{
  const stage=html.indexOf('id="table-stage"');
