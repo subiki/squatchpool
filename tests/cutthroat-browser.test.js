@@ -37,7 +37,7 @@ test('Cutthroat keeps the core shot kit and required decisions attached to the f
  assert.match(html,/<div class="kit-primary">[\s\S]*?id="cut-power"[\s\S]*?id="cut-shoot"[\s\S]*?id="invert-aim"[\s\S]*?id="kit-fullscreen"/);
  assert.doesNotMatch(html,/#cut-shoot\{position:fixed/,'shoot must not float over the felt on phones');
  const stage=html.slice(html.indexOf('id="table-stage"'),html.indexOf('<details><summary>Shot history'));
- for(const id of ['cut-group','cut-claim','cut-place','cut-reposition'])
+ for(const id of ['cut-group','cut-claim','cut-place','cut-reposition','cut-turn','cut-scores','cut-status'])
   assert.ok(stage.includes('id="'+id+'"'),id+' must remain available inside fullscreen');
  assert.match(controller,/\$\('cut-options'\)\.open=true/,'required decisions must open the drawer');
 });

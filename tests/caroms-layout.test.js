@@ -3,6 +3,24 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../caroms.html',import.meta.url),'utf8');
 
+test('all five games keep their turn and guidance strip above the canvas inside fullscreen',()=>{
+ for(const [file,ids] of [
+  ['but-wait.html',['control-title','control-hint']],
+  ['caroms.html',['caroms-turn','caroms-score','caroms-status']],
+  ['cutthroat.html',['cut-turn','cut-scores','cut-status']],
+  ['press-your-luck.html',['score','status','bonus']],
+  ['tuna.html',['turn','status','targets','money']],
+ ]){
+  const page=readFileSync(new URL('../'+file,import.meta.url),'utf8');
+  const stage=page.indexOf('id="table-stage"'),canvas=page.indexOf('<canvas',stage);
+  for(const id of ids){
+   const marker='id="'+id+'"',at=page.indexOf(marker);
+   assert.ok(stage>=0&&at>stage&&at<canvas,file+': '+id+' must stay visible in table fullscreen');
+   assert.equal(page.split(marker).length,2,file+': '+id+' must remain unique');
+  }
+ }
+});
+
 test('Caroms has concise rules before play, with optional panels after the table',()=>{
  const at=id=>html.indexOf('id="'+id+'"');
  const table=at('caroms-table');
