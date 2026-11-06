@@ -18,7 +18,10 @@
     connectedCallback() {
       if (this.dataset.rendered) return;
       this.dataset.rendered = 'true';
-      const current = location.pathname === '/index.html' ? '/' : location.pathname;
+      // Pages redirects .html links to extensionless URLs; offline uses .html.
+      const path = location.pathname.replace(/\/+$/, '') || '/';
+      const current = path === '/index' || path === '/index.html' ? '/'
+        : pages.find(([href]) => href === path || href.replace(/\.html$/, '') === path)?.[0];
       const header = document.createElement('header');
       header.className = 'squatch-unified-header';
       header.innerHTML = `
