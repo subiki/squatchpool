@@ -43,6 +43,17 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    assert.equal(node('shoot').disabled,false,'legal default cue is immediately ready to BREAK');
    tap(headStringX()*.55,TABLE.height/2);release();
    assert.equal(node('shoot').disabled,false,'dragging break cue needs no confirmation');
+   tap(headStringX()*.55,TABLE.height/2);
+   listeners.get('table:lostpointercapture')?.({pointerId:2});
+   node('status').textContent='Owner still dragging';
+   release();
+   assert.match(node('status').textContent,/Cue positioned/,'another pointer losing capture must not release the owner');
+   tap(headStringX()*.55,TABLE.height/2);
+   listeners.get('table:lostpointercapture')?.({pointerId:1});
+   node('status').textContent='Capture lost';
+   listeners.get('table:pointerdown')({clientX:headStringX()*.45,clientY:TABLE.height/2,pointerId:3,buttons:1});
+   listeners.get('table:pointerup')({pointerId:3});
+   assert.match(node('status').textContent,/Cue positioned/,'capture loss must allow a fresh pointer to place the cue');
    assert.match(node('table-call-hint').textContent,/No call needed/);
    node('shoot').onclick();
    let frames=0;

@@ -58,6 +58,17 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    assert.match(node('status').textContent,/Cue positioned/,'only the initiating finger releases cue placement');
    assert.equal(node('shoot').disabled,false,'drag release keeps BREAK enabled');
    assert.equal(node('place').hidden,true,'drag does not reveal confirmation');
+   tap(headStringX()*.55,TABLE.height/2);
+   listeners.get('table:lostpointercapture')?.({pointerId:2});
+   node('status').textContent='Owner still dragging';
+   release();
+   assert.match(node('status').textContent,/Cue positioned/,'another pointer losing capture must not release the owner');
+   tap(headStringX()*.55,TABLE.height/2);
+   listeners.get('table:lostpointercapture')?.({pointerId:1});
+   node('status').textContent='Capture lost';
+   listeners.get('table:pointerdown')({clientX:headStringX()*.45,clientY:TABLE.height/2,pointerId:3,buttons:1});
+   listeners.get('table:pointerup')({pointerId:3});
+   assert.match(node('status').textContent,/Cue positioned/,'capture loss must allow a fresh pointer to place the cue');
    node('shoot').onclick();
    const statusAtStrike=node('status').textContent;
    listeners.get('table:pointermove')({clientX:headStringX()*.25,clientY:TABLE.height/2,pointerId:1,buttons:1});

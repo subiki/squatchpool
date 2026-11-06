@@ -216,6 +216,7 @@ canvas.addEventListener('pointerup',e=>{
  if(cuePlacement.pointerUp(e.pointerId)&&shot.phase==='aim'){message('Cue positioned. Aim and press BREAK.');update();}
 });
 canvas.addEventListener('pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
+canvas.addEventListener('lostpointercapture',e=>{cuePlacement.pointerUp(e.pointerId);});
 function fire(bot=false){
  if(shot.phase!=='aim'||(isBotTurn()&&!bot))return;
  if(!shot.breakShot&&!callReady()){
