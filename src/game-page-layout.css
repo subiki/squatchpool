@@ -45,3 +45,8 @@
 .table-stage :is(#status,#cut-status,#caroms-status){flex-basis:100%;font-size:.9rem}
 .table-stage:fullscreen{justify-content:safe center}
 @media(max-width:650px){.table-stage :is(.game-hud,.kit-status,.caroms-status-bar){padding:8px;gap:4px 10px}}
+
+/* Current-game lifetime counts use the existing telemetry snapshot. */
+.table-stage .game-live-stats{display:flex;flex:0 0 auto;align-items:baseline;flex-wrap:wrap;gap:4px 14px;padding:8px 12px;background:#142b22;color:#c7d8ca;font-size:.8rem;border-bottom:1px solid #5c765f}
+.game-live-stats b{color:#ffe2a5;font-variant-numeric:tabular-nums}
+.game-live-stats small{flex-basis:100%;font-size:.75rem}

@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequestGet,onRequestPost} from '../functions/api/stats.js';
 import {createStatsClient,initStats} from '../src/stats.js';
+import {createGameTelemetry} from '../src/game-telemetry.js';
 
 const A='55555555-5555-4555-8555-555555555555';
 const B='66666666-6666-4666-8666-666666666666';
@@ -253,6 +254,45 @@ test('read-only header uses the shared full statistics table without storage or 
   assert.deepEqual(body.children.map(row=>row.children.map(cell=>cell.textContent)),[
    ['But Wait','4','5','27'],['Caroms','3','5','26'],['Site total','4','11','54'],
   ]);
+ }finally{
+  for(const key of keys){if(originals[key])Object.defineProperty(globalThis,key,originals[key]);else delete globalThis[key];}
+ }
+});
+
+test('compact games display their own live totals through the existing client and clear them on failure',async()=>{
+ const keys=['document','window','fetch','localStorage'];
+ const originals=Object.fromEntries(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ const nodes=new Map(),requests=[];
+ const find=id=>{if(!nodes.has(id))nodes.set(id,{textContent:''});return nodes.get(id);};
+ let online,available=true,missing=false;
+ try{
+  globalThis.document={getElementById:find};
+  globalThis.window={addEventListener:(event,callback)=>{if(event==='online')online=callback;}};
+  Object.defineProperty(globalThis,'localStorage',{configurable:true,get(){throw new Error('Storage denied');}});
+  globalThis.fetch=async(url,options)=>{
+   requests.push({url,options});
+   return {ok:available,status:available?200:503,json:async()=>({site:{players:5,racks:9,balls:12},games:missing?[]:[
+    {id:'press-your-luck',players:3,racks:0,balls:10},
+    {id:'tuna',players:2,racks:9,balls:2},
+   ]})};
+  };
+  for(const [gameId,values] of [['press-your-luck',['3','0','10']],['tuna',['2','9','2']]]){
+   available=true;missing=false;requests.length=0;
+   createGameTelemetry(gameId);
+   await new Promise(resolve=>setImmediate(resolve));
+   assert.deepEqual(requests,[{url:'/api/stats',options:{cache:'no-store'}}],'rendering must not add another client or request');
+   const totals=()=>['players','racks','balls'].map(field=>find('current-game-stats-'+field).textContent);
+   assert.deepEqual(totals(),values,'use this game, not site totals or the default But Wait game');
+   assert.match(find('current-game-stats-status').textContent,/Live game totals/);
+   available=false;online();await new Promise(resolve=>setImmediate(resolve));
+   assert.deepEqual(totals(),['—','—','—']);
+   assert.match(find('current-game-stats-status').textContent,/unavailable/);
+   available=true;missing=true;online();await new Promise(resolve=>setImmediate(resolve));
+   assert.deepEqual(totals(),['—','—','—'],'missing game must not become fabricated zero');
+   missing=false;online();await new Promise(resolve=>setImmediate(resolve));
+   assert.deepEqual(totals(),values,'reconnect restores actual server totals');
+   assert.ok(requests.every(request=>!request.options.method),'verification is GET-only');
+  }
  }finally{
   for(const key of keys){if(originals[key])Object.defineProperty(globalThis,key,originals[key]);else delete globalThis[key];}
  }
