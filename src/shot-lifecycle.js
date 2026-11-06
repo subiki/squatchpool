@@ -23,6 +23,7 @@ export function createShotLifecycle(){
 export function createCuePlacement({getBalls,getCue}){
  let dragging=false,activePointer=null;
  function placeBreak(point){
+  if(!Number.isFinite(point.x)||!Number.isFinite(point.y))return false;
   const p=kitchenPoint(point.x,point.y);
   if(!canPlaceBreakCue(getBalls(),p.x,p.y))return false;
   Object.assign(getCue(),p);
@@ -32,8 +33,8 @@ export function createCuePlacement({getBalls,getCue}){
   if(dragging)return false;
   const cue=getCue();
   if(point.x>=headStringX()&&Math.hypot(point.x-cue.x,point.y-cue.y)>TABLE.radius*2.5)return false;
+  if(!placeBreak(point))return false;
   dragging=true;activePointer=pointerId;
-  placeBreak(point);
   return true;
  }
  function pointerMove(point,pointerId=null){
