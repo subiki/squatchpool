@@ -85,7 +85,7 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   assert.equal(el('caroms-shoot').disabled,false,'human may break');
   change('caroms-level-1','advanced');
   breakAwayFromCue();
-  assert.match(el('caroms-turn').textContent,/Squatch Bot/,
+  assert.match(el('caroms-hud-possession').textContent,/Squatch Bot/,
    'missed 1-ball break hands off to the solo opponent');
   assert.equal(el('caroms-shoot').disabled,true,
    'human shoot button locked during the bot turn');
@@ -129,7 +129,7 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   click('caroms-match-reset');
   assert.equal(timers.size,0,'new match cancels bot work and resets the breaker');
   breakAwayFromCue();
-  assert.match(el('caroms-turn').textContent,/Squatch Bot/);
+  assert.match(el('caroms-hud-possession').textContent,/Squatch Bot/);
   assert.equal(timers.size,1,'new rack schedules its own bot turn');
   const stale=timers.values().next().value;
   change('caroms-mode','local');
@@ -137,7 +137,7 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   stale(); // Simulate a callback racing with clearTimeout.
   assert.equal(el('caroms-status').textContent==='Balls rolling…',false,
    'stale callback cannot fire a shot in the replacement rack');
-  assert.match(el('caroms-turn').textContent,/Player 1/,
+  assert.match(el('caroms-hud-possession').textContent,/Player 1/,
    'local mode begins a fresh human-controlled rack');
   assert.equal(el('caroms-shoot').disabled,false);
  }finally{

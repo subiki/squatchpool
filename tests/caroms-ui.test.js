@@ -70,7 +70,7 @@ test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', as
  };
  try{
   await import('../src/caroms-game.js');
-  assert.equal(el('caroms-turn').textContent.includes('Player 1'),true);
+  assert.equal(el('caroms-hud-possession').textContent.includes('Player 1'),true);
   assert.match(el('caroms-score').textContent,/Best of 3.*0.*0/);
   assert.ok(listeners.has('caroms-match-reset:click'),'new match control must be wired');
   assert.equal(el('caroms-shoot').disabled,false,'break is playable immediately');
@@ -117,7 +117,7 @@ test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', as
   assert.equal(el('caroms-shoot').disabled,false);
   assert.equal(storage.get('squatch-table-size'),'9');
   click('caroms-new');
-  assert.equal(el('caroms-turn').textContent.includes('Player 1'),true);
+  assert.equal(el('caroms-hud-possession').textContent.includes('Player 1'),true);
   click('caroms-match-reset');
   assert.match(el('caroms-score').textContent,/Best of 3.*0.*0/);
  }finally{

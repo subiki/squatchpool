@@ -9,7 +9,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   ['document','window','Option','fetch','requestAnimationFrame','localStorage'].map(k=>[k,globalThis[k]]));
  const elements=new Map(),listeners=new Map();
  let aimLineEnd=null;
- const ctx=new Proxy({lineTo(x,y){if(this.strokeStyle==='#fce2a8')aimLineEnd={x,y};}},
+ const ctx=new Proxy({lineTo(x,y){if(this.strokeStyle==='#f4e1a3')aimLineEnd={x,y};}},
   {get:(obj,key)=>key in obj?obj[key]:()=>{},
   set:(obj,key,value)=>{obj[key]=value;return true;}});
  let frame=()=>{},now=0;
@@ -59,6 +59,13 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   setItem:(key,value)=>saved.set(key,String(value))};
  try{
   await import('../src/caroms-game.js');
+  assert.equal(el('caroms-turn').textContent,'BREAK');
+  assert.equal(el('caroms-hud-score-0').textContent,'0');
+  assert.equal(el('caroms-hud-score-1').textContent,'0');
+  assert.equal(el('caroms-hud-p0')['data-active'],'true');
+  assert.equal(el('caroms-hud-p1')['data-active'],'false');
+  assert.equal(el('caroms-hud-name-1').textContent,'PLAYER 2');
+  assert.equal(el('caroms-rack-actions').hidden,true,'next-rack actions must not interrupt an active rack');
   assert.equal(el('caroms-size').value,'8','restores size chosen in But Wait');
   assert.equal(el('caroms-shoot').disabled,false,'1-ball break ready');
   assert.equal(el('caroms-striker').value,'1','break striker is 1');
@@ -134,7 +141,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   while(el('caroms-status').textContent==='Balls rolling…'&&frames++<2600)tick();
   assert.ok(frames<2600,'real physics break must finish within 20 seconds');
   if(!el('caroms-option').hidden)click('caroms-leave');
-  assert.match(el('caroms-turn').textContent,/Player [12]/);
+  assert.match(el('caroms-hud-possession').textContent,/Player [12]/);
   assert.equal(el('caroms-power').value,'68','normal shot starts at 68%');
   change('caroms-level-0','advanced');
   change('caroms-level-1','advanced');

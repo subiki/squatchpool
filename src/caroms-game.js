@@ -1,8 +1,13 @@
 /** Caroms local pass-and-play preview, isolated from But Wait's production game. */
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,headStringX} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
+import {createTableRenderer} from './table-renderer.js';
+import {tablePoint} from './table-pointer.js';
 import {groupOf,liveGroupBalls} from './rules.js';
-import {caromsTurn,caromsEligible,caromsCallRequired} from './caroms-rules.js';
+import {caromsEligible,caromsCallRequired} from './caroms-rules.js';
+import {createGameSession} from './game-session.js';
+import {attachShotAnnouncer} from './shot-announcer.js';
+import {adjudicateCaromsShot} from './caroms-shot-adapter.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
 import {initCaromsStats,newCaromsStatsId,reportCaromsRack,reportCaromsBalls} from './caroms-stats.js';
@@ -13,7 +18,7 @@ const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
 const invertAim=bindInvertAim($('invert-aim'));
 const level=i=>$('caroms-level-'+i).value;
-let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0];
+let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0],historyNumber=0;
 const solo=()=>$('caroms-mode').value==='bot';
 const isBot=()=>solo()&&state.turn===1;
 const humanTurn=()=>!isBot();
@@ -31,7 +36,18 @@ function scheduleBot(){
   if(state.phase==='option'){chooseOption(false,true);return;}
   const candidates=eligibleBalls(),white=cue();if(!candidates.length||!white||white.pocketed)return;
   // Bounded deterministic geometric baseline. All strokes use the real physics engine.
-  const b=candidates.slice().sort((a,z)=>Math.hypot(a.x-white.x,a.y-white.y)-Math.hypot(z.x-white.x,z.y-white.y))[0];
+  // Prefer a clear object-ball-to-white-ball lane. Never use the white ball as striker.
+  const laneBlocked=b=>state.balls.some(other=>{
+   if(other.pocketed||other.id===b.id||other.id===0)return false;
+   const dx=white.x-b.x,dy=white.y-b.y,length2=dx*dx+dy*dy;
+   if(length2===0)return false;
+   const t=((other.x-b.x)*dx+(other.y-b.y)*dy)/length2;
+   if(t<=0||t>=1)return false;
+   return Math.hypot(other.x-(b.x+t*dx),other.y-(b.y+t*dy))<TABLE.radius*2.2;
+  });
+  const b=candidates.slice().sort((a,z)=>Number(laneBlocked(a))-Number(laneBlocked(z))||
+   Math.hypot(a.x-white.x,a.y-white.y)-Math.hypot(z.x-white.x,z.y-white.y))[0];
+  if(!b||b.id===0)return;
   state.shooterBall=b.id;state.angle=Math.atan2(white.y-b.y,white.x-b.x);
   state.power=78;state.spinTop=0;state.spinSide=0;
   const required=!state.breakShot&&caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn]));
@@ -49,10 +65,18 @@ const matchWinner=()=>matchWins.findIndex(wins=>wins>=2);
 const cue=()=>state.balls.find(b=>b.id===0);
 const striker=()=>state.balls.find(b=>b.id===state.shooterBall);
 function log(message){
- const li=document.createElement('li');li.textContent=message;
+ const li=document.createElement('li');li.value=++historyNumber;li.textContent=message;
  $('caroms-log').prepend(li);
  while($('caroms-log').children.length>14)$('caroms-log').lastElementChild.remove();
 }
+const session=createGameSession({game:'caroms',adjudicate:adjudicateCaromsShot});
+if (typeof document !== 'undefined' && $('table-stage')?.ownerDocument) {
+ attachShotAnnouncer(session,$('table-stage'));
+}
+session.subscribe(result=>{
+ if(result.pocketed.length)reportCaromsBalls(state.statsRackId,result.shotId,result.pocketed.length);
+ log(result.announcement);
+});
 function eligibleBalls(){
  if(state.breakShot)return state.balls.filter(b=>b.id===1&&!b.pocketed);
  const group=state.groups[state.turn];
@@ -89,7 +113,16 @@ function update(){
  // Required calls and foul choices must remain reachable in table fullscreen.
  if((needCall&&canAim&&(!state.calledBall||!state.calledPocket))||
     (state.phase==='option'&&!isBot()))$('caroms-more').open=true;
- $('caroms-turn').textContent=state.phase==='done'?'Rack complete':player(state.turn)+(state.breakShot?' · 1-ball break':' · '+level(state.turn));
+ $('caroms-turn').textContent=state.phase==='done'?'RACK FINAL':state.phase==='moving'?'BALLS IN MOTION':state.breakShot?'BREAK':state.phase==='option'?'FOUL DECISION':'LIVE';
+ for(let i=0;i<2;i++){
+  $('caroms-hud-score-'+i).textContent=String(matchWins[i]);
+  const g=state.groups[i],remaining=g?liveGroupBalls(state.balls,g).length:null;
+  $('caroms-hud-group-'+i).textContent=g?g+' · '+remaining+' left':'Open table';
+  $('caroms-hud-p'+i).setAttribute('data-active',String(state.phase!=='done'&&state.turn===i));
+ }
+ $('caroms-hud-name-1').textContent=solo()?'SQUATCH BOT':'PLAYER 2';
+ $('caroms-hud-possession').textContent=state.phase==='done'?player(state.winner)+' wins':player(state.turn)+(state.phase==='option'?' choosing foul option':' shooting');
+ $('caroms-rack-actions').hidden=state.phase!=='done';
  $('caroms-score').textContent='Best of 3 · Racks: '+player(0)+' '+matchWins[0]+' – '+player(1)+' '+matchWins[1]+' · '+
   state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
   (g?' ('+liveGroupBalls(state.balls,g).length+' left)':'')).join('   ·   ');
@@ -104,7 +137,8 @@ function update(){
  // The foul-option decision belongs to the incoming player, not the human
  // watching a solo Squatch Bot turn.
  for(const id of ['caroms-center','caroms-leave'])$(id).disabled=state.phase!=='option'||isBot();
- $('caroms-new').disabled=matchWinner()>=0;
+ $('caroms-new').disabled=state.phase!=='done'||matchWinner()>=0;
+ $('caroms-new').hidden=matchWinner()>=0;
  $('caroms-shoot').disabled=!canAim||state.shooterBall===null||
   (needCall&&(!state.calledBall||!state.calledPocket));
  $('caroms-shoot').textContent=state.breakShot?'BREAK WITH THE 1':'SHOOT';
@@ -124,6 +158,7 @@ function update(){
 }
 function newGame(){
  if(matchWinner()>=0)return;
+ session.startRack();
  setTableSize(Number($('caroms-size').value));
  // Share the regulation table-size preference with But Wait across game modes.
  // Private browsing or disabled storage must never prevent a rack from starting.
@@ -139,7 +174,7 @@ function newGame(){
   shot:null,shotNumber:0,winner:null,statsRackId:newCaromsStatsId()};
  accumulator=0;
  $('caroms-power').value='85';$('caroms-top').value='0';$('caroms-side').value='0';
- $('caroms-log').replaceChildren();
+ $('caroms-log').replaceChildren();historyNumber=0;
  log('Fresh Caroms rack. '+player(state.turn)+' breaks. '+(solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
  scheduleBot();
  update();
@@ -153,20 +188,18 @@ function respot(id){
 }
 function finishShot(){
  const shot=state.shot;state.shot=null;
- const decision=caromsTurn({balls:state.balls,groups:state.groups,
-  shooter:shot.player,shooterBall:shot.shooterBall,shotEvents:shot.events,
-  level:shot.level,breakShot:shot.breakShot,calledBall:shot.calledBall,
-  calledPocket:shot.calledPocket,eightEligibleBefore:shot.eightEligibleBefore});
+ const result=session.resolveShot({shotId:shot.statsShotId,context:{
+  balls:state.balls,groups:state.groups,shooter:shot.player,
+  shooterBall:shot.shooterBall,shotEvents:shot.events,level:shot.level,
+  breakShot:shot.breakShot,calledBall:shot.calledBall,
+  calledPocket:shot.calledPocket,eightEligibleBefore:shot.eightEligibleBefore,
+  playerLabel:player(shot.player),
+ }});
+ const decision=result.actions;
  state.groups=decision.groups;
- // Every physically pocketed object ball counts, including slop and illegal shots.
- // White-ball scratches do not count. Reporting never blocks the local match.
- const made=decision.pocketed.filter(id=>id!==0).length;
- if(made)reportCaromsBalls(state.statsRackId,shot.statsShotId,made);
  if(decision.respotCue)respot(0);
  if(decision.respotEight)respot(8);
- log(player(shot.player)+': '+(decision.pocketed.filter(id=>id!==0).join(', ')||'no object balls')+
-  '. '+decision.reason);
- if(decision.newGroup)log(player(shot.player)+' takes '+decision.newGroup+'.');
+ session.settle({done:result.rackEnd});
  state.breakShot=false;
  state.calledBall=null;state.calledPocket=null;
  if(decision.winner!==null){
@@ -186,7 +219,9 @@ function hit(fromBot=false){
  const needCall=!state.breakShot&&caromsCallRequired(level(state.turn),
   caromsEligible(state.balls,state.groups[state.turn]));
  if(needCall&&(!state.calledBall||!state.calledPocket))return;
- const b=striker();if(!b||b.pocketed)return;
+ const b=striker();if(!b||b.pocketed||b.id===0)return;
+ const statsShotId=newCaromsStatsId();
+ if(!session.startShot(statsShotId))return;
  const speed=shotSpeed(state.power,state.breakShot);
  b.vx=Math.cos(state.angle)*speed;b.vy=Math.sin(state.angle)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
@@ -194,7 +229,7 @@ function hit(fromBot=false){
   level:level(state.turn),breakShot:state.breakShot,calledBall:state.calledBall,
   calledPocket:state.calledPocket,
   eightEligibleBefore:caromsEligible(state.balls,state.groups[state.turn]),
-  statsShotId:newCaromsStatsId()};
+  statsShotId};
  if(state.breakShot)reportCaromsRack(state.statsRackId);
  state.phase='moving';state.shotNumber++;
  state.power=68;state.spinTop=0;state.spinSide=0;
@@ -207,41 +242,22 @@ function chooseOption(center,fromBot=false){
  else if(center)log(player(state.turn)+' moved the white ball near table center.');
  state.phase='aim';update();scheduleBot();
 }
+const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 function draw(){
- const w=TABLE.width,h=TABLE.height,r=TABLE.radius;
- ctx.fillStyle='#175f4b';ctx.fillRect(0,0,w,h);
- ctx.fillStyle='#61452f';
- ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
- ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
- for(const p of pockets)renderPocket(ctx,p);
- ctx.strokeStyle='#b58a53';ctx.lineWidth=3;ctx.beginPath();
- for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}
- ctx.stroke();
- ctx.strokeStyle='#ffffff50';ctx.setLineDash([6,8]);ctx.beginPath();
- ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),h-r);ctx.stroke();ctx.setLineDash([]);
- for(const b of state.balls){
-  if(b.pocketed)continue;
-  ctx.beginPath();ctx.arc(b.x,b.y,r,0,Math.PI*2);
-  ctx.fillStyle=b.id===0?'#f8f6ed':b.id===8?'#14171b':groupOf(b.id)==='solids'?'#d9aa41':'#4a80b2';
-  ctx.fill();ctx.lineWidth=1.5;ctx.strokeStyle='#ffffffaa';ctx.stroke();
-  if(b.id!==0){
-   ctx.fillStyle='#fff';ctx.font='bold 11px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
-   ctx.fillText(String(b.id),b.x,b.y);
-  }
- }
- // Match the original called-shot flow: no visible stick or aim guide until
- // the called ball and pocket are locked. Break and slop levels remain exempt.
+ renderer.drawTable(ctx,state.balls);
+ // Caroms-specific head string remains visible on the common table.
+ const r=TABLE.radius;
+ ctx.strokeStyle='#ffffff50';ctx.lineWidth=3;ctx.setLineDash([6,8]);ctx.beginPath();
+ ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),TABLE.height-r);
+ ctx.stroke();ctx.setLineDash([]);
+ // No stick until a required called ball and pocket have both been selected.
  const callPending=!state.breakShot&&
   caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn]))&&
   (state.calledBall===null||state.calledPocket===null);
- if(state.phase==='aim'&&!callPending&&striker()&&!striker().pocketed){
-  const b=striker(),dx=Math.cos(state.angle),dy=Math.sin(state.angle);
-  ctx.strokeStyle='#fce2a8';ctx.lineWidth=3;ctx.setLineDash([9,8]);ctx.beginPath();
-  ctx.moveTo(b.x+dx*(r+4),b.y+dy*(r+4));
-  ctx.lineTo(b.x+dx*300,b.y+dy*300);ctx.stroke();ctx.setLineDash([]);
-  ctx.lineWidth=5;ctx.strokeStyle='#dfb37c';ctx.beginPath();
-  ctx.moveTo(b.x-dx*(r+22),b.y-dy*(r+22));
-  ctx.lineTo(b.x-dx*(r+170),b.y-dy*(r+170));ctx.stroke();
+ const b=striker();
+ if(state.phase==='aim'&&!callPending&&b&&!b.pocketed){
+  // The shared renderer receives the selected OBJECT ball, never the white cue ball.
+  renderer.drawAim(ctx,b,state.angle);
   ctx.strokeStyle='#ffde7b';ctx.lineWidth=3;ctx.beginPath();
   ctx.arc(b.x,b.y,r+5,0,Math.PI*2);ctx.stroke();
  }
@@ -271,11 +287,7 @@ function frame(t){
  if(state)draw();
  requestAnimationFrame(frame);
 }
-function point(e){
- const rect=canvas.getBoundingClientRect();
- return{x:(e.clientX-rect.left)*TABLE.width/rect.width,
-  y:(e.clientY-rect.top)*TABLE.height/rect.height};
-}
+const point=e=>tablePoint(canvas,e);
 function aim(p){
  const b=striker();if(!b||state.phase!=='aim')return;
  const angle=angleFromPointer(b,p,invertAim(),radiansToPixels());
@@ -347,6 +359,7 @@ for(const i of [0,1])$('caroms-level-'+i).addEventListener('change',update);
 $('caroms-shoot').addEventListener('click',hit);
 $('caroms-new').addEventListener('click',newGame);
 $('caroms-match-reset').addEventListener('click',newMatch);
+$('caroms-match-settings').addEventListener('click',newMatch);
 $('caroms-size').addEventListener('change',newMatch);
 $('caroms-mode').addEventListener('change',newMatch);
 $('caroms-center').addEventListener('click',()=>chooseOption(true));

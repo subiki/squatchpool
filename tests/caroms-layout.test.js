@@ -3,12 +3,34 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const html=readFileSync(new URL('../caroms.html',import.meta.url),'utf8');
 
+test('all five games keep their turn and guidance strip above the canvas inside fullscreen',()=>{
+ for(const [file,ids] of [
+  ['but-wait.html',['control-title','control-hint']],
+  ['caroms.html',['caroms-turn','caroms-score','caroms-status']],
+  ['cutthroat.html',['cut-turn','cut-scores','cut-status']],
+  ['press-your-luck.html',['score','status','bonus']],
+  ['tuna.html',['turn','status','targets','money']],
+ ]){
+  const page=readFileSync(new URL('../'+file,import.meta.url),'utf8');
+  const stage=page.indexOf('id="table-stage"'),canvas=page.indexOf('<canvas',stage);
+  for(const id of ids){
+   const marker='id="'+id+'"',at=page.indexOf(marker);
+   assert.ok(stage>=0&&at>stage&&at<canvas,file+': '+id+' must stay visible in table fullscreen');
+   assert.equal(page.split(marker).length,2,file+': '+id+' must remain unique');
+  }
+ }
+});
+
 test('Caroms has concise rules before play, with optional panels after the table',()=>{
  const at=id=>html.indexOf('id="'+id+'"');
  const table=at('caroms-table');
  assert.ok(table>0,'the real game canvas is present');
- for(const id of ['caroms-new','caroms-turn','caroms-score','caroms-status','caroms-stats-game','caroms-stats-site'])
+ for(const id of ['caroms-new','caroms-turn','caroms-score','caroms-status'])
   assert.ok(at(id)>0&&at(id)<table,id+' must appear before the table');
+ const header=readFileSync(new URL('../src/site-header.js',import.meta.url),'utf8');
+ for(const id of ['caroms-stats-game','caroms-stats-site','caroms-stats-status'])
+  assert.ok(header.includes(id),id+' is rendered in the shared header');
+ assert.ok(html.indexOf('<squatch-header>')<table,'shared header precedes game table');
  for(const id of ['caroms-call-controls','caroms-shot-panel','caroms-shoot','caroms-story-panel'])
   assert.ok(at(id)>table,id+' must follow the playable table');
  assert.ok(at('caroms-rules-panel')>0&&at('caroms-rules-panel')<table,'rules appear before gameplay without forcing an expanded panel');
@@ -62,6 +84,11 @@ test('Caroms keeps required actions inside the fullscreen table',()=>{
   assert.ok(at>start&&at<end,id+' must be in fullscreen table stage');
  }
  assert.ok(html.indexOf('id="caroms-shoot"')>html.indexOf('id="caroms-table"'));
+ assert.ok(html.indexOf('id="caroms-new"')>start,'contextual next rack stays inside fullscreen');
+ assert.ok(html.indexOf('id="caroms-match-reset"')>start,'final new match stays available inside fullscreen');
+ const settings=html.slice(html.indexOf('id="caroms-setup-panel"'),start);
+ assert.match(settings,/id="caroms-match-settings"/,'new match remains reachable in settings during an unfinished rack');
+ assert.match(html,/<div class="caroms-rack-actions" id="caroms-rack-actions" hidden>/);
  assert.doesNotMatch(html,/<details[^>]*\bopen\b[^>]*id="caroms-more"/);
  const controller=readFileSync(new URL('../src/caroms-game.js',import.meta.url),'utf8');
  assert.ok(controller.includes("needCall&&canAim&&(!state.calledBall||!state.calledPocket)"));
