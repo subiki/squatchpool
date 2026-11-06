@@ -79,19 +79,22 @@ export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{
  return{refresh,flush,rack,balls,pending:()=>queue.length};
 }
 
+const formatTotal=value=>Number.isSafeInteger(value)&&value>=0?value.toLocaleString('en-US'):'\u2014';
+
 function put(id,value){
  const node=document.querySelector('#'+id);
- if(node)node.textContent=Number(value).toLocaleString('en-US');
+ if(node)node.textContent=formatTotal(value);
 }
 function renderStats(data){
  for(const field of ['players','racks','balls']){
   put('site-stats-'+field,data.site[field]);
   const game=data.games.find(g=>g.id===CURRENT_GAME);
-  put('game-stats-'+field,game?.[field]??0);
+  put('game-stats-'+field,game?.[field]);
  }
  const container=document.querySelector('#site-stats-breakdown');
  if(container){
   const table=document.createElement('table');table.className='squatch-stats-table';
+  const caption=document.createElement('caption');caption.textContent='Live statistics by game - players are distinct anonymous browsers';table.append(caption);
   const thead=document.createElement('thead'),headRow=document.createElement('tr');
   for(const label of ['Game','Players','Racks','Balls made']){
    const th=document.createElement('th');th.scope='col';th.textContent=label;headRow.append(th);
@@ -102,14 +105,14 @@ function renderStats(data){
    const tr=document.createElement('tr');
    const name=document.createElement('th');name.scope='row';name.textContent=g.title;tr.append(name);
    for(const field of ['players','racks','balls']){
-    const td=document.createElement('td');td.textContent=Number(g[field]??0).toLocaleString('en-US');tr.append(td);
+    const td=document.createElement('td');td.textContent=formatTotal(g[field]);tr.append(td);
    }
    tbody.append(tr);
   }
   const total=document.createElement('tr');total.className='stats-total-row';
   const label=document.createElement('th');label.scope='row';label.textContent='Site total';total.append(label);
   for(const field of ['players','racks','balls']){
-   const td=document.createElement('td');td.textContent=Number(data.site[field]??0).toLocaleString('en-US');total.append(td);
+   const td=document.createElement('td');td.textContent=formatTotal(data.site[field]);total.append(td);
   }
   tbody.append(total);table.append(thead,tbody);
   container.replaceChildren(table);

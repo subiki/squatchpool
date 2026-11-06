@@ -1,12 +1,27 @@
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,kitchenPoint,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {initStats,newStatsId,reportRack,reportBalls} from './stats.js';
-import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForStash,readyForEight,liveGroupBalls,adjudicate} from './rules.js';
+import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForStash,readyForEight,liveGroupBalls} from './rules.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
+import {tablePoint} from './table-pointer.js';
+import {createTableRenderer} from './table-renderer.js';
+import {createGameSession} from './game-session.js';
+import {attachShotAnnouncer} from './shot-announcer.js';
+import {adjudicateButWaitShot} from './but-wait-shot-adapter.js';
 const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
+const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const invertAim=bindInvertAim($('#invert-aim'));
+const session=createGameSession({game:'but-wait',adjudicate:adjudicateButWaitShot});
+const announcerStage = document.getElementById?.('table-stage');
+if (announcerStage?.ownerDocument) {
+ attachShotAnnouncer(session,announcerStage);
+}
+session.subscribe(result=>{
+ if(result.pocketed.length)reportBalls(state.statsRackId,result.shotId,result.pocketed.length);
+ log(result.announcement);
+});
 const person=i=>i===0?(state.mode==='bot'?'You':'Player 1'):(state.mode==='bot'?'Speed Squatch':'Player 2');
 const human=i=>state.mode==='local'||i===0;
 const cue=()=>state.balls.find(b=>b.id===0);
@@ -17,6 +32,7 @@ function log(message){
 }
 function newGame(){
  clearTimeout(botTimer);
+ session.startRack();
  setTableSize(selectedTableSize);
  for(const button of document.querySelectorAll('.table-size-pick')){
   const chosen=Number(button.dataset.size)===TABLE.size;
@@ -69,12 +85,14 @@ function updateCallUI(){
  }
  const picking=canPickCall();
  const pickingBall=picking&&state.callBall===null;
- const pickingPocket=picking&&state.callBall!==null&&!state.callPocket;
+ const pickingPocket=picking&&state.callBall!==null;
  const p=pockets.find(p=>p.id===state.callPocket);
  $('#call-ball-status').textContent=state.callBall===null?'Ball: —':'Ball: '+state.callBall;
  $('#call-pocket-status').textContent=p?'Pocket: '+p.label:'Pocket: —';
  $('#undo-call').disabled=!picking||(state.callBall===null&&!state.callPocket);
  $('#pocket-targets').hidden=!pickingPocket;
+ for(const button of document.querySelectorAll('.pocket-pick'))
+  button.setAttribute('aria-pressed',String(pickingPocket&&button.dataset.pocket===state.callPocket));
  const choices=$('#ball-picks');
  choices.hidden=!pickingBall;
  if(pickingBall){
@@ -201,6 +219,7 @@ function moveBreakCue(){
 function placeCue({x,y}){
  if(!canPlace(state.balls,x,y,0)){say('That spot is blocked. Try a clear spot.');return;}
  Object.assign(cue(),{x,y,vx:0,vy:0,pocketed:false});
+ session.confirmPlacement();
  state.pendingCue=false;say(person(state.turn)+' has ball in hand.');resume();
 }
 function selectStashBall(id){
@@ -243,10 +262,12 @@ function resetShotControls(){
 function hit(direction=state.angle,power=state.power){
  if(state.phase!=='aim'||!callReady())return;
  const b=cue();if(!b||b.pocketed)return;
+ const statsShotId=newStatsId();
+ if(!session.startShot(statsShotId))return;
  const speed=shotSpeed(power,state.isBreak);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
- state.shot={player:state.turn,statsRackId:state.statsRackId,statsShotId:newStatsId(),balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
+ state.shot={player:state.turn,statsRackId:state.statsRackId,statsShotId,balls:[],pocketEvents:[],calledBall:state.isBreak?null:state.callBall,calledPocket:state.isBreak?null:state.callPocket,firstContact:null,time:0,stillFrames:0,breakShot:state.isBreak,preShotReadyForEight:readyForEight(state.balls,state.groups[state.turn],state.deployed[state.groups[state.turn]])};
  if(state.isBreak)reportRack(state.statsRackId);
  state.shotNumber++;state.isBreak=false;state.phase='moving';
  resetShotControls();
@@ -256,14 +277,18 @@ function finishShot(){
  if(state.phase!=='moving'||!state.shot)return;
  const shot=state.shot;state.shot=null;
  // Stroke controls were reset at strike, not delayed until balls settled.
- const decision=adjudicate({balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,pocketed:shot.balls,pocketEvents:shot.pocketEvents,calledBall:shot.calledBall,calledPocket:shot.calledPocket,firstContact:shot.firstContact,breakShot:shot.breakShot,preShotReadyForEight:shot.preShotReadyForEight});
- const potted=shot.balls.filter(n=>n!==0);
- if(potted.length)reportBalls(shot.statsRackId,shot.statsShotId,potted.length);
- log(person(shot.player)+': '+(potted.length?'pocketed '+potted.join(', '):'no balls')+(shot.balls.includes(0)?' • scratch':'')+'. '+decision.reason);
+ const result=session.resolveShot({shotId:shot.statsShotId,context:{
+  balls:state.balls,shooter:shot.player,groups:state.groups,deployed:state.deployed,
+  pocketed:shot.balls,pocketEvents:shot.pocketEvents,
+  calledBall:shot.calledBall,calledPocket:shot.calledPocket,
+  firstContact:shot.firstContact,breakShot:shot.breakShot,
+  preShotReadyForEight:shot.preShotReadyForEight,playerLabel:person(shot.player),
+ }});
+ const decision=result.actions;
+ session.settle({done:result.rackEnd,ballInHand:result.ballInHand});
  if(decision.newGroup){
   state.groups[shot.player]=decision.newGroup;
   state.groups[otherPlayer(shot.player)]=otherGroup(decision.newGroup);
-  log(person(shot.player)+' claims '+decision.newGroup+'. The other player takes '+otherGroup(decision.newGroup)+'.');
  }
  if(decision.winner!==null){
   state.winner=decision.winner;state.phase='done';
@@ -318,20 +343,17 @@ function drawBall(b){
 }
 function render(){
  const w=TABLE.width,h=TABLE.height,r=TABLE.radius,gr=ctx.createRadialGradient(w*.44,h*.42,100,w*.5,h*.5,710);
- gr.addColorStop(0,'#217766');gr.addColorStop(1,'#104638');ctx.fillStyle=gr;ctx.fillRect(0,0,w,h);
- // Rail tops are wood inside the canvas; diamond inlays stay on the wood.
- ctx.fillStyle='#5d402a';ctx.fillRect(0,0,w,r);ctx.fillRect(0,h-r,w,r);
- ctx.fillRect(0,0,r,h);ctx.fillRect(w-r,0,r,h);
- for(const p of pockets)renderPocket(ctx,p);
- ctx.save();ctx.strokeStyle='#a6865f';ctx.lineWidth=2.5;ctx.lineCap='round';
- ctx.beginPath();for(const f of facings){ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);}
- ctx.stroke();ctx.restore();
- // Visible cushion faces line up with the physics collision planes (ball centers at radius r).
- // The former decorative inset rectangle looked like an invisible second set of rails.
- ctx.save();ctx.strokeStyle='#b58a53';ctx.lineWidth=3;
- ctx.beginPath();
- for(const c of cushions){ctx.moveTo(c.x1,c.y1);ctx.lineTo(c.x2,c.y2);}
- ctx.stroke();ctx.restore();
+ gr.addColorStop(0,'#217766');gr.addColorStop(1,'#104638');
+ // Shared regulation surface, with But Wait's original rainforest felt,
+ // wooden rail tops, pocket facings and cushion colors preserved.
+ renderer.drawSurface(ctx,{
+  cloth:gr,rail:'#5d402a',cushion:'#b58a53',cushionWidth:3,
+  afterPockets:()=>{
+   ctx.save();ctx.strokeStyle='#a6865f';ctx.lineWidth=2.5;ctx.lineCap='round';
+   ctx.beginPath();for(const f of facings){ctx.moveTo(f.x1,f.y1);ctx.lineTo(f.x2,f.y2);}
+   ctx.stroke();ctx.restore();
+  }
+ });
  // Regulation head string: break cue center must remain behind this line.
  if(state.phase==='placeBreak'){
   ctx.fillStyle='#e6cb7135';ctx.fillRect(2*r,2*r,headStringX()-2*r,h-4*r);
@@ -374,7 +396,7 @@ function render(){
   ctx.fillStyle='#f2d6a6ed';ctx.font='bold 25px system-ui';ctx.textAlign='center';
   ctx.fillText(state.phase==='placeBreak'?'POSITION WHITE BALL BEHIND HEAD STRING':state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
  }
- for(const b of state.balls)if(!b.pocketed)drawBall(b);
+ renderer.drawBalls(ctx,state.balls,drawBall);
  if(state.phase==='placeStash'&&state.pendingStashBall!==null&&state.pendingStashPoint){
   ctx.save();ctx.globalAlpha=.6;
   drawBall(ball(state.pendingStashBall,state.pendingStashPoint.x,state.pendingStashPoint.y));
@@ -407,7 +429,7 @@ function frame(timestamp){
  }
  if(state)render();requestAnimationFrame(frame);
 }
-function eventPoint(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*TABLE.width/r.width,y:(e.clientY-r.top)*TABLE.height/r.height};}
+function eventPoint(e){return tablePoint(canvas,e);}
 let dragging=false,draggingBreak=false,breakPositionValid=false;
 // Hit targets are sized in CSS pixels so touch taps remain usable on phones.
 function closestCallBall(point){
@@ -436,6 +458,10 @@ canvas.addEventListener('pointerdown',e=>{
  if(state.phase==='placeCue'&&human(state.turn)){placeCue(p);return;}
  if(state.phase==='placeStash'&&human(otherPlayer(state.turn))){previewStash(p);return;}
  if(state.phase!=='aim'||!human(state.turn))return;
+ if(!state.isBreak&&state.callBall!==null){
+  const pocket=closestCallPocket(p);
+  if(pocket){selectCallPocket(pocket.id);return;}
+ }
  if(!state.isBreak&&!callReady()){
   if(state.callBall===null){
    const target=closestCallBall(p);

@@ -49,3 +49,32 @@
 .squatch-stats-table .stats-total-row{background:#163327!important;color:#f5d394;font-weight:850}
 .squatch-stats-table .stats-total-row>*{border-top:2px solid #c9a76b;border-bottom:0}
 @media(max-width:650px){.squatch-stats-table{font-size:.83rem}.squatch-stats-table th,.squatch-stats-table td{padding:8px 5px}.squatch-header-stats{padding:8px!important}}
+/* The header is owned by one light-DOM Web Component, not copied between pages.
+ * Use stronger scoped selectors than legacy per-page h1/header rules. */
+squatch-header{display:block;width:100%;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.45}
+.squatch-unified-header .squatch-brand-row h1{
+ font-family:Georgia,serif!important;font-weight:700!important;
+ letter-spacing:.01em!important;text-transform:none!important;
+ font-style:normal!important;text-shadow:none!important;
+}
+.squatch-unified-header .squatch-release,
+.squatch-unified-header .squatch-release *,
+.squatch-unified-header .squatch-release time{
+ font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+ font-size:.8rem!important;font-style:normal!important;font-weight:500!important;
+ letter-spacing:normal!important;text-transform:none!important;
+ line-height:1.5!important;
+}
+.squatch-unified-header .squatch-release .prototype{
+ font-weight:800!important;letter-spacing:.06em!important;
+}
+.squatch-unified-header .squatch-header-nav a{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;font-size:.9rem!important}
+@media(max-width:650px){
+ .squatch-unified-header .squatch-release,
+ .squatch-unified-header .squatch-release *,
+ .squatch-unified-header .squatch-release time{font-size:.72rem!important}
+}
+/* Optional cross-document transition hides the header flash in supporting browsers.
+   It does NOT pretend to preserve a running game when navigating away. */
+@view-transition{navigation:auto}
+.squatch-unified-header{view-transition-name:squatch-site-header}

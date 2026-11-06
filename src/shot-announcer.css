@@ -1,0 +1,34 @@
+/* Event-driven shot ruling, positioned over the table (including fullscreen). */
+.table-stage { position: relative; }
+.shot-announcer {
+  position: absolute;
+  z-index: 12;
+  left: 50%;
+  top: 22%;
+  transform: translate(-50%, -8px);
+  width: min(86%, 680px);
+  box-sizing: border-box;
+  padding: 14px 20px;
+  border: 2px solid #f3c676;
+  border-radius: 14px;
+  background: rgba(12, 31, 24, .95);
+  color: #f8e8bd;
+  text-align: center;
+  font-size: clamp(1.05rem, 2.5vw, 1.5rem);
+  font-weight: 850;
+  line-height: 1.35;
+  box-shadow: 0 8px 28px #0009;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity .5s ease, transform .5s ease, visibility 0s linear .5s;
+}
+.shot-announcer.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity .5s ease, transform .5s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .shot-announcer { transition: none; }
+}

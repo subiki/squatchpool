@@ -196,6 +196,38 @@ test('Caroms and But Wait retain independent retry queues on one browser',async(
 });
 
 
+test('live statistics table preserves server totals and leaves unknown metrics unavailable',async()=>{
+ const keys=['document','window','fetch','localStorage'];
+ const originals=Object.fromEntries(keys.map(key=>[key,Object.getOwnPropertyDescriptor(globalThis,key)]));
+ const nodes=new Map();
+ const node=tag=>({tag,children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;}});
+ const data={site:{players:4,racks:1100,balls:54},games:[
+  {id:game,title:'But Wait',players:3,racks:2,balls:0},
+  {id:'caroms',title:'Caroms',players:3,racks:1},
+ ]};
+ try{
+  globalThis.document={querySelector:selector=>{
+   if(!nodes.has(selector))nodes.set(selector,node('div'));
+   return nodes.get(selector);
+  },createElement:node};
+  globalThis.window={addEventListener(){}};
+  globalThis.localStorage={getItem:()=>null,setItem(){}};
+  globalThis.fetch=async()=>({ok:true,json:async()=>data});
+  initStats();
+  await new Promise(resolve=>setImmediate(resolve));
+  const table=nodes.get('#site-stats-breakdown').children[0];
+  assert.equal(table.tag,'table');
+  const body=table.children.find(n=>n.tag==='tbody');
+  assert.deepEqual(body.children.map(row=>row.children.map(cell=>cell.textContent)),[
+   ['But Wait','3','2','0'],['Caroms','3','1','—'],['Site total','4','1,100','54'],
+  ],'site players come from the API, never a sum of overlapping per-game browsers');
+  assert.equal(body.children[0].children[0].scope,'row');
+  assert.match(nodes.get('#stats-status').textContent,/Live totals/);
+ }finally{
+  for(const key of keys){if(originals[key])Object.defineProperty(globalThis,key,originals[key]);else delete globalThis[key];}
+ }
+});
+
 test('But Wait still initializes when localStorage getter denies access',()=>{
  const keys=['localStorage','document','window','fetch'];
  const original=Object.fromEntries(keys.map(key=>[key,
