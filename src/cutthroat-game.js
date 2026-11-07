@@ -74,7 +74,7 @@ function newGame(){
  accumulator=0;
  $('cut-log').replaceChildren();
  $('cut-power').value='85';$('cut-top').value='0';$('cut-side').value='0';
- say('New three-player rack. Player 1 breaks. Tap a legal spot in the kitchen, then confirm.');
+ say('New three-player rack. Player 1 breaks. Tap or drag in the kitchen, release, then aim and BREAK.');
  update();
 }
 const cue=()=>game.balls[0];
@@ -87,7 +87,7 @@ function update(){
  $('cut-scores').textContent=m.owners.map((group,i)=>seatName(i)+': '+(group===null?'unassigned':ranges[group])+
   (group===null?'':' · '+remainingCutthroatBalls(m,group).length+' left')).join('  |  ');
  $('cut-status').textContent=m.winner!==null?'Last player with a ball on the table wins. Start a new rack to play again.':
-  game.phase==='placeBreak'?'Tap or drag the cue ball behind the head string, then confirm break position.':
+  game.phase==='placeBreak'?'Tap or drag the cue ball behind the head string, then release to aim and BREAK.':
   game.phase==='placeCue'?'Scratch: incoming player has ball in hand. Tap an open place on the felt.':
   game.phase==='claim'&&claim?seatName(claim.claimant)+' may claim one on-table ball from '+seatName(claim.scratcher)+', or decline.':
   game.phase==='chooseGroup'?'Your turn has ended. Choose your earned group before play passes.':
@@ -96,9 +96,9 @@ function update(){
   session.breakShot?'Break the rack; balls pocketed on the break stay down.':
   'Aim from the white ball, then shoot. Any object ball may be pocketed, including your own.';
  $('cut-reposition').hidden=!(game.phase==='aim'&&session.breakShot);
- $('cut-place').hidden=!placing;
+ $('cut-place').hidden=game.phase!=='placeCue';
  $('cut-place').disabled=!placing||!game.placementValid||botSeat(m.turn);
- $('cut-place').textContent=game.phase==='placeBreak'?'Confirm break position':'Confirm ball in hand';
+ $('cut-place').textContent='Confirm ball in hand';
  $('cut-shoot').disabled=!canShoot||botSeat(m.turn);
  $('cut-shoot').textContent=session.breakShot?'BREAK':'SHOOT';
  $('cut-group').hidden=!(m.groupChoicePlayer===m.turn&&['aim','chooseGroup'].includes(game.phase));
@@ -191,7 +191,11 @@ function aim(p){
 }
 listen(canvas,'pointerdown',e=>{
  if(botSeat(game.match.turn)||activePointer!==null)return;
- if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));
+ const p=point(e);
+ if(game.phase==='aim'&&session.breakShot&&p.x<headStringX()){
+  game.phase='placeBreak';game.placementValid=false;
+ }
+ if(['placeBreak','placeCue'].includes(game.phase))placeCue(p);
  else if(game.phase==='aim')aim(point(e));
  else return;
  dragging=true;activePointer=e.pointerId;canvas.setPointerCapture(e.pointerId);
@@ -203,7 +207,10 @@ listen(canvas,'pointermove',e=>{
 });
 listen(canvas,'pointerup',e=>{
  if(activePointer!==e.pointerId)return;
- if(!botSeat(game.match.turn)&&dragging&&game.phase==='aim')aim(point(e));
+ if(!botSeat(game.match.turn)&&dragging&&game.phase==='placeBreak'){
+  placeCue(point(e));
+  if(game.placementValid)confirmPlacement();
+ }else if(!botSeat(game.match.turn)&&dragging&&game.phase==='aim')aim(point(e));
  cancelPointer();
 });
 for(const event of ['pointercancel','lostpointercapture'])listen(canvas,event,e=>{
@@ -278,7 +285,7 @@ function scheduleBot(){
   shoot(true);
  },650);
 }
-listen($('cut-place'),'click',()=>confirmPlacement());
+listen($('cut-place'),'click',()=>{if(game.phase==='placeCue')confirmPlacement();});
 listen($('cut-shoot'),'click',()=>shoot());
 listen($('cut-reposition'),'click',()=>{
  if(game.phase!=='aim'||!session.breakShot||botSeat(game.match.turn))return;
