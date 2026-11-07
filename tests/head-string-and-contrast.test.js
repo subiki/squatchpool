@@ -62,25 +62,49 @@ function contrast(a,b){
  const aL=luminance(a),bL=luminance(b);
  return (Math.max(aL,bL)+.05)/(Math.min(aL,bL)+.05);
 }
-test('readable ink-on-paper surfaces and selected controls meet AA text contrast',()=>{
- for(const [fg,bg] of [
-  ['#102923','#f7f5ec'],['#405b4a','#f7f5ec'],
-  ['#102923','#e6ede7'],['#102923','#f0c478'],
-  ['#102923','#a4cc99'],['#f7f5ec','#14513d']
- ]){
+test('PNW palette remains contrast-safe in dark and light OS modes',()=>{
+ // The brand stays predominantly dark evergreen in either mode. Check the
+ // actual opaque text/background pairs rather than raw translucent textures.
+ const auditedPairs=[
+  ['#F4EEDA','#0C2119'], // main/header ivory on night
+  ['#F4EEDA','#18382C'], // primary panel, table kit and stat rows
+  ['#F4EEDA','#214333'], // raised card in light OS theme
+  ['#E1EDDF','#214333'], // paragraph copy
+  ['#D0DECF','#214333'], // muted instructions
+  ['#F0C478','#214333'], // gold headings on dark
+  ['#F4EEDA','#42341E'], // quickstart wood treatment
+  ['#F4EEDA','#264A35'], // active scoreboard
+  ['#102923','#A4CC99'], // moss buttons
+  ['#102923','#F0C478'], // selected brass buttons
+  ['#102923','#F7F5EC']  // selects and text input
+ ];
+ for(const [fg,bg] of auditedPairs)
   assert.ok(contrast(fg,bg)>=4.5,fg+' on '+bg+' = '+contrast(fg,bg).toFixed(2));
- }
+ assert.ok(contrast('#85AD95','#214333')>=3,'card borders must remain distinct');
 });
-test('contrast theme wins over old green/white controls, preserves fullscreen and native PWA',()=>{
+test('all nine routes preserve PNW artwork and dark, readable content surfaces',()=>{
  const css=read('src/pnw-theme.css');
- for(const selector of ['body .intro','body .table-size-pick[aria-pressed="true"]',
-  'body .match .game-stats','body .table-stage .kit-primary input[type=range]',
-  'body .table-stage:fullscreen','body .game-rules-layout .rules-card']){
-  assert.ok(css.includes(selector),selector+' should be themed');
+ for(const page of ['index','but-wait','caroms','cutthroat','press-your-luck',
+                    'tuna','arcade','rules','archive']){
+  assert.match(read(page+'.html'),/\/src\/pnw-theme\.css/,page+' must load the common brand');
  }
- assert.match(css,/--pnw-paper:#f7f5ec/);
+ for(const selector of ['body .intro','body .game-stats','body .scoreboard .player.active',
+   'body .table-size-pick[aria-pressed="false"]','body .table-stage:fullscreen',
+   'body .game-rules-layout','body .table-stage .table-kit','squatch-header']){
+  assert.ok(css.includes(selector),selector+' has an intentional contrast treatment');
+ }
+ assert.match(css,/--pnw-night:#0c2119/);
+ assert.match(css,/--pnw-ivory:#f4eeda/);
  assert.match(css,/--pnw-ink:#102923/);
+ assert.doesNotMatch(css,/--pnw-paper:|body > main\{\s*background-color:#f7f5ec/,
+  'Do not regress to generic all-cream page patch');
+ assert.match(css,/prefers-color-scheme:light/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/\.table-stage canvas\{box-shadow:none!important\}/);
+ assert.match(css,/forest-banner\.svg/);
+ assert.match(css,/texture-topography\.svg/);
+ assert.match(css,/texture-felt\.svg/);
+ assert.match(css,/texture-cedar\.svg/);
  const pwa=read('src/pwa.js');
  assert.doesNotMatch(pwa,/beforeinstallprompt|Install game/);
 });
