@@ -2,10 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {attachStaticNavigation} from '../src/static-navigation.js';
 
-test('Home/Rules/Archive/Press/Tuna/Caroms/Cutthroat navigation preserves header, rack progress, history and fallback',async()=>{
+test('Home/Rules/Archive/Press/Tuna/Caroms/Cutthroat/But Wait navigation preserves header, rack progress, history and fallback',async()=>{
  const events=new Map(),requests=[],assigned=[],history=[];
  const header={stamp:'verified',stats:'live'},doc={header};
- let tunaMounts=0,tunaDisposals=0,caromsMounts=0,caromsDisposals=0,cutMounts=0,cutDisposals=0;
+ let tunaMounts=0,tunaDisposals=0,caromsMounts=0,caromsDisposals=0,cutMounts=0,cutDisposals=0,butMounts=0,butDisposals=0;
  let href='https://squatch.example/rules',state={},y=450,paused=0,fail=false,pending,active=false,mounts=0,disposals=0,allowLeave=false,goTarget;
  const link=path=>({href:'https://squatch.example'+path,attributes:{},target:'',
   hasAttribute(){return false;},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];}});
@@ -37,7 +37,7 @@ test('Home/Rules/Archive/Press/Tuna/Caroms/Cutthroat navigation preserves header
    pushState(next,unused,url){state=next;href=url;history.push({state:next,url});}},
   confirm:()=>allowLeave,
   addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name),
-  fetch:async url=>{requests.push(url);if(pending)return pending;if(fail)throw new Error('offline');return {ok:true,text:async()=>url.endsWith('.css')?'body{color:green}':url.includes('press-your-luck')?'press':url.includes('tuna')?'tuna':url.includes('caroms')?'caroms':url.includes('cutthroat')?'cutthroat':url.includes('archive')?'archive':url.includes('index')?'home':'rules'};},
+  fetch:async url=>{requests.push(url);if(pending)return pending;if(fail)throw new Error('offline');return {ok:true,text:async()=>url.endsWith('.css')?'body{background:url("data:image/svg+xml,%3Csvg/%3E")}':url.includes('press-your-luck')?'press':url.includes('tuna')?'tuna':url.includes('caroms')?'caroms':url.includes('cutthroat')?'cutthroat':url.includes('but-wait')?'but-wait':url.includes('archive')?'archive':url.includes('index')?'home':'rules'};},
   DOMParser:class{parseFromString(text){return page(text);}},
  };
  const dispose=attachStaticNavigation(win,{loadPress:async()=>({mountPressGame(root){
@@ -52,6 +52,9 @@ test('Home/Rules/Archive/Press/Tuna/Caroms/Cutthroat navigation preserves header
  }}),loadCutthroat:async()=>({mountCutthroatGame(root){
   assert.equal(root.name,'cutthroat');cutMounts++;active=false;
   return {get isRackInProgress(){return active;},dispose(){cutDisposals++;}};
+ }}),loadButWait:async()=>({mountButWaitGame(root){
+  assert.equal(root.name,'but-wait');butMounts++;active=false;
+  return {get isRackInProgress(){return active;},dispose(){butDisposals++;}};
  }})});
  win.history.go=delta=>{assert.equal(delta,1,'Back cancellation reverses exactly one history position');href=goTarget.url;state=goTarget.state;events.get('popstate')({state});};
  const click=(target,extra={})=>{
@@ -59,7 +62,7 @@ test('Home/Rules/Archive/Press/Tuna/Caroms/Cutthroat navigation preserves header
   events.get('click')(event);return event;
  };
  const flush=()=>new Promise(resolve=>setImmediate(resolve));
- assert.equal(click(links[2]).prevented,undefined,'games retain native document navigation');
+ assert.equal(click(link('/arcade.html')).prevented,undefined,'parked Arcade retains native navigation');
  assert.equal(click(links[1],{ctrlKey:true}).prevented,undefined,'new-tab gestures remain native');
  assert.equal(click(links[1]).prevented,true);await flush();
  assert.equal(doc.header,header);assert.deepEqual(header,{stamp:'verified',stats:'live'});
@@ -150,5 +153,19 @@ test('Home/Rules/Archive/Press/Tuna/Caroms/Cutthroat navigation preserves header
  assert.equal(cutMounts,2,'Forward remounts Cutthroat');
  events.get('pagehide')();assert.equal(cutDisposals,2);
  await events.get('pageshow')({persisted:true});assert.equal(cutMounts,3);
- dispose();assert.equal(cutDisposals,3);assert.equal(events.size,0);assert.equal(win.history.scrollRestoration,'auto');
+ click(links[2]);await flush();
+ assert.equal(doc.main.name,'but-wait');assert.equal(butMounts,1);assert.equal(cutDisposals,3);
+ assert.equal(doc.header,header);assert.equal(links[2].attributes['aria-current'],'page');
+ const butEntry=history.at(-1),beforeBut=history.at(-2);
+ active=true;allowLeave=false;
+ const beforeButCancel=requests.length;
+ click(links[7]);await flush();assert.equal(requests.length,beforeButCancel);assert.equal(butDisposals,0);
+ goTarget=butEntry;href=beforeBut.url;state=beforeBut.state;events.get('popstate')({state});await flush();
+ assert.equal(href,butEntry.url);assert.equal(butDisposals,0);
+ allowLeave=true;href=beforeBut.url;state=beforeBut.state;events.get('popstate')({state});await flush();
+ assert.equal(doc.main.name,'cutthroat');assert.equal(butDisposals,1);
+ href=butEntry.url;state=butEntry.state;events.get('popstate')({state});await flush();assert.equal(butMounts,2);
+ events.get('pagehide')();assert.equal(butDisposals,2);
+ await events.get('pageshow')({persisted:true});assert.equal(butMounts,3);
+ dispose();assert.equal(butDisposals,3);assert.equal(events.size,0);assert.equal(win.history.scrollRestoration,'auto');
 });

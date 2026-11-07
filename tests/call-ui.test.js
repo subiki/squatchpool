@@ -60,7 +60,13 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   querySelectorAll(selector){return selector==='.pocket-pick'?markers:selector==='.table-size-pick'?sizeButtons:[];},
   createElement:makeElement,
  };
- globalThis.window={addEventListener(event,fn){events.set('window:'+event,fn);},removeEventListener(event,fn){if(events.get('window:'+event)===fn)events.delete('window:'+event);}};
+ const root={querySelector:element,querySelectorAll:document.querySelectorAll,ownerDocument:document,setAttribute(){},focus(){}};
+ document.querySelector=selector=>selector==='main'?root:element(selector);
+ document.addEventListener=(event,fn)=>events.set('document:'+event,fn);
+ document.removeEventListener=event=>events.delete('document:'+event);
+ globalThis.window={document,location:{href:'https://squatch.example/but-wait',origin:'https://squatch.example'},
+  history:{state:null,scrollRestoration:'auto',replaceState(state){this.state=state;}},scrollTo(){},confirm:()=>false,
+  addEventListener(event,fn){events.set('window:'+event,fn);},removeEventListener(event,fn){if(events.get('window:'+event)===fn)events.delete('window:'+event);}};
  let scheduled=0,cancelled=0,timerId=0;const timers=new Map();
  globalThis.requestAnimationFrame=callback=>{nextFrame=callback;return ++scheduled;};
  globalThis.cancelAnimationFrame=()=>cancelled++;
@@ -73,6 +79,16 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get(id+':input')({target:element(id)});
  };
  try{
+  await import('../src/but-wait-entry.js');
+  events.get('#table:pointerdown')({clientX:110,clientY:140,pointerId:10});events.get('#table:pointerup')();click('#shoot');
+  const beforeLeave=events.get('#shoot:click');
+  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+  events.get('document:click')(navigation);assert.equal(navigation.prevented,true);
+  assert.equal(events.get('#shoot:click'),beforeLeave,'cancelled leave preserves live But Wait');
+  const beforeRestore=scheduled,oldFrame=nextFrame;events.get('window:pagehide')();oldFrame(1000);assert.equal(scheduled,beforeRestore);
+  await events.get('window:pageshow')({persisted:true});assert.equal(scheduled,beforeRestore+1);
+  assert.equal(element('#power').value,'85');assert.equal(element('#table-status').textContent,'PLACE BREAK CUE');
+  events.get('window:pagehide')();cancelled=0;
   const {mountButWaitGame}=await import('../src/game.js');
   controller=mountButWaitGame(document);
   assert.equal(element('#shoot').disabled,true,'place cue ball before break');

@@ -1,19 +1,20 @@
 import {mountGameHub} from './game-hub.js';
 // Only views with a proven mount/dispose lifecycle share this document.
-const PRESS='/press-your-luck',TUNA='/tuna',CAROMS='/caroms',CUTTHROAT='/cutthroat';
+const PRESS='/press-your-luck',TUNA='/tuna',CAROMS='/caroms',CUTTHROAT='/cutthroat',BUT_WAIT='/but-wait';
 const route=url=>{
  const path=url.pathname.replace(/\/+$/,'').replace(/\.html$/,'');
  return !path||path==='/index'?'/':path;
 };
-const supported=url=>['/','/rules','/archive',PRESS,TUNA,CAROMS,CUTTHROAT].includes(route(url));
+const supported=url=>['/','/rules','/archive',PRESS,TUNA,CAROMS,CUTTHROAT,BUT_WAIT].includes(route(url));
 
-export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js'),loadTuna=()=>import('./tuna-game.js'),loadCaroms=()=>import('./caroms-game.js'),loadCutthroat=()=>import('./cutthroat-game.js')}={}){
+export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js'),loadTuna=()=>import('./tuna-game.js'),loadCaroms=()=>import('./caroms-game.js'),loadCutthroat=()=>import('./cutthroat-game.js'),loadButWait=()=>import('./game.js')}={}){
  if(!win?.document)return ()=>{};
  const doc=win.document;
  const loadGame=async url=>route(url)===PRESS?(await loadPress()).mountPressGame:
   route(url)===TUNA?(await loadTuna()).mountTunaGame:
   route(url)===CAROMS?(await loadCaroms()).mountCaromsGame:
-  route(url)===CUTTHROAT?(await loadCutthroat()).mountCutthroatGame:null;
+  route(url)===CUTTHROAT?(await loadCutthroat()).mountCutthroatGame:
+  route(url)===BUT_WAIT?(await loadButWait()).mountButWaitGame:null;
  let current=new URL(win.location.href),entry=0,currentEntry=0,currentIndex=0,pending=0,reverting=false;
  if(!supported(current))return ()=>{};
  let view=initialView||{dispose:route(current)==='/'?mountGameHub(doc):()=>{}};
@@ -47,7 +48,7 @@ export function attachStaticNavigation(win=globalThis.window,{initialView,loadPr
       const css=await response.text();
       // These page sheets are self-contained. New asset-relative sheets
       // retain normal document navigation rather than changing URL resolution.
-      if(/url\s*\(|@import/i.test(css))throw new Error('Unsupported stylesheet');
+      if(/url\s*\(|@import/i.test(css.replace(/url\(\s*(['"])data:[\s\S]*?\1\s*\)/gi,'')))throw new Error('Unsupported stylesheet');
       return css;
      }).catch(error=>{sheets.delete(href.href);throw error;}));
      const style=doc.createElement('style');style.setAttribute('data-page-style','');
@@ -133,4 +134,4 @@ export function attachStaticNavigation(win=globalThis.window,{initialView,loadPr
 }
 
 // Direct game pages seed the shell from their standalone controller entry.
-if(globalThis.window?.location?.href&&![PRESS,TUNA,CAROMS,CUTTHROAT].includes(route(new URL(window.location.href))))attachStaticNavigation();
+if(globalThis.window?.location?.href&&![PRESS,TUNA,CAROMS,CUTTHROAT,BUT_WAIT].includes(route(new URL(window.location.href))))attachStaticNavigation();

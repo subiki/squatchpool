@@ -6,12 +6,12 @@
  <meta name="theme-color" content="#101d19">
  <meta name="description" content="Play But Wait, There's More — a Squatch Pool house-rules game from The 4T's.">
  <title>But Wait, There's More · Squatch Pool</title>
- <link rel="stylesheet" href="./src/styles.css">
- <link rel="stylesheet" href="./src/aim-preference.css">
- <link rel="stylesheet" href="./src/world.css">
- <link rel="stylesheet" href="./src/shot-announcer.css">
- <link rel="stylesheet" href="./src/game-page-layout.css">
- <style>
+ <link rel="stylesheet" href="./src/styles.css" data-page-style>
+ <link rel="stylesheet" href="./src/aim-preference.css" data-page-style>
+ <link rel="stylesheet" href="./src/world.css" data-page-style>
+ <link rel="stylesheet" href="./src/shot-announcer.css" data-page-style>
+ <link rel="stylesheet" href="./src/game-page-layout.css" data-page-style>
+ <style data-page-style>
  .surprise-panel{margin:10px 0;padding:14px;border:2px solid #e5c47e;border-radius:12px;background:#203b2f;color:#fff1d0}
  .surprise-panel[hidden]{display:none}.surprise-panel>strong{display:block;font-size:1.15rem}
  .surprise-panel p{margin:8px 0 12px}.surprise-choices{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
@@ -43,11 +43,11 @@
  <script type="module" src="./src/deployment.js"></script>
 <link rel="stylesheet" href="./src/shared-header.css"><link rel="manifest" href="/manifest.webmanifest"><script type="module" src="/src/pwa.js"></script></head>
 <body>
- <div class="grain" aria-hidden="true"></div>
- <div class="app">
+
   <squatch-header></squatch-header>
   
-  <main>
+  <main class="app">
+ <div class="grain" aria-hidden="true"></div>
    
    <div class="intro">
     <div>
@@ -148,8 +148,6 @@
    </section>
    <section class="shot-history-section" aria-label="Shot history">    <details class="rules-card log-card"><summary>Shot history · Expand log</summary><ol id="shot-log" aria-label="Shot history"><li>Fresh rack. Everyone still has a chance.</li></ol></details></section>
    <footer>Squatch Pool • Billiards physics adapted from <a href="https://github.com/tailuge/billiards">Tailuge Billiards</a> (GPL-3.0). <a href="./LICENSE">License</a> · <a href="./THIRD_PARTY.md">Source and attribution</a> · <a href="./src/physics.js">Game physics source</a></footer>
-  </main>
- </div>
  <div class="modal-backdrop" id="result-modal" hidden>
   <div class="result" role="dialog" aria-modal="true" aria-labelledby="result-title">
    <div class="result-art">🏆</div><p class="eyebrow">GAME OVER</p>
@@ -157,5 +155,6 @@
    <button id="play-again" class="shoot">RACK 'EM AGAIN ➜</button>
   </div>
  </div>
+ </main>
 <script type="module" src="/src/site-header-data.js"></script></body>
 </html>
