@@ -1,6 +1,6 @@
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,kitchenPoint,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
-import {initStats,newStatsId,reportRack,reportBalls} from './stats.js';
+import {initStats,newStatsId} from './stats.js';
 import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForStash,readyForEight,liveGroupBalls} from './rules.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
@@ -9,21 +9,48 @@ import {createGameSession} from './game-session.js';
 import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateButWaitShot} from './but-wait-shot-adapter.js';
-const $=s=>document.querySelector(s),canvas=$('#table'),ctx=canvas.getContext('2d');
+import {mountTableKit} from './table-kit-controls.js';
+const mountedGames=new WeakMap();
+export function mountButWaitGame(root=globalThis.document){
+ mountedGames.get(root)?.dispose();
+ const document=root.ownerDocument||root,cleanups=[];
+ let disposed=false,frameId=null;
+ const requestAnimationFrame=callback=>{
+  if(!disposed)frameId=globalThis.requestAnimationFrame(time=>{if(!disposed)callback(time);});
+ };
+ function listen(node,event,callback){
+  const handler=(...args)=>{if(!disposed)callback(...args);};
+  node?.addEventListener(event,handler);
+  cleanups.push(()=>node?.removeEventListener?.(event,handler));
+ }
+ const $=selector=>root.querySelector(selector),canvas=$('#table'),ctx=canvas.getContext('2d');
+ cleanups.push(mountTableKit(root));
+ const telemetry=initStats(root);
+ cleanups.push(()=>telemetry?.dispose());
+ const reportRack=id=>telemetry?.rack(id),reportBalls=(rack,id,count)=>telemetry?.balls(rack,id,count);
+ // Guard every delayed path, including hidden-ball and cue placement.
+ const timers=new Set();
+ const setTimeout=(callback,delay)=>{
+  const id=globalThis.setTimeout(()=>{timers.delete(id);if(!disposed)callback();},delay);
+  timers.add(id);return id;
+ };
+ const clearTimeout=id=>{globalThis.clearTimeout(id);timers.delete(id);};
+
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const invertAim=bindInvertAim($('#invert-aim'));
+cleanups.push(()=>invertAim.dispose());
 const session=createGameSession({game:'but-wait',adjudicate:adjudicateButWaitShot});
-attachMatchExitGuard(session);
-const announcerStage = document.getElementById?.('table-stage');
+cleanups.push(attachMatchExitGuard(session));
+const announcerStage = root.querySelector('#table-stage');
 if (announcerStage?.ownerDocument) {
- attachShotAnnouncer(session,announcerStage);
+ cleanups.push(attachShotAnnouncer(session,announcerStage));
 }
-session.subscribe(result=>{
+cleanups.push(session.subscribe(result=>{
  if(result.pocketed.length)reportBalls(state.statsRackId,result.shotId,result.pocketed.length);
  log(result.announcement);
-});
+}));
 const person=i=>i===0?(state.mode==='bot'?'You':'Player 1'):(state.mode==='bot'?'Speed Squatch':'Player 2');
 const human=i=>state.mode==='local'||i===0;
 const cue=()=>state.balls.find(b=>b.id===0);
@@ -36,7 +63,7 @@ function newGame(){
  clearTimeout(botTimer);
  session.startRack();
  setTableSize(selectedTableSize);
- for(const button of document.querySelectorAll('.table-size-pick')){
+ for(const button of root.querySelectorAll('.table-size-pick')){
   const chosen=Number(button.dataset.size)===TABLE.size;
   button.classList.toggle('selected',chosen);
   button.setAttribute('aria-pressed',String(chosen));
@@ -93,7 +120,7 @@ function updateCallUI(){
  $('#call-pocket-status').textContent=p?'Pocket: '+p.label:'Pocket: —';
  $('#undo-call').disabled=!picking||(state.callBall===null&&!state.callPocket);
  $('#pocket-targets').hidden=!pickingPocket;
- for(const button of document.querySelectorAll('.pocket-pick'))
+ for(const button of root.querySelectorAll('.pocket-pick'))
   button.setAttribute('aria-pressed',String(pickingPocket&&button.dataset.pocket===state.callPocket));
  const choices=$('#ball-picks');
  choices.hidden=!pickingBall;
@@ -102,7 +129,7 @@ function updateCallUI(){
    const button=document.createElement('button');
    button.type='button';button.className='ball-pick';
    button.textContent=String(b.id);button.setAttribute('aria-label','Call '+b.id+'-ball');
-   button.addEventListener('click',()=>selectCallBall(b.id));
+   button.addEventListener('click',()=>{if(!disposed)selectCallBall(b.id);});
    return button;
   }));
  }else if(choices.children.length)choices.replaceChildren();
@@ -446,7 +473,7 @@ function closestCallPocket(point){
  return pockets.map(p=>({p,dist:distance(p,point)}))
   .filter(x=>x.dist<=snapRadius).sort((a,b)=>a.dist-b.dist)[0]?.p??null;
 }
-canvas.addEventListener('pointerdown',e=>{
+listen(canvas,'pointerdown',e=>{
  if(!state)return;
  const p=eventPoint(e);
  if(state.isBreak&&human(state.turn)&&
@@ -479,28 +506,28 @@ canvas.addEventListener('pointerdown',e=>{
  dragging=true;canvas.setPointerCapture(e.pointerId);aimFrom(p);
 });
 
-canvas.addEventListener('pointermove',e=>{if(draggingBreak){breakPositionValid=placeBreakCue(eventPoint(e))||breakPositionValid;return;}if(dragging)aimFrom(eventPoint(e));});
-canvas.addEventListener('pointerup',()=>{if(draggingBreak){draggingBreak=false;if(breakPositionValid)finishBreakPlacement();breakPositionValid=false;}dragging=false;});
-canvas.addEventListener('pointercancel',()=>{draggingBreak=false;breakPositionValid=false;dragging=false;});
-$('#power').addEventListener('input',e=>{state.power=Number(e.target.value);update();});
-$('#spin-top').addEventListener('input',e=>{state.spinTop=Number(e.target.value);update();});
-$('#spin-side').addEventListener('input',e=>{state.spinSide=Number(e.target.value);update();});
-$('#undo-call').addEventListener('click',undoCall);
-for(const button of document.querySelectorAll('.pocket-pick')){
- button.addEventListener('click',()=>selectCallPocket(button.dataset.pocket));
+listen(canvas,'pointermove',e=>{if(draggingBreak){breakPositionValid=placeBreakCue(eventPoint(e))||breakPositionValid;return;}if(dragging)aimFrom(eventPoint(e));});
+listen(canvas,'pointerup',()=>{if(draggingBreak){draggingBreak=false;if(breakPositionValid)finishBreakPlacement();breakPositionValid=false;}dragging=false;});
+listen(canvas,'pointercancel',()=>{draggingBreak=false;breakPositionValid=false;dragging=false;});
+listen($('#power'),'input',e=>{state.power=Number(e.target.value);update();});
+listen($('#spin-top'),'input',e=>{state.spinTop=Number(e.target.value);update();});
+listen($('#spin-side'),'input',e=>{state.spinSide=Number(e.target.value);update();});
+listen($('#undo-call'),'click',undoCall);
+for(const button of root.querySelectorAll('.pocket-pick')){
+ listen(button,'click',()=>selectCallPocket(button.dataset.pocket));
 }
-$('#move-cue').addEventListener('click',moveBreakCue);
-$('#stash-solid').addEventListener('click',()=>selectStashBall(7));
-$('#stash-stripe').addEventListener('click',()=>selectStashBall(15));
-$('#stash-confirm').addEventListener('click',()=>{if(state.phase==='placeStash'&&human(otherPlayer(state.turn))&&state.pendingStashPoint)placeStash(state.pendingStashPoint);});
-$('#shoot').addEventListener('click',()=>{if(state.phase==='aim'&&human(state.turn))hit();});
-$('#new-game').addEventListener('click',newGame);
-$('#play-again').addEventListener('click',newGame);
-$('#mode').addEventListener('change',newGame);
-for(const button of document.querySelectorAll('.table-size-pick')){
- button.addEventListener('click',()=>{selectedTableSize=Number(button.dataset.size);newGame();});
+listen($('#move-cue'),'click',moveBreakCue);
+listen($('#stash-solid'),'click',()=>selectStashBall(7));
+listen($('#stash-stripe'),'click',()=>selectStashBall(15));
+listen($('#stash-confirm'),'click',()=>{if(state.phase==='placeStash'&&human(otherPlayer(state.turn))&&state.pendingStashPoint)placeStash(state.pendingStashPoint);});
+listen($('#shoot'),'click',()=>{if(state.phase==='aim'&&human(state.turn))hit();});
+listen($('#new-game'),'click',newGame);
+listen($('#play-again'),'click',newGame);
+listen($('#mode'),'change',newGame);
+for(const button of root.querySelectorAll('.table-size-pick')){
+ listen(button,'click',()=>{selectedTableSize=Number(button.dataset.size);newGame();});
 }
-window.addEventListener('keydown',e=>{
+listen(window,'keydown',e=>{
  // Preserve native keyboard activation of focused controls (especially Undo).
  const tag=e.target?.tagName?.toLowerCase();
  if(!state||state.phase!=='aim'||!human(state.turn)||e.target?.isContentEditable||
@@ -518,5 +545,17 @@ try{
   if(['7','8','9'].includes(saved))selectedTableSize=Number(saved);
  }
 }catch{}
-initStats();
+const controller={
+ get isRackInProgress(){return session.isRackInProgress;},
+ dispose(){
+  if(disposed)return;
+  disposed=true;for(const id of timers)globalThis.clearTimeout(id);timers.clear();dragging=false;draggingBreak=false;
+  globalThis.cancelAnimationFrame?.(frameId);
+  for(const cleanup of cleanups.splice(0).reverse())cleanup();
+  if(mountedGames.get(root)===controller)mountedGames.delete(root);
+ },
+};
+mountedGames.set(root,controller);
 newGame();requestAnimationFrame(frame);
+return controller;
+}

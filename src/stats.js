@@ -81,15 +81,16 @@ export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{
 
 const formatTotal=value=>Number.isSafeInteger(value)&&value>=0?value.toLocaleString('en-US'):'\u2014';
 
-function put(id,value){
- const node=document.querySelector('#'+id);
+function put(id,value,root){
+ const node=root.querySelector('#'+id);
  if(node)node.textContent=formatTotal(value);
 }
-export function renderStats(data){
+export function renderStats(data,root=globalThis.document){
+ const document=root.ownerDocument||root;
  for(const field of ['players','racks','balls']){
-  put('site-stats-'+field,data.site[field]);
+  put('site-stats-'+field,data.site[field],document);
   const game=data.games.find(g=>g.id===CURRENT_GAME);
-  put('game-stats-'+field,game?.[field]);
+  put('game-stats-'+field,game?.[field],root);
  }
  const container=document.querySelector('#site-stats-breakdown');
  if(container){
@@ -120,9 +121,10 @@ export function renderStats(data){
 
 }
 let live=null;
-export function initStats(){
+export function initStats(root=globalThis.document){
  if(typeof document==='undefined')return;
- const status=document.querySelector('#stats-status');
+ const status=(root.ownerDocument||root).querySelector('#stats-status');
+ let disposed=false;
  // Browser storage access may throw before the client can handle getItem errors.
  // Missing telemetry storage must not stop the original playable game.
  let storage=null;
@@ -130,15 +132,17 @@ export function initStats(){
  const client=createStatsClient({
   request:typeof fetch==='function'?fetch.bind(globalThis):null,
   storage,
-  onStats:renderStats,
-  onStatus:state=>{if(status)status.textContent=state==='live'
+  onStats:data=>{if(!disposed)renderStats(data,root);},
+  onStatus:state=>{if(!disposed&&status)status.textContent=state==='live'
    ?'Live totals since statistics launched · players = distinct anonymous browsers that played; shared devices count once.'
    :'Statistics are not connected yet. Game play still works; totals will appear when the server is ready.';},
  });
  live=client;
  void client.refresh();
  void client.flush();
- if(typeof window!=='undefined')window.addEventListener('online',()=>{void client.flush();void client.refresh();});
+ const target=globalThis.window,online=()=>{if(!disposed){void client.flush();void client.refresh();}};
+ target?.addEventListener('online',online);
+ return {rack:id=>{if(!disposed)client.rack(id);},balls:(rack,id,count)=>{if(!disposed)client.balls(rack,id,count);},dispose(){disposed=true;target?.removeEventListener?.('online',online);if(live===client)live=null;}};
 }
 export function reportRack(rackId){live?.rack(rackId);}
 export function reportBalls(rackId,shotId,count){live?.balls(rackId,shotId,count);}
