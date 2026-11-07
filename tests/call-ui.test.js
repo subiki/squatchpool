@@ -10,7 +10,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   document:globalThis.document,window:globalThis.window,
   requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout,
  };
- let controller;
+ let controller,lastPointer;
  const elements=new Map(),events=new Map();
  const markers=['TL','TM','TR','BL','BM','BR'].map(id=>({
   dataset:{pocket:id},attributes:{},
@@ -45,7 +45,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
    prepend(child){this.children.unshift(child);},
    replaceChildren(...items){this.children=items;},
    get lastElementChild(){return this.children.at(-1)??{remove(){}};},
-   remove(){},getContext(){return ctx;},setPointerCapture(){},
+   remove(){},getContext(){return ctx;},setPointerCapture(id){lastPointer=id;},
    getBoundingClientRect(){return {left:0,top:0,width:this.width||1000,height:this.height||500};},
   });
   return elements.get(id);
@@ -80,7 +80,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  };
  try{
   await import('../src/but-wait-entry.js');
-  events.get('#table:pointerdown')({clientX:110,clientY:140,pointerId:10});events.get('#table:pointerup')();click('#shoot');
+  events.get('#table:pointerdown')({clientX:110,clientY:140,pointerId:10});events.get('#table:pointerup')({pointerId:lastPointer});click('#shoot');
   const beforeLeave=events.get('#shoot:click');
   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
   events.get('document:click')(navigation);assert.equal(navigation.prevented,true);
@@ -91,31 +91,47 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('window:pagehide')();cancelled=0;
   const {mountButWaitGame}=await import('../src/game.js');
   controller=mountButWaitGame(document);
+  events.get('#table:pointerdown')({clientX:90,clientY:120,pointerId:31});
+  events.get('#table:pointerdown')({clientX:130,clientY:150,pointerId:32});
+  events.get('#table:pointermove')({clientX:140,clientY:160,pointerId:32});
+  events.get('#table:lostpointercapture')({pointerId:32});
+  events.get('#table:pointerup')({pointerId:32});
+  assert.equal(element('#shoot').disabled,true,'secondary finger cannot finish break placement');
+  events.get('#table:pointerup')({pointerId:31});
+  assert.equal(element('#shoot').disabled,false,'initiating finger finishes placement');
+  click('#new-game');
+  events.get('#table:pointerdown')({clientX:100,clientY:130,pointerId:33});
+  events.get('#table:lostpointercapture')({pointerId:33});
+  events.get('#table:pointerdown')({clientX:110,clientY:140,pointerId:34});
+  events.get('#table:pointerup')({pointerId:34});assert.equal(element('#shoot').disabled,false,'fresh pointer works after capture loss');
+  events.get('#table:pointerdown')({clientX:100,clientY:130,pointerId:35});click('#new-game');
+  events.get('#table:pointerup')({pointerId:35});
+  assert.equal(element('#shoot').disabled,true,'stale owner cannot place a new rack');
   assert.equal(element('#shoot').disabled,true,'place cue ball before break');
   assert.equal(element('#table-status').textContent,'PLACE BREAK CUE');
   assert.equal(element('#move-cue').hidden,false,'placement guidance visible');
   assert.equal(element('#move-cue').disabled,true,'already placing cue ball');
   // Tap outside the kitchen: should not bypass placement restriction.
   events.get('#table:pointerdown')({clientX:450,clientY:130,pointerId:1});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,true,'cannot break from wrong side of head string');
   // Drag the ball to a legal position and release to enable aiming.
   events.get('#table:pointerdown')({clientX:90,clientY:120,pointerId:2});
   events.get('#table:pointermove')({clientX:110,clientY:140,pointerId:2});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'break enabled after placement');
   assert.equal(element('#move-cue').disabled,false,'can change position before strike');
   assert.equal(element('#power').value,'85','break begins with powerful but adjustable default');
   // Direct re-placement near the cushion edge, without pressing Reposition.
   events.get('#table:pointerdown')({clientX:0,clientY:0,pointerId:34});
   events.get('#table:pointermove')({clientX:23,clientY:24,pointerId:34});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'near-rail kitchen re-placement is legal');
 
   click('#move-cue');
   assert.equal(element('#shoot').disabled,true,'reposition disables the break until released');
   events.get('#table:pointerdown')({clientX:120,clientY:170,pointerId:3});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'repositioned cue can break');
 
   assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
@@ -193,7 +209,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#shoot').disabled,true,'new rack requires break cue placement');
   assert.equal(element('#table-status').textContent,'PLACE BREAK CUE');
   events.get('#table:pointerdown')({clientX:100,clientY:170,pointerId:4});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'new rack can place and break');
   assert.equal(element('#undo-call').disabled,true);
   events.get('size-8:click')();
@@ -203,7 +219,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.ok(element('#table').width>width7&&element('#table').height>height7);
   assert.equal(element('#shoot').disabled,true,'size change starts cue-placement phase');
   events.get('#table:pointerdown')({clientX:120,clientY:170,pointerId:5});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'size 8 accepts head-quarter placement');
   assert.equal(element('#pocket-targets').hidden,true);
   const width8=element('#table').width,height8=element('#table').height;
@@ -213,7 +229,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.ok(element('#table').width>width8&&element('#table').height>height8);
   assert.equal(element('#shoot').disabled,true,'size 9 requires cue placement');
   events.get('#table:pointerdown')({clientX:145,clientY:215,pointerId:6});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'size 9 accepts legal placement');
   events.get('size-7:click')();
   assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
@@ -221,11 +237,11 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#table').height,height7);
   assert.equal(element('#shoot').disabled,true,'switching back reracks and requires cue placement');
   events.get('#table:pointerdown')({clientX:110,clientY:165,pointerId:7});
-  events.get('#table:pointerup')();
+  events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'switching back permits cue placement');
   element('#mode').value='bot';events.get('#mode:change')();
-  events.get('#table:pointerdown')({clientX:110,clientY:165,pointerId:8});events.get('#table:pointerup')();
-  events.get('#table:pointerdown')({clientX:element('#table').width*.5,clientY:0,pointerId:9});events.get('#table:pointerup')();
+  events.get('#table:pointerdown')({clientX:110,clientY:165,pointerId:8});events.get('#table:pointerup')({pointerId:lastPointer});
+  events.get('#table:pointerdown')({clientX:element('#table').width*.5,clientY:0,pointerId:9});events.get('#table:pointerup')({pointerId:lastPointer});
   click('#shoot');assert.equal(controller.isRackInProgress,true);
   for(let i=0;i<3000&&!timers.size;i++)tick();
   if(!timers.size){
