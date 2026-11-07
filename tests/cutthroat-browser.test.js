@@ -137,3 +137,24 @@ test('Cutthroat offers all legal solo/local seat counts and a physical, cancella
  assert.match(controller,/listen\(\$\('cut-players'\),'change',newGame\)/);
  assert.doesNotMatch(controller,/\.click\(\)/,'bot must not impersonate a human clicking UI buttons');
 });
+
+
+test('Cutthroat release does not auto-confirm foul ball in hand',()=>{
+ const game={phase:'placeCue',placementValid:true,match:{turn:0}};
+ let confirmed=0,updated=0,released=0;
+ const cueBall={pocketed:true,vx:5};
+ const session={confirmPlacement(){confirmed++;return true;}};
+ const source=controller.match(/function confirmPlacement\(fromBot=false\)\{[\s\S]*?\n\}\nfunction chooseGroup/);
+ assert.ok(source);
+ const confirm=new Function('game','session','botSeat','cue','cancelPointer','update',
+  source[0].replace(/\nfunction chooseGroup$/,'')+';return confirmPlacement;')(
+   game,session,()=>false,()=>cueBall,()=>released++,()=>updated++);
+ const release=controller.match(/listen\(canvas,'pointerup',e=>\{[\s\S]*?\n\}\);/);
+ let handler;
+ new Function('listen','canvas','activePointer','botSeat','dragging','game','placeCue','point','confirmPlacement','aim','cancelPointer',release[0])(
+  (_node,_event,fn)=>{handler=fn;},{},1,()=>false,true,game,()=>{},()=>({}),confirm,()=>{},()=>released++);
+ handler({pointerId:1});
+ assert.equal(game.phase,'placeCue');assert.equal(confirmed,0,'foul placement still requires explicit confirmation');
+ confirm();assert.equal(confirmed,1);assert.equal(game.phase,'aim');assert.equal(cueBall.pocketed,false);
+ assert.equal(updated,1);assert.equal(released,2);
+});

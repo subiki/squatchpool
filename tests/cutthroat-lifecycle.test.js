@@ -38,7 +38,7 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
  try{
   await import('../src/cutthroat-entry.js');
   listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
-  click('cut-place');click('cut-shoot');
+  listeners.get('cut-table:pointerup')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});click('cut-shoot');
   const beforeLeave=listeners.get('cut-shoot:click');
   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
   listeners.get('document:click')(navigation);assert.equal(navigation.prevented,true);
@@ -47,12 +47,18 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
   oldFrame(1000);assert.equal(frames,atExit);
   await listeners.get('window:pageshow')({persisted:true});
   assert.equal(frames,atExit+1,'native cache restore starts one fresh loop');
-  assert.equal(node('cut-power').value,'85');assert.equal(node('cut-place').hidden,false);
+  assert.equal(node('cut-power').value,'85');assert.equal(node('cut-place').hidden,true);
   listeners.get('window:pagehide')();cancelled=0;
   const {mountCutthroatGame}=await import('../src/cutthroat-game.js');
   controller=mountCutthroatGame(document);
   for(const size of [7,8,9]){
    node('cut-size').value=String(size);listeners.get('cut-size:change')();
+   assert.equal(node('cut-place').hidden,true,'break confirmation stays hidden');
+   assert.equal(node('cut-shoot').disabled,true,'must place before break');
+   click('cut-place');assert.equal(node('cut-shoot').disabled,true,'hidden confirmation cannot bypass placement');
+   listeners.get('cut-table:pointerdown')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:5});
+   listeners.get('cut-table:pointerup')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:5});
+   assert.equal(node('cut-shoot').disabled,true,'illegal release cannot enable break');
    assert.equal(node('cut-table').width,Math.round(TABLE.width));
    listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
    assert.equal(node('cut-place').disabled,false,'owner placed a legal break cue');
@@ -74,7 +80,14 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
    listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
 
    listeners.get('cut-table:pointerup')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
-   click('cut-place');assert.equal(node('cut-shoot').disabled,false);
+   assert.equal(node('cut-shoot').disabled,false,'legal release enables BREAK without confirmation');
+   listeners.get('cut-table:pointerdown')({clientX:headStringX()*.4,clientY:TABLE.height/2,pointerId:6});
+   assert.equal(node('cut-shoot').disabled,true,'kitchen tap repositions a break until strike');
+   listeners.get('cut-table:pointerup')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:6});
+   assert.equal(node('cut-shoot').disabled,true,'final release position must be legal');
+   listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:7});
+   listeners.get('cut-table:pointerup')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:7});
+   assert.equal(node('cut-shoot').disabled,false,'fresh legal release recovers break');
    click('cut-shoot');assert.equal(controller.isRackInProgress,true);assert.equal(node('cut-power').value,'68');
   }
   click('cut-new');
@@ -91,7 +104,7 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
   // Let a real solo break settle and leave the next bot action pending.
   node('cut-players').value='1';listeners.get('cut-players:change')();
   listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
-  click('cut-place');click('cut-shoot');
+  listeners.get('cut-table:pointerup')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});click('cut-shoot');
   let time=0;
   for(let i=0;i<3000&&!timers.size;i++){time+=1000/120;frame(time);}
   assert.ok(timers.size,'missed break schedules a bot turn');
