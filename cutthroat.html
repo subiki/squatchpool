@@ -28,6 +28,12 @@ details>div{padding:12px 16px}li{margin:6px 0}
 .kit-primary #cut-shoot{background:#efc77c;color:#1a2b22;font-size:1.1rem}
 .kit-primary .aim-toggle{flex:0 1 auto;font-size:.88rem}
 .table-kit .choice{margin:8px 0;padding:10px}
+.table-stage #cut-group{margin:0;border-radius:10px 10px 0 0;border-width:2px;border-color:#f4ca7c;background:#34523b;box-shadow:inset 0 0 0 2px #1b3829;color:#fff8e3}
+.table-stage #cut-group strong{display:block;font-size:1.25rem;color:#ffe6a8}
+.table-stage #cut-group p{margin:5px 0 8px}
+.table-stage #cut-group .controls{margin:4px 0;align-items:end}
+.table-stage #cut-group select{font-weight:850;background:#102b22}
+.table-stage #cut-group button{min-width:155px}
 .table-stage:fullscreen{overflow:auto}
 .table-stage:fullscreen .table-wrap{flex:1 1 auto;min-height:0;overflow:auto}
 .table-stage:fullscreen .table-wrap canvas{max-height:calc(100dvh - 155px)}
@@ -38,11 +44,11 @@ details>div{padding:12px 16px}li{margin:6px 0}
 
 
 <h1>Coin-Op Cutthroat</h1>
-<p class="notice"><strong>Solo with two Squatch Bots, two humans and a bot, or three local players.</strong> Protect your own balls: 1–5, 6–10 or 11–15. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
+<p class="notice"><strong>Solo with two Squatch Bots, two humans and a bot, or three local players.</strong> Protect your own color: blue, yellow or red. All 15 object balls are solid-colored; their numbers don't matter. Pocket any ball, even yours, to keep shooting. Scratch and the third player may steal one of your remaining balls, bringing an eliminated player back into the game. Last player with a ball wins. <a href="#cut-rules">Full rules</a></p>
 <section class="game-rules-layout"><details id="cut-rules"><summary>How to play · source rules &amp; controls</summary><div>
-<ol><li>Three players use all 15 numbered balls. Player 1 breaks; balls pocketed on the break stay down.</li>
-<li>After your first legal pocket, select an available group (1–5, 6–10, or 11–15) by the end of your turn.</li>
-<li>Pocket any object ball, including one you own, to continue shooting. A miss ends your turn. The 8 is not an automatic win.</li>
+<ol><li>Three players use 15 colored balls: five blue, five yellow and five red. Player 1 breaks; balls pocketed on the break stay down.</li>
+<li>After your first legal pocket, choose an available color (blue, yellow or red) by the end of your turn.</li>
+<li>Pocket any object ball, including one you own, to continue shooting. A miss ends your turn. No single numbered ball is an automatic win.</li>
 <li>On a cue-ball scratch, the next active player gets ball in hand. The third player can claim one of the scratcher's unpocketed balls. A claimed ball changes owner without moving on the table; an eliminated player may re-enter.</li>
 <li>Last player with any ball on the table wins. Eliminated players skip turns unless revived.</li></ol>
 <p><strong>Controls:</strong> Tap the felt to place the cue ball when prompted. Drag or tap to aim from the white ball. Use the power and spin controls, then Shoot. Arrow keys adjust aim; Space shoots.</p>
@@ -54,6 +60,9 @@ details>div{padding:12px 16px}li{margin:6px 0}
 
 
 <div class="table-stage" id="table-stage">
+<section class="choice cut-team-choice" id="cut-group" aria-label="Choose your Cutthroat team" hidden><strong>Choose your team color</strong>
+<p>You pocketed a ball! Pick a color now or before your turn ends.</p>
+<div class="controls"><label>Team color<select id="cut-group-select"></select></label><button id="cut-group-confirm" class="primary" type="button">Claim this color</button></div></section>
 <div class="game-hud" aria-label="Cutthroat match status"><div id="cut-turn" aria-live="polite"></div><p id="cut-scores"></p><p id="cut-status" role="status" aria-live="polite"></p></div>
 <div class="game-live-stats" aria-label="Coin-Op Cutthroat lifetime statistics"><strong>All-time game totals</strong><span><b id="current-game-stats-players">&#8212;</b> Players</span><span><b id="current-game-stats-racks">&#8212;</b> Racks</span><span><b id="current-game-stats-balls">&#8212;</b> Balls made</span><small id="current-game-stats-status" role="status">Connecting to statistics...</small></div><div class="table-wrap"><canvas id="cut-table" aria-label="Coin-Op Cutthroat pool table. Drag on the felt to aim. Tap to place the white ball when prompted."></canvas></div>
 <section class="table-kit" aria-label="Shot controls">
@@ -64,14 +73,11 @@ details>div{padding:12px 16px}li{margin:6px 0}
 <button id="cut-reposition" type="button" hidden>Reposition break cue ball</button>
 <button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Reverse aim: OFF</button>
 <button type="button" id="kit-fullscreen" aria-label="Toggle table fullscreen">⛶ Fullscreen</button>
-<details class="kit-more" id="cut-options"><summary>More · Spin, group &amp; scratch claim</summary>
+<details class="kit-more" id="cut-options"><summary>More · Spin &amp; scratch claim</summary>
 <div class="kit-options">
 <label>Draw / follow <output id="cut-top-value">0%</output><input id="cut-top" type="range" min="-100" max="100" value="0"></label>
 <label>English <output id="cut-side-value">0%</output><input id="cut-side" type="range" min="-100" max="100" value="0"></label>
 </div>
-<section class="choice" id="cut-group" hidden><strong>Choose your ball group</strong>
-<p>You earned a group choice by legally pocketing a ball. You can keep playing before choosing, but must choose before your turn ends.</p>
-<div class="controls"><label>Group<select id="cut-group-select"></select></label><button id="cut-group-confirm" type="button">Claim this group</button></div></section>
 <section class="choice" id="cut-claim" hidden><strong>Third player's scratch claim</strong>
 <p>Choose an unpocketed ball from the scratcher's group to make it yours, or decline. No balls are re-spotted.</p>
 <div class="controls"><label>Choice<select id="cut-claim-select"></select></label><button id="cut-claim-confirm" type="button">Resolve claim</button></div></section>
