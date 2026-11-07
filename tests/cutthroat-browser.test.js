@@ -23,6 +23,9 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
  assert.match(controller,/session\.settle\(/);
  assert.match(controller,/session\.confirmPlacement\(\)/);
  assert.match(controller,/adjudicateCutthroatShot/);
+ assert.match(controller,/renderer\.drawBalls\(ctx,game\.balls,drawCutthroatBall\)/,'color-only balls use the shared canvas renderer');
+ assert.match(controller,/const ranges=\['Blue','Yellow','Red'\]/,'team labels are colors, not ball numbers');
+ assert.doesNotMatch(controller,/fillText\(ball\.id/,'Cutthroat balls must not have printed numbers');
  assert.match(controller,/resolveCutthroatClaim\(/);
  assert.match(controller,/assignCutthroatGroup\(/);
  assert.match(controller,/requestAnimationFrame\(frame\)/);
@@ -40,7 +43,11 @@ test('Cutthroat keeps the core shot kit and required decisions attached to the f
  for(const id of ['cut-group','cut-claim','cut-place','cut-reposition','cut-turn','cut-scores','cut-status','cut-new',
   'current-game-stats-players','current-game-stats-racks','current-game-stats-balls','current-game-stats-status'])
   assert.ok(stage.includes('id="'+id+'"'),id+' must remain available inside fullscreen');
- assert.match(controller,/\$\('cut-options'\)\.open=true/,'required decisions must open the drawer');
+ assert.match(controller,/if\(game\.phase==='claim'\) \$\('cut-options'\)\.open=true/,'scratch claims open the drawer');
+ assert.ok(stage.indexOf('id="cut-group"')<stage.indexOf('id="cut-table"'),
+  'team color chooser must appear ABOVE the felt, inside fullscreen');
+ assert.match(html,/Choose your team color/);
+ assert.match(html,/five blue, five yellow and five red/i);
 });
 
 test('regulation 7/8/9 ft Cutthroat racks retain 15 object balls and real physics',()=>{
