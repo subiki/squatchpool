@@ -34,7 +34,7 @@ test('But Wait keeps break, called shots, stash and spin inside fullscreen table
  }
  assert.ok(section.indexOf('id="table"')<section.indexOf('id="shoot"'));
  assert.ok(section.indexOf('id="shoot"')<section.indexOf('id="but-wait-more"'));
- assert.match(html,/src="\.\/src\/table-kit\.js"/);
+ assert.match(html,/src="\.\/src\/but-wait-entry\.js"/);
  assert.match(html,/<details class="kit-more" id="but-wait-more">/);
  assert.match(controller,/!state\.isBreak&&human\(state\.turn\)&&!callReady\(\)\)\$\('#but-wait-more'\)\.open=true/);
 });

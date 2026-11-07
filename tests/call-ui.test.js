@@ -8,8 +8,9 @@ import {setTableSize} from '../src/table-geometry.js';
 test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', async () => {
  const original = {
   document:globalThis.document,window:globalThis.window,
-  requestAnimationFrame:globalThis.requestAnimationFrame,
+  requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,setTimeout:globalThis.setTimeout,clearTimeout:globalThis.clearTimeout,
  };
+ let controller;
  const elements=new Map(),events=new Map();
  const markers=['TL','TM','TR','BL','BM','BR'].map(id=>({
   dataset:{pocket:id},attributes:{},
@@ -40,6 +41,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
    attributes:{},
    setAttribute(name,value){this.attributes[name]=String(value);},
    addEventListener(event,fn){events.set(id+':'+event,fn);},
+   removeEventListener(event,fn){if(events.get(id+':'+event)===fn)events.delete(id+':'+event);},
    prepend(child){this.children.unshift(child);},
    replaceChildren(...items){this.children=items;},
    get lastElementChild(){return this.children.at(-1)??{remove(){}};},
@@ -58,8 +60,12 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   querySelectorAll(selector){return selector==='.pocket-pick'?markers:selector==='.table-size-pick'?sizeButtons:[];},
   createElement:makeElement,
  };
- globalThis.window={addEventListener(){}};
- globalThis.requestAnimationFrame=callback=>{nextFrame=callback;};
+ globalThis.window={addEventListener(event,fn){events.set('window:'+event,fn);},removeEventListener(event,fn){if(events.get('window:'+event)===fn)events.delete('window:'+event);}};
+ let scheduled=0,cancelled=0,timerId=0;const timers=new Map();
+ globalThis.requestAnimationFrame=callback=>{nextFrame=callback;return ++scheduled;};
+ globalThis.cancelAnimationFrame=()=>cancelled++;
+ globalThis.setTimeout=fn=>{timers.set(++timerId,fn);return timerId;};
+ globalThis.clearTimeout=id=>timers.delete(id);
  const tick=()=>{time+=1000/120;nextFrame(time);};
  const click=(id)=>{assert.ok(events.has(id+':click'),id+' listener');events.get(id+':click')();};
  const setSlider=(id,value)=>{
@@ -67,7 +73,8 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get(id+':input')({target:element(id)});
  };
  try{
-  await import('../src/game.js');
+  const {mountButWaitGame}=await import('../src/game.js');
+  controller=mountButWaitGame(document);
   assert.equal(element('#shoot').disabled,true,'place cue ball before break');
   assert.equal(element('#table-status').textContent,'PLACE BREAK CUE');
   assert.equal(element('#move-cue').hidden,false,'placement guidance visible');
@@ -200,7 +207,28 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('#table:pointerdown')({clientX:110,clientY:165,pointerId:7});
   events.get('#table:pointerup')();
   assert.equal(element('#shoot').disabled,false,'switching back permits cue placement');
+  element('#mode').value='bot';events.get('#mode:change')();
+  events.get('#table:pointerdown')({clientX:110,clientY:165,pointerId:8});events.get('#table:pointerup')();
+  events.get('#table:pointerdown')({clientX:element('#table').width*.5,clientY:0,pointerId:9});events.get('#table:pointerup')();
+  click('#shoot');assert.equal(controller.isRackInProgress,true);
+  for(let i=0;i<3000&&!timers.size;i++)tick();
+  if(!timers.size){
+   element('#ball-picks').children[0].listeners.get('click')();events.get('pocket-BR:click')();
+   setSlider('#power',1);click('#shoot');
+   for(let i=0;i<3000&&!timers.size;i++)tick();
+  }
+  assert.ok(timers.size,'settled solo shot schedules bot work: '+element('#announcer-text').textContent+' / '+element('#table-status').textContent);
+  const staleBot=timers.values().next().value,staleFrame=nextFrame,staleShoot=events.get('#shoot:click'),staleAim=events.get('#invert-aim:click');
+  controller.dispose();controller.dispose();assert.equal(cancelled,1);assert.equal(timers.size,0);
+  for(const key of ['#table:pointerdown','#shoot:click','window:keydown','window:storage','window:online','window:beforeunload'])assert.equal(events.has(key),false,key);
+  const atExit=scheduled,status=element('#announcer-text').textContent,invert=element('#invert-aim').textContent;
+  staleBot();staleFrame(time+1000);staleShoot();staleAim();
+  assert.equal(scheduled,atExit);assert.equal(element('#announcer-text').textContent,status);assert.equal(element('#invert-aim').textContent,invert);
+  controller=mountButWaitGame(document);assert.equal(controller.isRackInProgress,false);
+  assert.equal(element('#power').value,'85');assert.equal(element('#table-status').textContent,'PLACE BREAK CUE');
+  const previous=controller;controller=mountButWaitGame(document);previous.dispose();assert.equal(cancelled,2);
  }finally{
+  controller?.dispose();
   setTableSize(9); // keep shared mutable geometry clean for other tests
   for(const [key,v] of Object.entries(original)){
    if(v===undefined)delete globalThis[key];else globalThis[key]=v;
