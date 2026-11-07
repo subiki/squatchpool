@@ -120,7 +120,7 @@ function update(){
  // The team choice stays above the table; scratch-claim actions remain in the drawer.
  if(game.phase==='claim') $('cut-options').open=true;
  $('cut-claim-select').replaceChildren(new Option('Decline claim',''),...(claim?.returnable||[]).map(id=>{
-  const ball=game.balls.find(b=>b.id===id);
+  const ball=game.balls?.find(b=>b.id===id);
   if(!ball)return new Option('Claim on-table '+ranges[groupForBall(id)]+' ball',String(id));
   const x=Math.round(ball.x/TABLE.width*100),y=Math.round(ball.y/TABLE.height*100);
   return new Option(ranges[groupForBall(id)]+' ball at '+x+'% across, '+y+'% down',String(id));
