@@ -1,5 +1,7 @@
 # Squatch Pool · The 4T's
 
+**Visual identity:** [Footprint/8-ball SVG masters, artboard, icon sizes and accessible palette](assets/brand/README.md). Shared header and PWA icon exports use this kit.
+
 **Status: five original game pages exist; shared-architecture consolidation and five-mode play acceptance are in progress (not yet production-release-verified).** A mobile-friendly, self-contained browser pool game set at the Squatches' secret watering hole in the Pacific Northwest temperate rainforest.
 
 ## Release direction

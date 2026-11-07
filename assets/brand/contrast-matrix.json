@@ -1,0 +1,138 @@
+[
+  {
+    "pair": "Light body",
+    "background": "#F7F5EC",
+    "foreground": "#102923",
+    "ratio": 14.1,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Light muted",
+    "background": "#F7F5EC",
+    "foreground": "#4C6257",
+    "ratio": 6.02,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Light primary button",
+    "background": "#14513D",
+    "foreground": "#F7F5EC",
+    "ratio": 8.45,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Light complementary accent",
+    "background": "#F7F5EC",
+    "foreground": "#865016",
+    "ratio": 6.06,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Light panel text",
+    "background": "#E5EBE3",
+    "foreground": "#102923",
+    "ratio": 12.71,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Light boundary",
+    "background": "#E5EBE3",
+    "foreground": "#6D8877",
+    "ratio": 3.19,
+    "minimum": 3,
+    "pass": true
+  },
+  {
+    "pair": "Light success",
+    "background": "#F7F5EC",
+    "foreground": "#18663D",
+    "ratio": 6.39,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Light danger",
+    "background": "#F7F5EC",
+    "foreground": "#982F25",
+    "ratio": 6.95,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Dark body",
+    "background": "#0C2119",
+    "foreground": "#F4EEDA",
+    "ratio": 14.5,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Dark muted",
+    "background": "#1B3A2D",
+    "foreground": "#C5D6C9",
+    "ratio": 8.19,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Dark button",
+    "background": "#A4CC99",
+    "foreground": "#102923",
+    "ratio": 8.56,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Dark accent",
+    "background": "#0C2119",
+    "foreground": "#F0C478",
+    "ratio": 10.32,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Dark panel text",
+    "background": "#1B3A2D",
+    "foreground": "#F4EEDA",
+    "ratio": 10.71,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Dark boundary",
+    "background": "#1B3A2D",
+    "foreground": "#789E89",
+    "ratio": 4.17,
+    "minimum": 3,
+    "pass": true
+  },
+  {
+    "pair": "Dark focus",
+    "background": "#0C2119",
+    "foreground": "#F9C466",
+    "ratio": 10.52,
+    "minimum": 3,
+    "pass": true
+  },
+  {
+    "pair": "Dark success",
+    "background": "#1B3A2D",
+    "foreground": "#A6E5BB",
+    "ratio": 8.61,
+    "minimum": 4.5,
+    "pass": true
+  },
+  {
+    "pair": "Dark danger",
+    "background": "#1B3A2D",
+    "foreground": "#FFB9AA",
+    "ratio": 7.56,
+    "minimum": 4.5,
+    "pass": true
+  }
+]

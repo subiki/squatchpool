@@ -14,6 +14,20 @@
     ['/rules.html', '📜 Rules'],
     ['/archive.html', '📖 Field Notes'],
   ];
+  // Favicons remain identical across standalone game pages.
+  if (document.head) {
+    if (!document.head.querySelector('link[rel="icon"]')) {
+      const icon=document.createElement('link');
+      icon.rel='icon';icon.type='image/svg+xml';icon.href='/assets/brand/favicon.svg';
+      document.head.append(icon);
+    }
+    if (!document.head.querySelector('link[rel="apple-touch-icon"]')) {
+      const touch=document.createElement('link');
+      touch.rel='apple-touch-icon';touch.sizes='180x180';
+      touch.href='/assets/brand/apple-touch-icon.png';
+      document.head.append(touch);
+    }
+  }
   class SquatchHeader extends HTMLElement {
     connectedCallback() {
       if (this.dataset.rendered) return;
@@ -26,7 +40,7 @@
       header.className = 'squatch-unified-header';
       header.innerHTML = `
         <div class="squatch-brand-row">
-          <div class="brand-mark" aria-hidden="true">♠</div>
+          <div class="brand-mark" aria-hidden="true"><img src="/assets/brand/favicon.svg" width="62" height="62" alt=""></div>
           <div><p class="eyebrow">The 4T's · Somewhere in the Cascades</p><h1>SQUATCH <span>POOL</span></h1></div>
         </div>
         <div class="squatch-release" aria-label="Version and deployment">
