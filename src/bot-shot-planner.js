@@ -1,3 +1,5 @@
+import {TABLE,step,shotSpeed,stationary} from './physics.js';
+
 /**
  * Shared, deterministic Squatch Bot stroke planner.
  * Picks a legal physical cue-ball line; never moves object balls or awards
@@ -41,6 +43,22 @@ export function planBotShot({balls,targets,pockets,radius,breakShot=false,table}
  }
  if(candidates.length){
   candidates.sort((a,b)=>a.cost-b.cost||a.ballId-b.ballId||String(a.pocketId).localeCompare(String(b.pocketId)));
+  // A last-ball scratch can respot the target into the identical layout.
+  // Check a small set of softer strokes with the real engine before taking
+  // that finishing cut. At most six pockets x six powers x 20 seconds.
+  if(table===TABLE&&balls.filter(b=>b.id>0&&!b.pocketed).length===1){
+   for(const candidate of candidates)for(const power of new Set([36,42,48,60,68,candidate.power])){
+    const trial=balls.map(b=>({...b})),white=trial.find(b=>b.id===0);
+    const speed=shotSpeed(power);let called=false;
+    white.vx=Math.cos(candidate.angle)*speed;white.vy=Math.sin(candidate.angle)*speed;
+    for(let i=0;i<2400;i++){
+     const result=step(trial,1/120);
+     if(result.shotEvents.some(e=>e.type==='pocket'&&e.ballId===candidate.ballId&&e.pocketId===candidate.pocketId))called=true;
+     if(white.pocketed||stationary(trial))break;
+    }
+    if(called&&!white.pocketed){const {cost,...plan}=candidate;return {...plan,power};}
+   }
+  }
   const {cost,...plan}=candidates[0];return plan;
  }
  // Safety fallback: strike a legal object ball even when no clear pot exists.
