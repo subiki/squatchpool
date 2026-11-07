@@ -469,6 +469,11 @@ squatch-header .squatch-header-stats summary{
  margin:0!important;font-size:1.02rem!important;
  line-height:1.35!important;color:#f0c478!important;
 }
+squatch-header .squatch-header-stats summary::before{
+ content:"▶";font-size:.78em;display:inline-block;flex:0 0 auto;
+ margin-right:10px;color:#f0c478;
+}
+squatch-header .squatch-header-stats[open] summary::before{content:"▼"}
 /* Raised, textured evergreen surfaces across EVERY page. Opaque base
    guarantees ivory copy remains readable above the background artwork. */
 body :is(
@@ -588,7 +593,6 @@ body main button:disabled{
 }
 /* Don't texture/resize the actual playing surface, cue, or pocket targets.
    Native-select menu readability wins over decorative fills. */
-body .table-stage canvas{background-image:none!important}
 body .table-stage :is(input:not([type=range]),select,textarea){
  background-color:#f7f5ec!important;
  color:#102923!important;
