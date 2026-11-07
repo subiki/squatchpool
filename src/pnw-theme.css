@@ -1,0 +1,187 @@
+/* Squatch Pool / PNW surface system v3.
+   Shared across static and SPA navigation. This global sheet is intentionally
+   NOT data-page-style: the soft navigation replaces route-local sheets.
+   Never overlay an active canvas, game physics, or pocket labels. */
+:root{
+ --pnw-night:#0c2119;--pnw-forest:#14513d;--pnw-pine:#1f5b43;
+ --pnw-moss:#a4cc99;--pnw-cream:#f7f5ec;--pnw-ivory:#f4eeda;
+ --pnw-brass:#f0c478;--pnw-copper:#865016;
+ --pnw-panel:#18382c;--pnw-panel-edge:#85ad95;--pnw-text:#f4eeda;
+ --pnw-muted:#c5d6c9;--pnw-focus:#f9c466;
+ color-scheme:dark;
+}
+body{
+ background-color:#0c2119;
+ background-image:linear-gradient(125deg,#0c2119e8,#123e2fda 42%,#0c2119eb),
+                  url('/assets/brand/texture-topography.svg'),
+                  url('/assets/brand/texture-felt.svg');
+ background-size:auto,420px 280px,256px 256px;
+ background-attachment:fixed,fixed,fixed;
+ color:var(--pnw-text);
+}
+body:before{pointer-events:none}
+:where(main,.hub-main){position:relative}
+/* The rainforest panorama is decorative: actual text lives in an opaque,
+   high-contrast layer, not directly on foliage. */
+.squatch-unified-header{
+ background-image:url('/assets/brand/texture-topography.svg')!important;
+ background-size:420px 280px!important;
+ background-color:var(--brand-bg)!important;
+}
+.squatch-unified-header .squatch-header-nav a:not([aria-current="page"]){
+ background-image:linear-gradient(155deg,#b7d5a611,#17392d11),
+                  url('/assets/brand/texture-felt.svg');
+ background-size:auto,256px 256px;
+ background-color:var(--brand-panel);
+ border-radius:11px;
+ box-shadow:inset 0 1px 0 #f7f5ec16;
+}
+.hub-intro,.world-hero{
+ position:relative;isolation:isolate;overflow:hidden;
+ background-image:linear-gradient(105deg,#0c2119f7 0%,#12392fe9 52%,#102b20cc 100%),
+                  url('/assets/brand/forest-banner.svg'),
+                  url('/assets/brand/texture-topography.svg')!important;
+ background-size:cover,cover,420px 280px;
+ background-position:center,center,center;
+ border:1px solid #85ad95!important;
+ border-radius:18px;
+ box-shadow:inset 0 1px 0 #e7f1db22,0 12px 28px #06170e55;
+ color:#f4eeda;
+}
+.world-hero:after{content:none!important} /* remove the legacy playing-card club graphic */
+.world-stamp{transform:none!important;border-color:#85ad95!important;border-radius:6px}
+body:has(.world-hero) main>section:not(.world-hero){
+ background-image:linear-gradient(145deg,#214333f0,#123025f0),
+                  url('/assets/brand/texture-felt.svg')!important;
+ background-size:auto,256px 256px;
+ color:#f4eeda!important;border:1px solid #85ad95!important;
+}
+.hub-intro h2,.world-hero h1{
+ font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+ font-weight:800;letter-spacing:-.027em!important;
+ color:#f4eeda!important;text-shadow:none!important;
+}
+.hub-intro p,.world-hero p{color:#f4eeda!important}
+.hub-eyebrow,.world-kicker{color:#f0c478!important}
+.hub-game,.world-card,.hub-notes,.hub-arcade,
+.game-rules-layout .rules-card,.game-history,.rules-card,
+.match,.notice{
+ border:1px solid #85ad95!important;
+ background-image:linear-gradient(145deg,#214333f0,#123025f0),
+                  url('/assets/brand/texture-felt.svg')!important;
+ background-size:auto,256px 256px;
+ background-color:#18382c;
+ border-radius:15px;
+ box-shadow:inset 0 1px 0 #f4eedb12,0 8px 20px #0717113d;
+ color:#f4eeda;
+}
+.hub-game h3,.world-card h2,.world-card h3,
+.game-rules-layout .rules-card h3{color:#f4eeda!important;font-family:system-ui,sans-serif!important;letter-spacing:-.015em}
+.hub-game p,.hub-game .hub-count,.hub-notes p,.hub-arcade p,
+.game-rules-layout .rules-card p{color:#e1eddf!important}
+.hub-section>p{color:#d6e4d8!important}
+.hub-notes,.world-card{border-left:4px solid #f0c478!important}
+.shot-history-section summary,.game-history summary{color:#f0c478!important}
+/* Cedar: the wood texture is limited to non-playing surfaces.
+   Button lettering remains on the high-contrast moss/cream treatment. */
+body :is(.hub-play,.world-nav a,.game .links a.primary,
+       .table-stage button,.table-stage .kit-primary button,
+       .table-stage .kit-rack-actions button,
+       main button:not(:disabled)){
+ border-radius:11px!important;
+ border:1px solid #a6c59f!important;
+ background-color:#a4cc99;
+ background-image:linear-gradient(180deg,#d4e7c4ec,#a4cc99f5),
+                  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,320px 128px;
+ background-blend-mode:normal,multiply;
+ color:#102923!important;
+ font-family:system-ui,sans-serif!important;
+ font-weight:800!important;
+ text-shadow:none!important;
+ box-shadow:inset 0 1px 0 #ffffff88,0 3px 0 #4a6549,0 6px 14px #07171133;
+ transition:transform .14s ease,filter .14s ease,box-shadow .14s ease;
+}
+body :is(.hub-play,.world-nav a,.game .links a.primary,
+       .table-stage button,main button:not(:disabled)):hover{
+ filter:brightness(1.055);
+ transform:translateY(-1px);
+}
+body :is(.hub-play,.world-nav a,.game .links a.primary,
+       .table-stage button,main button:not(:disabled)):active{
+ transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff66,0 1px 0 #4a6549;
+}
+body :is(main button,.table-stage button)[disabled]{opacity:.55;cursor:not-allowed}
+.table-stage button[aria-pressed="true"],
+main button[aria-pressed="true"]{
+ background:#f0c478!important;color:#102923!important;border-color:#f4eeda!important;
+ box-shadow:inset 0 0 0 2px #10292333;
+}
+.table-stage,.table-stage:fullscreen{
+ border-color:#85ad95!important;
+ background-color:#0c2119!important;
+ color:#f4eeda!important;
+ color-scheme:dark;
+}
+.table-stage .table-kit{
+ background-image:linear-gradient(135deg,#18382cf9,#0c2119f9),
+                  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,320px 128px;
+ background-color:#102923!important;
+ border-color:#85ad95!important;
+}
+.table-stage .kit-more,.table-stage .kit-options,
+.table-stage .kit-status,.table-stage .game-live-stats{color:#f4eeda!important}
+.table-stage :is(select,input:not([type=range]),textarea){
+ background:#17392d;color:#f4eeda;border:1px solid #85ad95;
+ border-radius:8px;min-height:44px;
+}
+.table-stage input[type=range]{accent-color:#f0c478}
+.table-stage canvas{box-shadow:none!important}
+.game-history{color:#f4eeda}
+:where(a,button,select,input,textarea,summary):focus-visible{
+ outline:3px solid #f9c466!important;outline-offset:3px!important;
+}
+@media(prefers-color-scheme:light){
+ :root{--pnw-text:#102923;--pnw-muted:#4c6257;color-scheme:light}
+ body:has(.hub-main),body:has(.world-hero){
+  background-color:#f7f5ec;color:#102923;
+  background-image:linear-gradient(150deg,#f7f5eced,#e6ede7e8),
+                   url('/assets/brand/texture-topography.svg');
+  background-size:auto,420px 280px;
+ }
+ body:has(.hub-main) .hub-section>h2{color:#102923!important}
+ body:has(.hub-main) .hub-section>p{color:#405b4a!important}
+ body:has(.hub-main) .hub-game{
+  background-image:linear-gradient(145deg,#fbfbf6f7,#e6ede7f4),
+                   url('/assets/brand/texture-felt.svg')!important;
+  color:#102923;border-color:#698474!important;
+ }
+ body:has(.hub-main) .hub-game h3{color:#102923!important}
+ body:has(.hub-main) .hub-game p,
+ body:has(.hub-main) .hub-game .hub-count{color:#30493d!important}
+ body:has(.hub-main) .hub-game .hub-highlight{color:#865016!important}
+ body:has(.hub-main) .hub-play{background-color:#14513d;
+  background-image:linear-gradient(180deg,#246b50,#14513d),
+    url('/assets/brand/texture-cedar.svg')!important;
+  border-color:#14513d!important;color:#f7f5ec!important;box-shadow:0 3px 0 #102923}
+ body:has(.world-hero) :is(.world-card,.game){
+  background-image:linear-gradient(145deg,#f7f5ecf7,#e6ede7f7),
+                   url('/assets/brand/texture-felt.svg')!important;
+  color:#102923!important;
+ }
+ body:has(.world-hero) :is(.world-card,.game) h2,
+ body:has(.world-hero) :is(.world-card,.game) h3{color:#102923!important}
+ body:has(.world-hero) :is(.world-card,.game) p{color:#30493d!important}
+ body:has(.world-hero) :is(.world-card,.game) summary{color:#14513d!important}
+}
+@media (prefers-reduced-motion:reduce){
+ body :is(.hub-play,.world-nav a,.game .links a.primary,
+        .table-stage button,main button){transition:none!important;transform:none!important}
+}
+@media (max-width:650px){
+ body{background-attachment:scroll,scroll,scroll}
+ .hub-intro,.world-hero{border-radius:13px}
+ .hub-game,.world-card,.game-history{box-shadow:none}
+ body :is(.hub-play,.world-nav a,main button){min-height:44px}
+}
