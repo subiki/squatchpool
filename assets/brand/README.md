@@ -11,7 +11,7 @@ This folder contains the approved **five-toe** footprint + prominent eight-ball 
 - `texture-felt.svg`, `texture-cedar.svg`, `texture-topography.svg`: small procedural patterns loaded by `src/pnw-theme.css`.
 - `forest-banner.svg`: illustration behind the homepage hero; non-essential to game rendering.
 - `palette.json`, `contrast-matrix.json`: colors and measured token contrast.
-- Existing v2 artboard is superseded by the approved downloadable v3 high-resolution asset kit; do not use the old artboard as a new production graphic.
+- The self-contained `brand-artboard.svg` now shows the v3 mark at fixed aspect ratios (not stretched). The separately generated, approved v3 high-resolution illustration package remains available as a downloadable ZIP.
 
 ## Visual rules
 Pacific Northwest temperate rainforest, subdued. No playing-card spades, sunglasses characters, neon/glossy arcade elements, stretched marks, or UI overlays on playing canvases. Use wood grain on buttons/surrounds, felt on card panels, topographic pattern on background. Keep copy on sufficiently opaque surfaces.
