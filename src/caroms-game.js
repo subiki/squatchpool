@@ -183,9 +183,10 @@ function update(){
   button.disabled=!canAim||!needCall;
   button.setAttribute('aria-pressed',String(state.calledPocket===id));
  }
- $('caroms-power-value').textContent=state.power+'%';
- $('caroms-top-value').textContent=state.spinTop+'%';
- $('caroms-side-value').textContent=state.spinSide+'%';
+ for(const [id,label,value] of [['power','Power',state.power],['top','Draw / follow',state.spinTop],['side','English',state.spinSide]]){
+  const output=$('caroms-'+id+'-value');
+  output.textContent=value+'%';output.setAttribute('aria-label',label+' '+value+' percent');
+ }
 }
 function newGame(){
  if(matchWinner()>=0)return;
