@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
 const template = readFileSync(new URL('../scripts/sw-template.js', import.meta.url), 'utf8');
-const assets = ['/index.html','/but-wait.html','/caroms.html','/cutthroat.html','/rules.html','/archive.html','/src/game.js'];
+const assets = ['/index.html','/but-wait.html','/caroms.html','/cutthroat.html','/press-your-luck.html','/tuna.html','/rules.html','/archive.html','/src/game.js'];
 function workerHarness() {
   const events = new Map();
   const stored = new Map();
@@ -70,11 +70,11 @@ test('cached homepage, rules and games load offline after network fallback',asyn
   const h=workerHarness();
   await h.lifecycle('install');
   h.setOffline(true);
-  for (const path of ['/','/caroms.html','/cutthroat.html','/rules.html','/archive.html']) {
+  for (const path of ['/','/caroms.html','/cutthroat.html','/press-your-luck.html','/tuna.html','/rules.html','/archive.html']) {
     const response=await h.request(path);
     assert.ok(response?.ok,path);
   }
-  assert.equal(h.fetches,5); // Network-first navigation tries online, then uses cached HTML.
+  assert.equal(h.fetches,7); // Network-first navigation tries online, then uses cached HTML.
 });
 
 test('evicted allowlisted assets are repaired online, then served offline',async () => {
@@ -149,4 +149,27 @@ test('offline or failed repair never falsely reports readiness',async () => {
   h.setResponse({ok:false,type:'basic',clone(){return {...this};}});
   assert.equal((await h.offlineStatus('SQUATCH_OFFLINE_REPAIR')).ready,false);
   assert.equal(h.stored.has('/rules.html'),false);
+});
+
+
+test('offline extensionless and trailing-slash routes return the requested page, not Home',async()=>{
+ const h=workerHarness();await h.lifecycle('install');h.setOffline(true);
+ for(const page of ['but-wait','caroms','cutthroat','press-your-luck','tuna','rules','archive','index']){
+  for(const path of ['/'+page,'/'+page+'/' ,'/'+page+'?source=installed']){
+   const response=await h.request(path);
+   assert.equal(response.body,'preloaded /'+page+'.html',path+' must retain its page offline');
+  }
+ }
+ assert.equal((await h.request('/unknown-route')).body,'preloaded /index.html','unknown routes retain Home fallback');
+ assert.equal(await h.request('/api/stats'),undefined);
+});
+
+
+test('online page aliases repair the same canonical HTML cache entry',async()=>{
+ const h=workerHarness();
+ const online=await h.request('/caroms/');assert.equal(online.body,'from network');
+ assert.equal(h.stored.size,1);assert.ok(h.stored.has('/caroms.html'));
+ h.setOffline(true);
+ assert.equal((await h.request('/caroms')).body,'from network');
+ assert.equal((await h.request('/caroms.html')).body,'from network');
 });
