@@ -53,7 +53,7 @@ test('Big Tuna bot shares the cancellable scheduler across rack, reset and oppon
  assert.match(controller,/function rack\(\)\{cancelBot\(\)/);
  assert.match(controller,/function resetMatch\(\)\{cancelBot\(\)/);
  assert.match(controller,/function endShot\(\)\{\s*cancelBot\(\)/);
- assert.match(controller,/\$\('opponent'\)\.onchange=resetMatch/,
+ assert.match(controller,/bind\(\$\('opponent'\),'onchange',resetMatch\)/,
   'switching between bot and local seats resets and cancels the pending turn');
  assert.match(controller,/const targets=tunaTargets\(balls\)/,
   'bot still uses legal Tuna first-contact sequences');
