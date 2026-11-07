@@ -7,8 +7,8 @@ const rack=source.split('function rack(){')[1]?.split('function resetMatch(){')[
 const resetMatch=source.split('function resetMatch(){')[1]?.split('function update(){')[0]||'';
 const update=source.split('function update(){')[1]?.split('function draw(){')[0]||'';
 const shoot=source.includes('function fire(bot=false){')
- ?source.split('function fire(bot=false){')[1]?.split("$('shoot').onclick=()=>fire();")[0]||''
- :source.split("$('shoot').onclick=()=>{")[1]?.split("$('place').onclick=")[0]||'';
+ ?source.split('function fire(bot=false){')[1]?.split("bind($('shoot'),'onclick',()=>fire());")[0]||''
+ :source.split("bind($('shoot'),'onclick',()=>{")[1]?.split("$('place').onclick=")[0]||'';
 const endShot=source.split('function endShot(){')[1]?.split('function frame(')[0]||'';
 
 test('Tuna starts each rack with a calibrated 85% break and neutral spin',()=>{
@@ -37,5 +37,5 @@ test('Tuna protects the current rack and keeps the money-ball shot ledger across
  assert.match(resetMatch,/rackNumber=0/,'new match resets the rack counter');
  assert.match(rack,/rackNumber\+\+/,'next rack advances the counter');
  assert.match(update,/\$\('start'\)\.disabled=shot\.phase!=='done'/,'cannot advance an unfinished rack');
- assert.match(source,/\$\('start'\)\.onclick=\(\)=>\{if\(shot\.phase==='done'\)rack\(\);\}/,'click handler guards unfinished racks');
+ assert.match(source,/bind\(\$\('start'\),'onclick',\(\)=>\{if\(shot\.phase==='done'\)rack\(\);\}\)/,'click handler guards unfinished racks');
 });

@@ -7,6 +7,7 @@ import {pockets} from '../src/table-geometry.js';
 // remain accessible fallbacks, but finger taps must work without opening them.
 test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
  const originals={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
+ let controller;
  const nodes=new Map(),listeners=new Map(),panel={open:false};
  const ctx=new Proxy({}, {get:(obj,key)=>obj[key]??(()=>{}),set:(obj,key,value)=>{obj[key]=value;return true;}});
  function node(id){
@@ -28,7 +29,8 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
  try{
-  await import('../src/tuna-game.js');
+  const {mountTunaGame}=await import('../src/tuna-game.js');
+  controller=mountTunaGame(document);
   for(const size of [7,8,9]){
    node('size').value=String(size);node('reset-match').onclick();
    assert.equal(node('start').disabled,true,'cannot skip an active rack');
@@ -79,6 +81,7 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    assert.equal(node('power').value,'68');
   }
  }finally{
+  controller?.dispose();
   for(const [name,value] of Object.entries(originals)){if(value===undefined)delete globalThis[name];else globalThis[name]=value;}
  }
 });

@@ -7,10 +7,10 @@ import {createCuePlacement} from '../src/shot-lifecycle.js';
 
 const source=readFileSync(new URL('../src/tuna-game.js',import.meta.url),'utf8');
 const rack=source.split('function rack(){')[1]?.split('function resetMatch()')[0]||'';
-const down=source.split("canvas.addEventListener('pointerdown',e=>{")[1]?.split("canvas.addEventListener('pointermove'")[0]||'';
-const move=source.split("canvas.addEventListener('pointermove',e=>{")[1]?.split("canvas.addEventListener('pointerup'")[0]||'';
-const up=source.split("canvas.addEventListener('pointerup',e=>{")[1]?.split("function fire(")[0]||'';
-const fire=source.split('function fire(bot=false){')[1]?.split("$('shoot').onclick=")[0]||'';
+const down=source.split("listen(canvas,'pointerdown',e=>{")[1]?.split("listen(canvas,'pointermove'")[0]||'';
+const move=source.split("listen(canvas,'pointermove',e=>{")[1]?.split("listen(canvas,'pointerup'")[0]||'';
+const up=source.split("listen(canvas,'pointerup',e=>{")[1]?.split("function fire(")[0]||'';
+const fire=source.split('function fire(bot=false){')[1]?.split("bind($('shoot'),'onclick',")[0]||'';
 
 test('Tuna owns break drag by pointer and cancels on restart, shot start and opponent switch',()=>{
  assert.match(rack,/cuePlacement\.cancel\(\)/);
@@ -21,7 +21,7 @@ test('Tuna owns break drag by pointer and cancels on restart, shot start and opp
  assert.match(move,/if\(cuePlacement\.dragging\)return/);
  assert.match(up,/cuePlacement\.pointerUp\(e\.pointerId\)/);
  assert.match(up,/pointercancel',e=>\{cuePlacement\.pointerUp\(e\.pointerId\)/);
- assert.match(source,/\$\('opponent'\)\.onchange=resetMatch/);
+ assert.match(source,/bind\(\$\('opponent'\),'onchange',resetMatch\)/);
  const start=fire.indexOf('if(!shot.startShot(statsShotId))return');
  const cancel=fire.indexOf('cuePlacement.cancel()',start);
  const physics=fire.indexOf('shotSpeed(',cancel);

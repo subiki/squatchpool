@@ -5,7 +5,8 @@ import {TABLE,headStringX} from '../src/physics.js';
 
 // Exercise the real Tuna controller with a minimal DOM, not a copied placement helper.
 test('Tuna starts ready to break and supports kitchen dragging without confirmation on all table sizes',async()=>{
- const originals={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
+ const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
+ let controller;
  const nodes=new Map(),listeners=new Map(),panel={open:false};
  const ctx=new Proxy({}, {get:(obj,key)=>obj[key]??(()=>{}),set:(obj,key,value)=>{obj[key]=value;return true;}});
  function node(id){
@@ -18,20 +19,25 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    getContext(){return ctx;},
    setPointerCapture(){},
    addEventListener(event,fn){listeners.set(id+':'+event,fn);},
+   removeEventListener(event,fn){if(listeners.get(id+':'+event)===fn)listeners.delete(id+':'+event);},
    replaceChildren(...children){this.children=children;},
    prepend(){},
   });
   return nodes.get(id);
  }
  globalThis.document={getElementById:node,querySelector:selector=>selector==='.kit-more'?panel:null,createElement:()=>({textContent:''})};
+ globalThis.window={addEventListener(event,fn){listeners.set('window:'+event,fn);},removeEventListener(event,fn){if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
  globalThis.localStorage={getItem:()=>null,setItem(){}};
- globalThis.requestAnimationFrame=()=>{};
+ let queuedFrame,frames=0,cancellations=0;
+ globalThis.requestAnimationFrame=fn=>{queuedFrame=fn;return ++frames;};
+ globalThis.cancelAnimationFrame=()=>{cancellations++;};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const release=()=>listeners.get('table:pointerup')({pointerId:1});
  try{
-  await import('../src/tuna-game.js');
+  const {mountTunaGame}=await import('../src/tuna-game.js');
+  controller=mountTunaGame(document);
   assert.match(readFileSync(new URL('../tuna.html',import.meta.url),'utf8'),/id="break-reposition"/);
   for(const size of [7,8,9]){
    node('size').value=String(size);
@@ -78,7 +84,29 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    assert.equal(node('power').value,'68','break consumes power and resets controls');
 
   }
+  assert.equal(controller.isRackInProgress,true,'struck rack is exposed to navigation');
+  const staleFrame=queuedFrame,staleShoot=node('shoot').onclick;
+  controller.dispose();controller.dispose();
+  assert.equal(cancellations,1,'dispose is idempotent');
+  assert.equal(listeners.has('table:pointerdown'),false,'input listener is removed');
+  assert.equal(listeners.has('window:beforeunload'),false,'exit guard is removed');
+  assert.equal(listeners.has('window:online'),false,'telemetry listener is removed');
+  assert.equal(node('shoot').onclick,undefined,'button handler is restored');
+  const frameCount=frames,status=node('status').textContent;
+  staleFrame(1000);staleShoot();
+  assert.equal(frames,frameCount,'stale callback cannot restart physics');
+  assert.equal(node('status').textContent,status,'stale button cannot mutate disposed view');
+  controller=mountTunaGame(document);
+  assert.equal(controller.isRackInProgress,false,'remount starts a fresh rack');
+  assert.equal(node('power').value,'85');
+  assert.match(node('money').textContent,/Player 1: \$0/,'fresh match resets money');
+  const first=controller;
+  controller=mountTunaGame(document);
+  assert.equal(cancellations,2,'mount replaces an existing controller on the same root');
+  first.dispose();
+  assert.equal(node('shoot').textContent,'BREAK');
  }finally{
+  controller?.dispose();
   for(const [name,value] of Object.entries(originals)){if(value===undefined)delete globalThis[name];else globalThis[name]=value;}
  }
 });
