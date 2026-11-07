@@ -23,6 +23,19 @@ body:before{pointer-events:none}
 :where(main,.hub-main){position:relative}
 /* The rainforest panorama is decorative: actual text lives in an opaque,
    high-contrast layer, not directly on foliage. */
+.squatch-unified-header{
+ background-image:url('/assets/brand/texture-topography.svg')!important;
+ background-size:420px 280px!important;
+ background-color:var(--brand-bg)!important;
+}
+.squatch-unified-header .squatch-header-nav a:not([aria-current="page"]){
+ background-image:linear-gradient(155deg,#b7d5a611,#17392d11),
+                  url('/assets/brand/texture-felt.svg');
+ background-size:auto,256px 256px;
+ background-color:var(--brand-panel);
+ border-radius:11px;
+ box-shadow:inset 0 1px 0 #f7f5ec16;
+}
 .hub-intro,.world-hero{
  position:relative;isolation:isolate;overflow:hidden;
  background-image:linear-gradient(105deg,#0c2119f7 0%,#12392fe9 52%,#102b20cc 100%),
@@ -63,7 +76,7 @@ body:before{pointer-events:none}
 .shot-history-section summary,.game-history summary{color:#f0c478!important}
 /* Cedar: the wood texture is limited to non-playing surfaces.
    Button lettering remains on the high-contrast moss/cream treatment. */
-:where(.hub-play,.world-nav a,.game .links a.primary,
+body :is(.hub-play,.world-nav a,.game .links a.primary,
        .table-stage button,.table-stage .kit-primary button,
        .table-stage .kit-rack-actions button,
        main button:not(:disabled)){
@@ -81,16 +94,16 @@ body:before{pointer-events:none}
  box-shadow:inset 0 1px 0 #ffffff88,0 3px 0 #4a6549,0 6px 14px #07171133;
  transition:transform .14s ease,filter .14s ease,box-shadow .14s ease;
 }
-:where(.hub-play,.world-nav a,.game .links a.primary,
+body :is(.hub-play,.world-nav a,.game .links a.primary,
        .table-stage button,main button:not(:disabled)):hover{
  filter:brightness(1.055);
  transform:translateY(-1px);
 }
-:where(.hub-play,.world-nav a,.game .links a.primary,
+body :is(.hub-play,.world-nav a,.game .links a.primary,
        .table-stage button,main button:not(:disabled)):active{
  transform:translateY(2px);box-shadow:inset 0 1px 0 #ffffff66,0 1px 0 #4a6549;
 }
-:where(main button,.table-stage button)[disabled]{opacity:.55;cursor:not-allowed}
+body :is(main button,.table-stage button)[disabled]{opacity:.55;cursor:not-allowed}
 .table-stage button[aria-pressed="true"],
 main button[aria-pressed="true"]{
  background:#f0c478!important;color:#102923!important;border-color:#f4eeda!important;
@@ -155,12 +168,12 @@ main button[aria-pressed="true"]{
  body:has(.world-hero) :is(.world-card,.game) summary{color:#14513d!important}
 }
 @media (prefers-reduced-motion:reduce){
- :where(.hub-play,.world-nav a,.game .links a.primary,
+ body :is(.hub-play,.world-nav a,.game .links a.primary,
         .table-stage button,main button){transition:none!important;transform:none!important}
 }
 @media (max-width:650px){
  body{background-attachment:scroll,scroll,scroll}
  .hub-intro,.world-hero{border-radius:13px}
  .hub-game,.world-card,.game-history{box-shadow:none}
- :where(.hub-play,.world-nav a,main button){min-height:44px}
+ body :is(.hub-play,.world-nav a,main button){min-height:44px}
 }
