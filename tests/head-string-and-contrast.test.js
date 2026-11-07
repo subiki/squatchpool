@@ -90,7 +90,7 @@ test('all nine routes preserve PNW artwork and dark, readable content surfaces',
  }
  for(const selector of ['body .intro','body .game-stats','body .scoreboard .player.active',
    'body .table-size-pick[aria-pressed="false"]','body .table-stage:fullscreen',
-   'body .game-rules-layout','body .table-stage .table-kit','squatch-header']){
+   '.game-rules-layout .rules-card','body .table-stage .table-kit','squatch-header']){
   assert.ok(css.includes(selector),selector+' has an intentional contrast treatment');
  }
  assert.match(css,/--pnw-night:#0c2119/);
