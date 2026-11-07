@@ -29,6 +29,9 @@ export function planBotShot({balls,targets,pockets,radius,breakShot=false,table}
    ghost.y<2*radius||ghost.y>table.height-2*radius))continue;
   if(!clearSegment(cue,ghost,balls,[0,ball.id],radius)||
      !clearSegment(ball,pocket,balls,[0,ball.id],radius))continue;
+  // The cue must approach the ghost from behind the object ball. A line
+  // crossing the object before reaching the ghost cannot pot it backwards.
+  if((ghost.x-cue.x)*dx+(ghost.y-cue.y)*dy<=0)continue;
   const approach=Math.hypot(ghost.x-cue.x,ghost.y-cue.y);
   if(approach<2*radius)continue;
   candidates.push({ballId:ball.id,pocketId:pocket.id,
