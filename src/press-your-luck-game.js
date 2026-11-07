@@ -81,6 +81,7 @@ cleanups.push(shot.subscribe(result=>{
 function message(s){$('status').textContent=s;}
 function rack(){
  cancelBot();cuePlacement.cancel();
+ match={...match,bonus:[0,0]}; // Provisional points belong only to the abandoned rack.
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];shot.startRack();angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
@@ -277,7 +278,7 @@ bind($('next'),'onclick',rack);bind($('start'),'onclick',begin);
 bind($('opponent'),'onchange',()=>{cancelBot();cuePlacement.cancel();update();});
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 bind($('invert-aim'),'onchange',()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}});
-bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}rack();});
+bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}if(match.finished)begin();else rack();});
 const controller={
  get isRackInProgress(){return shot.isRackInProgress;},
  dispose(){
