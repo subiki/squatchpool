@@ -12,7 +12,7 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
   'cut-place','cut-reposition','cut-shoot','cut-group','cut-group-select','cut-group-confirm',
   'cut-claim','cut-claim-select','cut-claim-confirm','cut-power','cut-top','cut-side'])
   assert.match(html,new RegExp('id="'+id+'"'));
- assert.match(html,/import\('\.\/src\/cutthroat-game\.js'\)\.catch/,
+ assert.match(html,/import\('\.\/src\/cutthroat-entry\.js'\)\.catch/,
   'Cutthroat uses a guarded dynamic module import so startup errors are visible');
  assert.match(html,/Cutthroat could not start:/,
   'startup failures must explain why the table did not load');
@@ -32,7 +32,7 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
 
 test('Cutthroat keeps the core shot kit and required decisions attached to the fullscreen table',()=>{
  assert.match(html,/id="table-stage"/);
- assert.match(html,/src\/table-kit\.js/);
+ assert.match(html,/src\/cutthroat-entry\.js/);
  assert.match(html,/id="cut-options"/);
  assert.match(html,/<div class="kit-primary">[\s\S]*?id="cut-power"[\s\S]*?id="cut-shoot"[\s\S]*?id="invert-aim"[\s\S]*?id="kit-fullscreen"/);
  assert.doesNotMatch(html,/#cut-shoot\{position:fixed/,'shoot must not float over the felt on phones');
@@ -134,6 +134,6 @@ test('Cutthroat offers all legal solo/local seat counts and a physical, cancella
  assert.match(controller,/resolveCutthroatClaim\(game\.match,id\)/);
  assert.match(controller,/createBotTurnScheduler\(\)/);
  assert.match(controller,/function cancelBot\(\)\{botTurns\.cancel\(\)/);
- assert.match(controller,/\$\('cut-players'\)\.addEventListener\('change',newGame\)/);
+ assert.match(controller,/listen\(\$\('cut-players'\),'change',newGame\)/);
  assert.doesNotMatch(controller,/\.click\(\)/,'bot must not impersonate a human clicking UI buttons');
 });

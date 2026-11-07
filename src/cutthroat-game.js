@@ -10,12 +10,34 @@ import {attachShotAnnouncer} from './shot-announcer.js';
 import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {adjudicateCutthroatShot} from './cutthroat-shot-adapter.js';
-import {initCutthroatStats,newCutthroatStatsId,reportCutthroatRack,reportCutthroatBalls} from './cutthroat-stats.js';
+import {createGameTelemetry,newGameStatsId as newCutthroatStatsId} from './game-telemetry.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
-const $=id=>document.getElementById(id);
+import {mountTableKit} from './table-kit-controls.js';
+const mountedGames=new WeakMap();
+export function mountCutthroatGame(root=globalThis.document){
+ mountedGames.get(root)?.dispose();
+ const document=root.ownerDocument||root,cleanups=[];
+ let disposed=false,frameId=null;
+ const requestAnimationFrame=callback=>{
+  if(!disposed)frameId=globalThis.requestAnimationFrame(time=>{if(!disposed)callback(time);});
+ };
+ function listen(node,event,callback){
+  const handler=(...args)=>{if(!disposed)callback(...args);};
+  node?.addEventListener(event,handler);
+  cleanups.push(()=>node?.removeEventListener?.(event,handler));
+ }
+ const $=id=>root.getElementById?.(id)||root.querySelector('#'+id);
+ cleanups.push(mountTableKit(root));
+ let telemetry;
+ cleanups.push(()=>telemetry?.dispose());
+ const reportCutthroatRack=id=>telemetry?.rack(id);
+ const reportCutthroatBalls=(rack,id,count)=>telemetry?.balls(rack,id,count);
+
+
 const canvas=$('cut-table'),ctx=canvas.getContext('2d');
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 const invertAim=bindInvertAim($('invert-aim'));
+cleanups.push(()=>invertAim.dispose());
 const botSeat=seat=>seat>=Number($('cut-players')?.value||3);
 const seatName=seat=>botSeat(seat)?'Squatch Bot '+(seat+1):'Player '+(seat+1);
 const ranges=['1–5','6–10','11–15'];
@@ -28,14 +50,14 @@ function say(message){
  while($('cut-log').children.length>15)$('cut-log').lastElementChild.remove();
 }
 const session=createGameSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
-attachMatchExitGuard(session);
+cleanups.push(attachMatchExitGuard(session));
 // Mount only on real DOM stages; minimal controller test doubles omit ownerDocument.
 const announcerStage=$('table-stage');
-if(announcerStage?.ownerDocument)attachShotAnnouncer(session,announcerStage);
-session.subscribe(result=>{
+if(announcerStage?.ownerDocument)cleanups.push(attachShotAnnouncer(session,announcerStage));
+cleanups.push(session.subscribe(result=>{
  if(result.pocketed.length)reportCutthroatBalls(game.statsRackId,result.shotId,result.pocketed.length);
  say(result.announcement);
-});
+}));
 function newGame(){
  cancelBot();
  session.startRack();
@@ -165,23 +187,23 @@ function aim(p){
  const angle=angleFromPointer(cue(),p,invertAim(),TABLE.radius);
  if(angle!==null)game.angle=angle;
 }
-canvas.addEventListener('pointerdown',e=>{
+listen(canvas,'pointerdown',e=>{
  if(botSeat(game.match.turn))return;
  if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));
  else if(game.phase==='aim')aim(point(e));
  else return;
  dragging=true;canvas.setPointerCapture(e.pointerId);
 });
-canvas.addEventListener('pointermove',e=>{
+listen(canvas,'pointermove',e=>{
  if(!dragging||botSeat(game.match.turn))return;
  if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));
  else if(game.phase==='aim')aim(point(e));
 });
-canvas.addEventListener('pointerup',e=>{
+listen(canvas,'pointerup',e=>{
  if(!botSeat(game.match.turn)&&dragging&&game.phase==='aim')aim(point(e));
  dragging=false;
 });
-canvas.addEventListener('pointercancel',()=>dragging=false);
+listen(canvas,'pointercancel',()=>dragging=false);
 function confirmPlacement(fromBot=false){
  if(!game.placementValid||!['placeBreak','placeCue'].includes(game.phase)||
     (botSeat(game.match.turn)&&!fromBot))return;
@@ -251,23 +273,23 @@ function scheduleBot(){
   shoot(true);
  },650);
 }
-$('cut-place').addEventListener('click',()=>confirmPlacement());
-$('cut-shoot').addEventListener('click',()=>shoot());
-$('cut-reposition').addEventListener('click',()=>{
+listen($('cut-place'),'click',()=>confirmPlacement());
+listen($('cut-shoot'),'click',()=>shoot());
+listen($('cut-reposition'),'click',()=>{
  if(game.phase!=='aim'||!session.breakShot||botSeat(game.match.turn))return;
  game.phase='placeBreak';game.placementValid=false;update();
 });
-$('cut-new').addEventListener('click',newGame);
-$('cut-size').addEventListener('change',newGame);
-$('cut-players').addEventListener('change',newGame);
-$('cut-group-confirm').addEventListener('click',()=>chooseGroup(Number($('cut-group-select').value)));
-$('cut-claim-confirm').addEventListener('click',()=>{
+listen($('cut-new'),'click',newGame);
+listen($('cut-size'),'change',newGame);
+listen($('cut-players'),'change',newGame);
+listen($('cut-group-confirm'),'click',()=>chooseGroup(Number($('cut-group-select').value)));
+listen($('cut-claim-confirm'),'click',()=>{
  const id=$('cut-claim-select').value;
  resolveClaim(id?Number(id):null);
 });
 for(const [id,key] of [['cut-power','power'],['cut-top','top'],['cut-side','side']])
- $(id).addEventListener('input',e=>{game[key]=Number(e.target.value);update();});
-window.addEventListener('keydown',e=>{
+ listen($(id),'input',e=>{game[key]=Number(e.target.value);update();});
+listen(window,'keydown',e=>{
  const tag=e.target?.tagName?.toLowerCase();
  if(!game||game.phase!=='aim'||botSeat(game.match.turn)||e.target?.isContentEditable||
   (tag&&!['body','html','canvas'].includes(tag))||e.altKey||e.ctrlKey||e.metaKey)return;
@@ -287,9 +309,22 @@ try {
  if(status)status.textContent='Cutthroat table could not initialize: '+(error?.message||String(error));
 }
 try {
- initCutthroatStats();
+ telemetry=createGameTelemetry('cutthroat',{root});
 } catch (error) {
  console.error('Cutthroat statistics startup failed', error);
  const status=$('cut-stats-status');
  if(status)status.textContent='Statistics failed to initialize; gameplay remains available.';
+}
+const controller={
+ get isRackInProgress(){return session.isRackInProgress;},
+ dispose(){
+  if(disposed)return;
+  disposed=true;cancelBot();dragging=false;
+  globalThis.cancelAnimationFrame?.(frameId);
+  for(const cleanup of cleanups.splice(0).reverse())cleanup();
+  if(mountedGames.get(root)===controller)mountedGames.delete(root);
+ },
+};
+mountedGames.set(root,controller);
+return controller;
 }
