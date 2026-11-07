@@ -262,3 +262,377 @@ squatch-header{
  body .table-stage .kit-primary :is(button,select){min-height:44px}
  body .hub-game,body .world-card{box-shadow:none}
 }
+
+
+/* -----------------------------------------------------------------------
+   PNW surface system v3.3 — canonical site-wide sizing + dimensionality
+   The page-specific style tags load AFTER this persistent stylesheet on
+   soft navigation. Intentional !important overrides prevent inherited
+   route-level selectors from mutating our single shared header or scenery.
+   Only visual DOM surfaces: never change pool canvas, pocket or aim geometry.
+   ----------------------------------------------------------------------- */
+:root{
+ --squatch-topo:url('/assets/brand/texture-topography.svg');
+ --squatch-felt:url('/assets/brand/texture-felt.svg');
+ --squatch-cedar:url('/assets/brand/texture-cedar.svg');
+ --squatch-panel-surface:
+   radial-gradient(ellipse at 13% -15%,#84ac7c28,transparent 63%),
+   var(--squatch-topo),
+   linear-gradient(148deg,#274b3b 0%,#193c2e 52%,#102921 100%),
+   var(--squatch-felt);
+ --squatch-panel-shadow:
+   inset 0 1px 0 #f4eeda33,inset 0 -6px 17px #03150b40,
+   0 8px 22px #04150c66;
+ --squatch-panel-border:#85ad95;
+}
+/* The *visible* topography is always the upper artwork layer rather
+   than hidden beneath a 90%-opaque green gradient. Covers home, games,
+   arcade, rules, and archive, including after soft navigation. */
+html{background-color:#0c2119!important}
+body{
+ background-color:#0c2119!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 10% 6%,#35644a6b,transparent 46%),
+  linear-gradient(135deg,#102b21 0%,#15382b 46%,#0c2119 100%),
+  var(--squatch-felt)!important;
+ background-size:420px 280px,auto,auto,256px 256px!important;
+ background-position:center top,center,center,left top!important;
+ background-repeat:repeat,no-repeat,no-repeat,repeat!important;
+ background-attachment:fixed,fixed,fixed,fixed!important;
+ color:#f4eeda!important;
+}
+body > main{
+ background-color:#102923!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 94% 0%,#376b4b55,transparent 52%),
+  linear-gradient(125deg,#112e23f2,#1a4030f4 54%,#10271ff7),
+  var(--squatch-felt)!important;
+ background-size:420px 280px,auto,auto,256px 256px!important;
+ background-repeat:repeat,no-repeat,no-repeat,repeat!important;
+ background-position:center top,center,center,left top!important;
+ box-shadow:inset 1px 0 0 #a4cc991c,inset -1px 0 0 #a4cc991c!important;
+}
+@media(max-width:650px){
+ body{background-attachment:scroll,scroll,scroll,scroll!important}
+}
+/* A single font scale and column structure regardless of each page's
+   inline header/nav rules, font defaults, or route-specific CSS order. */
+squatch-header{
+ display:block!important;width:100%!important;min-width:0!important;
+ font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+ font-size:16px!important;line-height:1.4!important;
+ box-sizing:border-box!important;color-scheme:dark;
+}
+squatch-header, squatch-header *{box-sizing:border-box}
+squatch-header .squatch-unified-header{
+ width:100%!important;max-width:1120px!important;margin:0 auto!important;
+ padding:16px 18px!important;
+ display:flex!important;flex-direction:column!important;
+ align-items:stretch!important;gap:12px!important;
+ background-color:#102923!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 75% -35%,#47785a66,transparent 66%),
+  linear-gradient(130deg,#102d22,#15382a 58%,#0c2119),
+  var(--squatch-felt)!important;
+ background-size:420px 280px,auto,auto,256px 256px!important;
+ background-repeat:repeat,no-repeat,no-repeat,repeat!important;
+ background-position:center top,center,center,left top!important;
+ border-bottom:1px solid #85ad95!important;
+ box-shadow:inset 0 1px 0 #e1eddf24,0 5px 18px #061b1255!important;
+ color:#f4eeda!important;
+}
+squatch-header .squatch-brand-row{display:flex!important;gap:14px!important;align-items:center!important;flex-wrap:nowrap!important}
+squatch-header .squatch-brand-row .brand-mark{
+ flex:0 0 62px!important;width:62px!important;height:62px!important
+}
+squatch-header .squatch-brand-row h1{
+ font-size:clamp(1.65rem,3vw,2.3rem)!important;
+ line-height:1.08!important;margin:0!important;
+}
+squatch-header .squatch-brand-row .eyebrow{
+ margin:0 0 4px!important;font-size:.72rem!important;
+ line-height:1.35!important;
+}
+squatch-header .squatch-release{
+ display:flex!important;flex-wrap:wrap!important;gap:6px 12px!important;
+ margin:0!important;align-items:center!important;
+}
+/* Fixed tracks, fixed nav height. No individual label length may change
+   any button's footprint, and active states never change sizing. */
+squatch-header .squatch-header-nav{
+ display:grid!important;
+ grid-template-columns:repeat(6,minmax(0,1fr))!important;
+ gap:9px!important;align-items:stretch!important;
+ padding:0!important;margin:0!important;width:100%!important;
+ overflow:visible!important;box-sizing:border-box!important;
+}
+squatch-header .squatch-header-nav a{
+ box-sizing:border-box!important;display:flex!important;
+ align-items:center!important;justify-content:center!important;
+ width:100%!important;height:56px!important;min-height:56px!important;
+ min-width:0!important;max-width:none!important;
+ padding:7px 7px!important;margin:0!important;
+ flex:initial!important;
+ border:1px solid #85ad95!important;border-radius:11px!important;
+ font-size:.875rem!important;line-height:1.15!important;
+ font-weight:800!important;letter-spacing:0!important;
+ white-space:nowrap!important;overflow:visible!important;text-align:center!important;
+ text-decoration:none!important;transform:none!important;
+ color:#f0c478!important;
+ background-color:#153a2c!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 30% 0%,#91bd8b29,transparent 80%),
+  linear-gradient(155deg,#244b3a,#133126 80%,#0c241c),
+  var(--squatch-cedar)!important;
+ background-size:420px 280px,auto,auto,320px 128px!important;
+ box-shadow:inset 0 1px 0 #f4eeda35,inset 0 -5px 10px #061c1455,
+             0 3px 7px #04150c70!important;
+ transition:border-color .16s ease,filter .16s ease,box-shadow .16s ease!important;
+}
+squatch-header .squatch-header-nav a:hover{
+ color:#ffe6ae!important;filter:brightness(1.12)!important;
+ background-color:#1d4534!important;transform:none!important;
+ border-color:#d7b678!important;
+}
+squatch-header .squatch-header-nav a[aria-current="page"]{
+ color:#102923!important;filter:none!important;
+ background-color:#a4cc99!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 25% 5%,#f5ffed5c,transparent 76%),
+  linear-gradient(160deg,#cce2b7,#a4cc99 62%,#91b98c),
+  var(--squatch-cedar)!important;
+ border:2px solid #e1edce!important;
+ box-shadow:inset 0 1px 0 #ffffffad,inset 0 -5px 10px #4c6f4561,
+            0 3px 8px #04150c77!important;
+}
+squatch-header .squatch-header-nav a:focus-visible{
+ outline:3px solid #f9c466!important;outline-offset:3px!important;
+}
+@media(max-width:1099px){
+ squatch-header .squatch-header-nav{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:859px){
+ squatch-header .squatch-header-nav{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:679px){
+ squatch-header .squatch-header-nav{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ }
+}
+@media(max-width:520px){
+ squatch-header .squatch-unified-header{padding:12px!important}
+ squatch-header .squatch-brand-row .brand-mark{
+  flex-basis:46px!important;width:46px!important;height:46px!important
+ }
+ squatch-header .squatch-header-nav{
+  display:grid!important;grid-auto-flow:column!important;
+  grid-auto-columns:156px!important;grid-template-columns:none!important;
+  overflow-x:auto!important;overscroll-behavior-x:contain!important;
+  padding:3px 3px 9px!important;scrollbar-width:thin!important;
+ }
+ squatch-header .squatch-header-nav a{
+  width:156px!important;height:54px!important;min-height:54px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ squatch-header .squatch-header-nav a{transition:none!important}
+}
+/* Stats and site metadata should never revert to bare flat blocks. */
+squatch-header .squatch-header-stats{
+ box-sizing:border-box!important;
+ width:100%!important;min-height:58px!important;
+ margin:0!important;padding:8px 14px!important;
+ border:1px solid #85ad95!important;border-radius:14px!important;
+ background-color:#193e2e!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 10% 0%,#5d886340,transparent 70%),
+  linear-gradient(145deg,#244839,#173b2c 64%,#102923),
+  var(--squatch-felt)!important;
+ background-size:420px 280px,auto,auto,256px 256px!important;
+ background-repeat:repeat,no-repeat,no-repeat,repeat!important;
+ box-shadow:inset 0 1px 0 #ffffff30,inset 0 -6px 13px #061c125c,
+            0 5px 14px #051b124c!important;
+}
+squatch-header .squatch-header-stats summary{
+ display:flex!important;align-items:center!important;
+ min-height:40px!important;padding:7px 3px!important;
+ margin:0!important;font-size:1.02rem!important;
+ line-height:1.35!important;color:#f0c478!important;
+}
+squatch-header .squatch-header-stats summary::before{
+ content:"▶";font-size:.78em;display:inline-block;flex:0 0 auto;
+ margin-right:10px;color:#f0c478;
+}
+squatch-header .squatch-header-stats[open] summary::before{content:"▼"}
+/* Raised, textured evergreen surfaces across EVERY page. Opaque base
+   guarantees ivory copy remains readable above the background artwork. */
+body :is(
+ .hub-game,.hub-notes,.hub-arcade,.world-card,
+ .intro,.hub-intro,.world-hero,.game,.match,.notice,.quickstart,
+ .rules-card,.game-history,.shot-history-section,
+ .arcade-heading,.arcade-accounts,.arcade-stat,.arcade-pot,
+ .arcade-entry,.arcade-status,.arcade-instructions,
+ .surprise-panel,.control-panel,.result,
+ .press-score-player,.press-score-metrics>div,
+ .game-hud,.game-live-stats,.kit-status,.caroms-status-bar,
+ .table-kit,.kit-more,.kit-options
+){
+ background-color:#18382c!important;
+ background-image:var(--squatch-panel-surface)!important;
+ background-size:auto,420px 280px,auto,256px 256px!important;
+ background-repeat:no-repeat,repeat,no-repeat,repeat!important;
+ background-position:center,center,center,center!important;
+ border-color:#85ad95!important;
+ box-shadow:var(--squatch-panel-shadow)!important;
+}
+body :is(.intro,.hub-intro,.world-hero){
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 20% 0%,#43735342,transparent 72%),
+  linear-gradient(108deg,#102923ed,#1d4031dc),
+  url('/assets/brand/forest-banner.svg')!important;
+ background-size:420px 280px,auto,auto,cover!important;
+ background-repeat:repeat,no-repeat,no-repeat,no-repeat!important;
+ background-position:center top,center,center,center!important;
+ box-shadow:inset 0 1px 0 #ffffff2b,inset 0 -14px 24px #03170d44,
+             0 15px 31px #06170e75!important;
+}
+/* Text stays light on textured dark surfaces; no flat opaque layer
+   or pseudo-element should sit above copy or block clicks. */
+body :is(.hub-game,.world-card,.rules-card,.quickstart,
+ .arcade-entry,.arcade-heading,.arcade-stat,
+ .game-hud,.game-live-stats,.table-kit,.press-score-player,
+ .game-history,.notice) :is(p,li,small,span,dt,dd,label){
+ color:#e1eddf!important;
+}
+body :is(.hub-game,.world-card,.rules-card,.quickstart,
+ .arcade-entry,.arcade-heading,.arcade-stat,
+ .game-hud,.game-live-stats,.table-kit,.press-score-player,
+ .game-history,.notice) :is(h2,h3,h4,strong,summary){
+ color:#f4eeda!important;
+}
+/* Story pages use bare sections; bring them into the same visual system. */
+body:has(.world-hero) main>section:not(.world-hero){
+ background-color:#18382c!important;
+ background-image:var(--squatch-panel-surface)!important;
+ background-size:auto,420px 280px,auto,256px 256px!important;
+ border:1px solid #85ad95!important;border-radius:14px!important;
+ box-shadow:var(--squatch-panel-shadow)!important;
+}
+/* Panels nested within the table: dim the grain but keep depth.
+   The actual canvas, cushions, balls, and touch targets are untouched. */
+body .table-stage :is(.game-hud,.game-live-stats,.table-kit,
+ .kit-status,.caroms-hud,.caroms-status-bar,.kit-more,.kit-options){
+ background-color:#18382c!important;
+ background-image:
+  var(--squatch-topo),
+  linear-gradient(140deg,#1e4334,#102923 80%),
+  var(--squatch-felt)!important;
+ background-size:420px 280px,auto,256px 256px!important;
+ box-shadow:inset 0 1px 0 #f4eeda26,inset 0 -5px 10px #04180d44!important;
+ color:#f4eeda!important;
+}
+body .table-stage .press-score-player[data-active="true"]{
+ background-image:
+  var(--squatch-topo),
+  linear-gradient(140deg,#315841,#17382b 88%)!important;
+ border:2px solid #f0c478!important;
+}
+body .table-stage .press-score-metrics>div{
+ background-image:
+  var(--squatch-topo),
+  linear-gradient(160deg,#214a37,#102c22)!important;
+ box-shadow:inset 0 1px 0 #ffffff1f,inset 0 -3px 8px #0718115e!important;
+}
+body .table-stage :is(.game-hud,.game-live-stats,.table-kit) :is(b,strong,dt,dd,label){
+ text-shadow:0 1px 0 #00000055;
+}
+/* Individual buttons and selectors have tactile shading, cedar grain,
+   and readable contrasting labels. These do not resize active controls. */
+body main :is(button:not(.pocket-pick),.hub-play,.world-nav a,.links a.primary){
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 28% 0%,#ffffff46,transparent 75%),
+  linear-gradient(180deg,#dceccf,#a4cc99 65%,#92b787),
+  var(--squatch-cedar)!important;
+ background-size:420px 280px,auto,auto,320px 128px!important;
+ background-repeat:repeat,no-repeat,no-repeat,repeat!important;
+ color:#102923!important;
+ border:2px solid #c8debb!important;
+ box-shadow:inset 0 1px 0 #ffffff90,inset 0 -4px 8px #42674448,
+            0 3px 0 #4a6549,0 7px 15px #07171166!important;
+ text-shadow:none!important;
+}
+body main :is(button:not(.pocket-pick),.hub-play,.world-nav a,.links a.primary)
+ :is(span,strong,small){color:#102923!important}
+body main :is(button:not(.pocket-pick),.hub-play,.world-nav a,.links a.primary)[aria-pressed="true"],
+body main .table-size-pick.selected{
+ background-color:#f0c478!important;
+ background-image:
+  var(--squatch-topo),
+  linear-gradient(180deg,#ffe2a3,#f0c478 62%,#d8aa58),
+  var(--squatch-cedar)!important;
+ background-size:420px 280px,auto,320px 128px!important;
+ border-color:#ffe0a4!important;
+ color:#102923!important;
+}
+body main button:disabled{
+ background-image:linear-gradient(180deg,#c3d0bd,#a7bba9)!important;
+ border-color:#859f88!important;box-shadow:none!important;
+ color:#1b342a!important;opacity:.82!important;
+}
+/* Don't texture/resize the actual playing surface, cue, or pocket targets.
+   Native-select menu readability wins over decorative fills. */
+body .table-stage :is(input:not([type=range]),select,textarea){
+ background-color:#f7f5ec!important;
+ color:#102923!important;
+ box-shadow:inset 0 2px 4px #10292323!important;
+}
+
+/* The remaining route-level surfaces that legacy sheets previously painted
+   as bare solid green: setup rows, player cards and arcade controls. */
+body main :is(.controls,.player,.arcade-choice,.arcade-two,
+ .game-rules-layout,.table-size-buttons,.below,
+ .call-panel,.spin-panel,.arcade-reset){
+ background-color:#18382c!important;
+ background-image:var(--squatch-panel-surface)!important;
+ background-size:auto,420px 280px,auto,256px 256px!important;
+ border-color:#85ad95!important;
+ box-shadow:inset 0 1px 0 #f4eeda2b,inset 0 -5px 11px #04150d48,
+            0 5px 14px #051b1245!important;
+}
+body main :is(.controls,.game-rules-layout,.table-size-buttons,.below){
+ border-radius:14px;
+}
+body main .player.active{
+ border:2px solid #f0c478!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 18% 0%,#63875e35,transparent 66%),
+  linear-gradient(145deg,#31583e,#1c3c2e)!important;
+ box-shadow:inset 0 1px 0 #f4eeda2b,inset 0 -4px 10px #0c21196b!important;
+}
+squatch-header .squatch-brand-row .brand-mark{
+ background-color:#14513d!important;
+ background-image:var(--squatch-topo),linear-gradient(145deg,#1f6449,#0e3226)!important;
+ background-size:420px 280px,auto!important;
+ border:1px solid #85ad95!important;
+ box-shadow:inset 0 1px 0 #ffffff42,inset 0 -5px 10px #03170c55,
+            0 4px 11px #051b1255!important;
+}
+body main :is(select,input:not([type=range]),textarea){
+ background-image:linear-gradient(180deg,#fffef6,#e6ede7)!important;
+ background-color:#f7f5ec!important;
+ color:#102923!important;
+ box-shadow:inset 0 2px 4px #10292322!important;
+}
