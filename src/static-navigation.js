@@ -1,15 +1,17 @@
 import {mountGameHub} from './game-hub.js';
 // Only views with a proven mount/dispose lifecycle share this document.
-const PRESS='/press-your-luck';
+const PRESS='/press-your-luck',TUNA='/tuna';
 const route=url=>{
  const path=url.pathname.replace(/\/+$/,'').replace(/\.html$/,'');
  return !path||path==='/index'?'/':path;
 };
-const supported=url=>['/','/rules','/archive',PRESS].includes(route(url));
+const supported=url=>['/','/rules','/archive',PRESS,TUNA].includes(route(url));
 
-export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js')}={}){
+export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js'),loadTuna=()=>import('./tuna-game.js')}={}){
  if(!win?.document)return ()=>{};
  const doc=win.document;
+ const loadGame=async url=>route(url)===PRESS?(await loadPress()).mountPressGame:
+  route(url)===TUNA?(await loadTuna()).mountTunaGame:null;
  let current=new URL(win.location.href),entry=0,currentEntry=0,currentIndex=0,pending=0,reverting=false;
  if(!supported(current))return ()=>{};
  let view=initialView||{dispose:route(current)==='/'?mountGameHub(doc):()=>{}};
@@ -49,7 +51,7 @@ export function attachStaticNavigation(win=globalThis.window,{initialView,loadPr
      const style=doc.createElement('style');style.setAttribute('data-page-style','');
      style.textContent=await sheets.get(href.href);return style;
     }));
-    const press=route(url)===PRESS?await loadPress():null;
+    const mountGame=await loadGame(url);
     if(ticket!==pending)return;
     const oldMain=doc.querySelector('main');
     oldMain.querySelectorAll('audio,video').forEach(media=>media.pause());
@@ -62,11 +64,11 @@ export function attachStaticNavigation(win=globalThis.window,{initialView,loadPr
     const footer=next.querySelector('body > footer');
     if(footer)mounted.after(doc.importNode(footer,true));
     doc.title=next.title;
-    view=press?press.mountPressGame(mounted):{dispose:route(url)==='/'?mountGameHub(doc):()=>{}};
+    view=mountGame?mountGame(mounted):{dispose:route(url)==='/'?mountGameHub(doc):()=>{}};
    }else if(!view){
-    const press=route(url)===PRESS?await loadPress():null;
+    const mountGame=await loadGame(url);
     if(ticket!==pending)return;
-    view=press?press.mountPressGame(doc.querySelector('main')):{dispose:route(url)==='/'?mountGameHub(doc):()=>{}};
+    view=mountGame?mountGame(doc.querySelector('main')):{dispose:route(url)==='/'?mountGameHub(doc):()=>{}};
    }
    if(pop){currentEntry=id??++entry;currentIndex=index??id??currentIndex;}
    else{
@@ -128,5 +130,5 @@ export function attachStaticNavigation(win=globalThis.window,{initialView,loadPr
  };
 }
 
-// Direct Press pages seed the shell from their standalone controller entry.
-if(globalThis.window?.location?.href&&route(new URL(window.location.href))!==PRESS)attachStaticNavigation();
+// Direct game pages seed the shell from their standalone controller entry.
+if(globalThis.window?.location?.href&&![PRESS,TUNA].includes(route(new URL(window.location.href))))attachStaticNavigation();
