@@ -60,7 +60,7 @@ function log(message){
  while(list.children.length>12)list.lastElementChild.remove();
 }
 function newGame(){
- clearTimeout(botTimer);
+ cancelPointer();clearTimeout(botTimer);
  session.startRack();
  setTableSize(selectedTableSize);
  for(const button of root.querySelectorAll('.table-size-pick')){
@@ -293,6 +293,7 @@ function hit(direction=state.angle,power=state.power){
  const b=cue();if(!b||b.pocketed)return;
  const statsShotId=newStatsId();
  if(!session.startShot(statsShotId))return;
+ cancelPointer();
  const speed=shotSpeed(power,state.isBreak);
  b.vx=Math.cos(direction)*speed;b.vy=Math.sin(direction)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
@@ -459,7 +460,8 @@ function frame(timestamp){
  if(state)render();requestAnimationFrame(frame);
 }
 function eventPoint(e){return tablePoint(canvas,e);}
-let dragging=false,draggingBreak=false,breakPositionValid=false;
+let dragging=false,draggingBreak=false,breakPositionValid=false,activePointer=null;
+function cancelPointer(){dragging=false;draggingBreak=false;breakPositionValid=false;activePointer=null;}
 // Hit targets are sized in CSS pixels so touch taps remain usable on phones.
 function closestCallBall(point){
  const box=canvas.getBoundingClientRect();
@@ -474,13 +476,15 @@ function closestCallPocket(point){
   .filter(x=>x.dist<=snapRadius).sort((a,b)=>a.dist-b.dist)[0]?.p??null;
 }
 listen(canvas,'pointerdown',e=>{
- if(!state)return;
+ if(!state||activePointer!==null)return;
  const p=eventPoint(e);
  if(state.isBreak&&human(state.turn)&&
     (state.phase==='placeBreak'||(state.phase==='aim'&&!invertAim()))&&p.x<=headStringX()+TABLE.radius){
   // Placing anywhere inside the kitchen is direct: no cue-ball hit target.
   if(state.phase==='aim')state.phase='placeBreak';
-  draggingBreak=true;breakPositionValid=placeBreakCue(p);
+  breakPositionValid=placeBreakCue(p);
+  if(!breakPositionValid)return;
+  draggingBreak=true;activePointer=e.pointerId;
   canvas.setPointerCapture(e.pointerId);
   return;
  }
@@ -503,12 +507,18 @@ listen(canvas,'pointerdown',e=>{
   }
   return;
  }
- dragging=true;canvas.setPointerCapture(e.pointerId);aimFrom(p);
+ dragging=true;activePointer=e.pointerId;canvas.setPointerCapture(e.pointerId);aimFrom(p);
 });
 
-listen(canvas,'pointermove',e=>{if(draggingBreak){breakPositionValid=placeBreakCue(eventPoint(e))||breakPositionValid;return;}if(dragging)aimFrom(eventPoint(e));});
-listen(canvas,'pointerup',()=>{if(draggingBreak){draggingBreak=false;if(breakPositionValid)finishBreakPlacement();breakPositionValid=false;}dragging=false;});
-listen(canvas,'pointercancel',()=>{draggingBreak=false;breakPositionValid=false;dragging=false;});
+listen(canvas,'pointermove',e=>{if(activePointer!==e.pointerId)return;if(draggingBreak){breakPositionValid=placeBreakCue(eventPoint(e))||breakPositionValid;return;}if(dragging)aimFrom(eventPoint(e));});
+listen(canvas,'pointerup',e=>{
+ if(activePointer!==e.pointerId)return;
+ if(draggingBreak&&breakPositionValid)finishBreakPlacement();
+ cancelPointer();
+});
+for(const event of ['pointercancel','lostpointercapture'])listen(canvas,event,e=>{
+ if(activePointer===e.pointerId)cancelPointer();
+});
 listen($('#power'),'input',e=>{state.power=Number(e.target.value);update();});
 listen($('#spin-top'),'input',e=>{state.spinTop=Number(e.target.value);update();});
 listen($('#spin-side'),'input',e=>{state.spinSide=Number(e.target.value);update();});
@@ -549,7 +559,7 @@ const controller={
  get isRackInProgress(){return session.isRackInProgress;},
  dispose(){
   if(disposed)return;
-  disposed=true;for(const id of timers)globalThis.clearTimeout(id);timers.clear();dragging=false;draggingBreak=false;
+  disposed=true;for(const id of timers)globalThis.clearTimeout(id);timers.clear();cancelPointer();
   globalThis.cancelAnimationFrame?.(frameId);
   for(const cleanup of cleanups.splice(0).reverse())cleanup();
   if(mountedGames.get(root)===controller)mountedGames.delete(root);
