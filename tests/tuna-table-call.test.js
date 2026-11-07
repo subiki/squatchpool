@@ -6,8 +6,8 @@ import {pockets} from '../src/table-geometry.js';
 // Exercise the real Tuna controller with a minimal canvas/DOM. The selects
 // remain accessible fallbacks, but finger taps must work without opening them.
 test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
- const originals={document:globalThis.document,requestAnimationFrame:globalThis.requestAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
- let controller;
+ const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
+ let frames=0,queuedFrame,cancelled=0;
  const nodes=new Map(),listeners=new Map(),panel={open:false};
  const ctx=new Proxy({}, {get:(obj,key)=>obj[key]??(()=>{}),set:(obj,key,value)=>{obj[key]=value;return true;}});
  function node(id){
@@ -17,20 +17,28 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    get clientWidth(){return this.width;},get clientHeight(){return this.height;},
    getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};},
    getContext(){return ctx;},setPointerCapture(){},
+   setAttribute(name,value){this[name]=value;},
    addEventListener(event,fn){listeners.set(id+':'+event,fn);},
+   removeEventListener(event,fn){if(listeners.get(id+':'+event)===fn)listeners.delete(id+':'+event);},
    replaceChildren(...children){this.children=children;},prepend(){},
   });
   return nodes.get(id);
  }
- globalThis.document={getElementById:node,querySelector:s=>s==='.kit-more'?panel:null,createElement:()=>({textContent:''})};
+ const root={getElementById:node,querySelector:s=>s==='.kit-more'?panel:null,setAttribute(){},focus(){}};
+ globalThis.document={getElementById:node,querySelector:s=>s==='main'?root:s==='.kit-more'?panel:null,querySelectorAll:()=>[],createElement:()=>({textContent:''}),
+  addEventListener:(event,fn)=>listeners.set('document:'+event,fn),removeEventListener:event=>listeners.delete('document:'+event)};
+ root.ownerDocument=globalThis.document;
+ globalThis.window={document:globalThis.document,location:{href:'https://squatch.example/tuna',origin:'https://squatch.example'},
+  history:{state:null,scrollRestoration:'auto',replaceState(state){this.state=state;}},scrollTo(){},confirm:()=>false,
+  addEventListener:(event,fn)=>listeners.set('window:'+event,fn),removeEventListener:(event,fn)=>{if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
  globalThis.localStorage={getItem:()=>null,setItem(){}};
- globalThis.requestAnimationFrame=()=>{};
+ globalThis.requestAnimationFrame=fn=>{queuedFrame=fn;return ++frames;};
+ globalThis.cancelAnimationFrame=()=>{cancelled++;};
  const tap=(x,y)=>listeners.get('table:pointerdown')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
  try{
-  const {mountTunaGame}=await import('../src/tuna-game.js');
-  controller=mountTunaGame(document);
+  await import('../src/tuna-entry.js');
   for(const size of [7,8,9]){
    node('size').value=String(size);node('reset-match').onclick();
    assert.equal(node('start').disabled,true,'cannot skip an active rack');
@@ -79,9 +87,25 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    node('shoot').onclick();
    assert.equal(node('shoot').disabled,true,'called BREAK begins shot');
    assert.equal(node('power').value,'68');
+   const beforeLeave=node('shoot').onclick;
+   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+   listeners.get('document:click')(navigation);
+   assert.equal(navigation.prevented,true);
+   assert.equal(node('shoot').onclick,beforeLeave,'cancelled leave preserves live Tuna controller');
   }
+  const oldFrame=queuedFrame,oldClick=node('shoot').onclick,atExit=frames;
+  listeners.get('window:pagehide')();
+  assert.equal(listeners.has('table:pointerdown'),false);
+  assert.equal(listeners.has('window:beforeunload'),false);
+  assert.equal(listeners.has('window:online'),false);
+  oldFrame(1000);oldClick();assert.equal(frames,atExit);
+  assert.equal(cancelled,1);
+  await listeners.get('window:pageshow')({persisted:true});
+  assert.equal(frames,atExit+1,'native entry restores exactly one game loop');
+  assert.equal(node('power').value,'85');
+  assert.match(node('money').textContent,/Player 1: \$0/);
+  listeners.get('window:pagehide')();
  }finally{
-  controller?.dispose();
   for(const [name,value] of Object.entries(originals)){if(value===undefined)delete globalThis[name];else globalThis[name]=value;}
  }
 });

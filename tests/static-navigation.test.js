@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {attachStaticNavigation} from '../src/static-navigation.js';
 
-test('Home/Rules/Archive/Press navigation preserves header, rack progress, history and fallback',async()=>{
+test('Home/Rules/Archive/Press/Tuna navigation preserves header, rack progress, history and fallback',async()=>{
  const events=new Map(),requests=[],assigned=[],history=[];
  const header={stamp:'verified',stats:'live'},doc={header};
+ let tunaMounts=0,tunaDisposals=0;
  let href='https://squatch.example/rules',state={},y=450,paused=0,fail=false,pending,active=false,mounts=0,disposals=0,allowLeave=false,goTarget;
  const link=path=>({href:'https://squatch.example'+path,attributes:{},target:'',
   hasAttribute(){return false;},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];}});
- const links=[link('/rules.html'),link('/archive.html'),link('/but-wait.html'),link('/'),link('/press-your-luck.html')];
+ const links=[link('/rules.html'),link('/archive.html'),link('/but-wait.html'),link('/'),link('/press-your-luck.html'),link('/tuna.html')];
  function page(name){
   const main={name,attributes:{},querySelector:()=>null,
    querySelectorAll:()=>[{pause(){paused++;}}],
@@ -36,12 +37,15 @@ test('Home/Rules/Archive/Press navigation preserves header, rack progress, histo
    pushState(next,unused,url){state=next;href=url;history.push({state:next,url});}},
   confirm:()=>allowLeave,
   addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name),
-  fetch:async url=>{requests.push(url);if(pending)return pending;if(fail)throw new Error('offline');return {ok:true,text:async()=>url.endsWith('.css')?'body{color:green}':url.includes('press-your-luck')?'press':url.includes('archive')?'archive':url.includes('index')?'home':'rules'};},
+  fetch:async url=>{requests.push(url);if(pending)return pending;if(fail)throw new Error('offline');return {ok:true,text:async()=>url.endsWith('.css')?'body{color:green}':url.includes('press-your-luck')?'press':url.includes('tuna')?'tuna':url.includes('archive')?'archive':url.includes('index')?'home':'rules'};},
   DOMParser:class{parseFromString(text){return page(text);}},
  };
  const dispose=attachStaticNavigation(win,{loadPress:async()=>({mountPressGame(root){
   assert.equal(root.name,'press');mounts++;active=false;
   return {get isRackInProgress(){return active;},dispose(){disposals++;}};
+ }}),loadTuna:async()=>({mountTunaGame(root){
+  assert.equal(root.name,'tuna');tunaMounts++;active=false;
+  return {get isRackInProgress(){return active;},dispose(){tunaDisposals++;}};
  }})});
  win.history.go=delta=>{assert.equal(delta,1,'Back cancellation reverses exactly one history position');href=goTarget.url;state=goTarget.state;events.get('popstate')({state});};
  const click=(target,extra={})=>{
@@ -94,5 +98,21 @@ test('Home/Rules/Archive/Press navigation preserves header, rack progress, histo
  events.get('pagehide')();assert.equal(disposals,2);
  await events.get('pageshow')({persisted:true});
  assert.equal(mounts,3,'native cached history restore remounts one game');
- dispose();assert.equal(events.size,0);assert.equal(win.history.scrollRestoration,'auto');
+ click(links[5]);await flush();
+ assert.equal(doc.main.name,'tuna');assert.equal(tunaMounts,1);assert.equal(disposals,3);
+ assert.equal(doc.header,header);assert.equal(links[5].attributes['aria-current'],'page');
+ const tunaEntry=history.at(-1),priorEntry=history.at(-2);
+ active=true;allowLeave=false;
+ const beforeTunaCancel=requests.length;
+ click(links[4]);await flush();
+ assert.equal(requests.length,beforeTunaCancel);assert.equal(tunaDisposals,0);
+ goTarget=tunaEntry;href=priorEntry.url;state=priorEntry.state;events.get('popstate')({state});await flush();
+ assert.equal(href,tunaEntry.url);assert.equal(doc.main.name,'tuna');assert.equal(tunaDisposals,0);
+ allowLeave=true;href=priorEntry.url;state=priorEntry.state;events.get('popstate')({state});await flush();
+ assert.equal(doc.main.name,'press');assert.equal(tunaDisposals,1);
+ href=tunaEntry.url;state=tunaEntry.state;events.get('popstate')({state});await flush();
+ assert.equal(tunaMounts,2,'Forward remounts Tuna');
+ events.get('pagehide')();assert.equal(tunaDisposals,2);
+ await events.get('pageshow')({persisted:true});assert.equal(tunaMounts,3);
+ dispose();assert.equal(tunaDisposals,3);assert.equal(events.size,0);assert.equal(win.history.scrollRestoration,'auto');
 });
