@@ -185,3 +185,178 @@ main button[aria-pressed="true"]{
  .hub-game,.world-card,.game-history{box-shadow:none}
  body :is(.hub-play,.world-nav a,main button){min-height:44px}
 }
+
+/* v3.1 mobile readability correction
+ * Paper/ink for prose and control surfaces; dark forest is scenery, not
+ * a text background. Fullscreen canvas and simulated table are untouched.
+ * All game routes use this persistent stylesheet, including SPA navigation.
+ */
+:root{
+ --pnw-paper:#f7f5ec;--pnw-paper-edge:#e6ede7;--pnw-ink:#102923;
+ --pnw-ink-muted:#405b4a;--pnw-paper-border:#698474;
+}
+body {
+ background-color:#0c2119;
+ color:#102923;
+}
+body > main{
+ background-color:#f7f5ec;
+ background-image:linear-gradient(130deg,#f7f5ecf9,#e6ede7f8),
+                  url('/assets/brand/texture-topography.svg');
+ background-size:auto,420px 280px;
+ color:#102923!important;
+ border-inline:1px solid #a0b5a4;
+ border-radius:0 0 18px 18px;
+}
+body > main > :is(h1,h2,h3,p,small),
+body > main .gameplay-heading {color:#102923!important}
+body > main > :is(h1,h2,h3){font-family:system-ui,sans-serif!important}
+/* Header and prose always use dark text on paper, including OS dark mode. */
+squatch-header{
+ --brand-bg:#f7f5ec;--brand-fg:#102923;--brand-muted:#405b4a;
+ --brand-panel:#e6ede7;--brand-border:#698474;--brand-accent:#14513d;
+ --brand-action:#f0c478;--brand-action-ink:#102923;
+ --brand-hover:#dce8dc;--brand-focus:#865016;
+}
+.squatch-unified-header{background-color:#f7f5ec!important}
+.squatch-unified-header .squatch-header-nav a{color:#102923!important}
+.squatch-unified-header .squatch-header-stats,
+.squatch-unified-header .squatch-stats-table {color:#102923!important}
+/* Strong paper card surfaces stop grain/green from washing out small text. */
+body :is(.intro,.quickstart,.game-rules-layout .rules-card,
+ .rules-card,.match,.notice,.hub-game,.hub-notes,.hub-arcade,
+ .world-card,.game-history,.surprise-panel,.world-hero,.hub-intro,
+ .table-stage #cut-group){
+ background-color:#f7f5ec!important;
+ background-image:linear-gradient(140deg,#fbfbf7fa,#e6ede7fa),
+                  url('/assets/brand/texture-felt.svg')!important;
+ background-size:auto,256px 256px;
+ border:1px solid #698474!important;
+ border-radius:15px;
+ color:#102923!important;
+ text-shadow:none!important;
+}
+body .intro{padding:clamp(16px,3vw,30px);margin:14px 0}
+body :is(.intro,.quickstart,.game-rules-layout .rules-card,
+ .rules-card,.match,.notice,.hub-game,.hub-notes,.hub-arcade,
+ .world-card,.game-history,.surprise-panel,.world-hero,.hub-intro,
+ .table-stage #cut-group) :is(h1,h2,h3,h4,p,strong,small,span,li,em,label){
+ color:#102923!important;text-shadow:none!important;
+}
+body :is(.intro,.game-rules-layout .rules-card,.rules-card,.match,
+ .hub-game,.hub-notes,.hub-arcade,.world-card,.game-history)
+ :is(.note,.eyebrow,.hub-count,.hub-highlight,.hub-meta,
+ .game-stats-title,.game-stats-title span,.game-stats>div span){
+ color:#405b4a!important;
+}
+body :is(.intro,.quickstart,.game-rules-layout .rules-card,
+ .hub-game,.hub-notes,.world-hero,.hub-intro) a:not(.hub-play){
+ color:#14513d!important;text-decoration:underline;
+}
+body .intro h2,body .intro h2 em{font-family:system-ui,sans-serif!important;color:#102923!important}
+body .intro .eyebrow,body .table-size-label,body .mode-controls label,
+body .size-note{color:#405b4a!important}
+body .mode-controls select{color:#102923!important;background:#fffdf7!important;border:2px solid #698474!important}
+body .quickstart{border-left:5px solid #865016!important}
+body .quickstart b{background:#f0c478!important;color:#102923!important}
+body .game-rules-layout .rules-card :is(p,strong,.note,.eyebrow),
+body .quickstart :is(strong,small,span){color:#102923!important}
+/* Table-size controls were especially unreadable in the screenshot:
+   unselected pale with dark ink, selected brass with dark ink. */
+body .table-size-pick,body .table-size-pick[aria-pressed="false"]{
+ background-color:#e6ede7!important;
+ background-image:linear-gradient(#eff4ea,#dfe9dc)!important;
+ color:#102923!important;border:2px solid #698474!important;
+ box-shadow:none!important;
+}
+body .table-size-pick[aria-pressed="true"]{
+ background:#f0c478!important;background-image:none!important;
+ color:#102923!important;border:3px solid #865016!important;
+ box-shadow:inset 0 0 0 1px #fff6de!important;
+}
+body .table-size-pick :is(strong,small){color:#102923!important;opacity:1!important}
+body .size-note{font-size:max(.82rem,12px)}
+/* Statistics, scoreboard, and game table status use the same ink/paper pairing. */
+body .match .game-stats{
+ background:#e6ede7!important;border-color:#698474!important;
+ color:#102923!important;
+}
+body .match .game-stats :is(strong,span,.game-stats-title,.game-stats-title span),
+body .match .scoreboard :is(strong,small,span){color:#102923!important}
+body .match .scoreboard .player{
+ background:#e8eee6!important;border:1px solid #698474!important;
+}
+body .match .scoreboard .player.active{
+ background:#f8e9bd!important;border:2px solid #865016!important;
+}
+body .match .scoreboard .portrait{background:#dce8dc!important}
+body .match .scoreboard .center-score strong{color:#102923!important}
+/* Retain actual canvas as a dark green pool table, but not the adjacent UI. */
+body .table-stage{
+ background-color:#f7f5ec!important;color:#102923!important;
+ border-color:#698474!important;
+}
+body .table-stage:fullscreen{
+ background:#f7f5ec!important;color:#102923!important;
+}
+body .table-stage :is(.kit-status,.game-live-stats,.game-hud,
+ .caroms-status-bar,.caroms-hud,.table-kit,.kit-more,.kit-options){
+ background-color:#f7f5ec!important;
+ background-image:linear-gradient(145deg,#fbfbf7,#e6ede7)!important;
+ border-color:#698474!important;color:#102923!important;
+}
+body .table-stage :is(.kit-status,.game-live-stats,.game-hud,
+ .caroms-hud,.table-kit,.kit-more,.kit-options,
+ .cut-team-choice) :is(strong,small,span,p,div,summary,label,output,b){
+ color:#102923!important;
+}
+body .table-stage :is(.kit-status,.game-live-stats,.game-hud,.kit-more)
+ :is(p,small){color:#405b4a!important}
+body .table-stage .caroms-hud .hud-player[data-active="true"]{
+ background:#f8e9bd!important;box-shadow:inset 0 4px #865016!important;
+}
+body .table-stage .caroms-hud .hud-center{border-color:#698474!important}
+body .table-stage .kit-more summary{
+ color:#102923!important;min-height:44px
+}
+body .table-stage .table-kit .kit-primary :is(label,output),
+body .table-stage .table-kit .kit-options :is(label,output){
+ color:#102923!important;
+}
+body .table-stage select,
+body .table-stage input:not([type=range]),
+body .table-stage textarea{
+ color:#102923!important;background:#fffdf7!important;
+ border:2px solid #698474!important;
+}
+body .table-stage :is(.kit-more,.kit-rack-actions,.game-live-stats){border-color:#698474!important}
+body .table-stage .kit-primary input[type=range]{accent-color:#14513d}
+/* Links/actions remain clearly differentiated from body text. */
+body :is(main,.hub-main) a:not(.hub-play){color:#14513d}
+body :is(.hub-game,.hub-notes,.world-card) :is(h2,h3,p,small){color:#102923!important}
+body .hub-section>p,body .hub-section>h2{color:#102923!important}
+body .hub-play{background:#14513d!important;background-image:none!important;
+ color:#f7f5ec!important;border-color:#14513d!important}
+body .hub-play:hover{background:#206248!important}
+body .hub-intro,body .world-hero{background-image:linear-gradient(108deg,#f7f5ecfa,#ecf2eafa),
+ url('/assets/brand/forest-banner.svg')!important;background-size:cover,cover}
+body :is(.hub-intro,.world-hero) :is(h1,h2,p,.hub-eyebrow,.world-kicker){
+ color:#102923!important;text-shadow:none!important;
+}
+body:has(.world-hero) main>section:not(.world-hero){
+ background-image:linear-gradient(145deg,#f7f5ecf9,#e6ede7f9),
+  url('/assets/brand/texture-felt.svg')!important;
+ color:#102923!important;
+}
+body:has(.world-hero) main>section:not(.world-hero) :is(h2,h3,p,pre,summary,small){
+ color:#102923!important
+}
+body .shot-history-section summary,body .game-history summary{color:#14513d!important}
+body .table-stage button:disabled,body main button:disabled{opacity:.7}
+/* Respect legible pointer sizes; don't change the billiards canvas geometry. */
+@media (max-width:650px){
+ body .intro{padding:16px}
+ body .table-size-pick{min-height:58px}
+ body .table-size-pick small{font-size:.68rem!important}
+ body .table-stage .kit-primary :is(button,select){min-height:44px}
+}
