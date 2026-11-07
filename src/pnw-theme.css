@@ -48,6 +48,14 @@ body:before{pointer-events:none}
  box-shadow:inset 0 1px 0 #e7f1db22,0 12px 28px #06170e55;
  color:#f4eeda;
 }
+.world-hero:after{content:none!important} /* remove the legacy playing-card club graphic */
+.world-stamp{transform:none!important;border-color:#85ad95!important;border-radius:6px}
+body:has(.world-hero) main>section:not(.world-hero){
+ background-image:linear-gradient(145deg,#214333f0,#123025f0),
+                  url('/assets/brand/texture-felt.svg')!important;
+ background-size:auto,256px 256px;
+ color:#f4eeda!important;border:1px solid #85ad95!important;
+}
 .hub-intro h2,.world-hero h1{
  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
  font-weight:800;letter-spacing:-.027em!important;
