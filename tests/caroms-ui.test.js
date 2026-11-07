@@ -85,6 +85,9 @@ test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', as
   input('caroms-power',91);input('caroms-top',-40);input('caroms-side',33);
   click('caroms-shoot');
   assert.equal(el('caroms-power').value,'68','power resets at strike');
+  assert.equal(el('caroms-power-value').attributes['aria-label'],'Power 68 percent');
+  assert.equal(el('caroms-top-value').attributes['aria-label'],'Draw / follow 0 percent');
+  assert.equal(el('caroms-side-value').attributes['aria-label'],'English 0 percent');
   assert.equal(el('caroms-top').value,'0','draw resets at strike');
   assert.equal(el('caroms-side').value,'0','English resets at strike');
   assert.equal(el('caroms-shoot').disabled,true,'no second shot while balls roll');

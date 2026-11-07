@@ -88,7 +88,7 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 <section class="table-kit" aria-label="Caroms shot controls">
 <div class="kit-primary">
 <label class="kit-striker">Strike ball<select id="caroms-striker" aria-label="Object ball to strike"></select></label>
-<label class="kit-power">Power <output id="caroms-power-value">85%</output><input id="caroms-power" type="range" min="10" max="100" value="85"></label>
+<label class="kit-power">Power <output id="caroms-power-value">85%</output><input id="caroms-power" aria-label="Power" type="range" min="10" max="100" value="85"></label>
 <button class="primary" id="caroms-shoot" type="button">BREAK WITH THE 1</button>
 <button type="button" class="aim-toggle" id="invert-aim" aria-pressed="false">↔ Reverse aim: OFF</button>
 <button type="button" id="kit-fullscreen" aria-label="Toggle table fullscreen">⛶ Fullscreen</button>
@@ -110,8 +110,8 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 </div>
 
 <div id="caroms-shot-panel" class="kit-options">
-<label>Draw / follow <output id="caroms-top-value">0%</output><input id="caroms-top" type="range" min="-100" max="100" value="0"></label>
-<label>English <output id="caroms-side-value">0%</output><input id="caroms-side" type="range" min="-100" max="100" value="0"></label>
+<label>Draw / follow <output id="caroms-top-value">0%</output><input id="caroms-top" aria-label="Draw / follow" type="range" min="-100" max="100" value="0"></label>
+<label>English <output id="caroms-side-value">0%</output><input id="caroms-side" aria-label="English" type="range" min="-100" max="100" value="0"></label>
 </div>
 <div class="kit-rack-actions" role="group" aria-label="Rack and match controls"><button id="caroms-match-settings" type="button" data-rack-action="reset">New match</button></div></details>
 </div><div class="caroms-rack-actions kit-rack-actions" role="group" aria-label="Rack and match controls" id="caroms-rack-actions" hidden><button data-rack-action="next" id="caroms-new" class="primary" type="button">Next rack</button><button data-rack-action="reset" id="caroms-match-reset" type="button">New match</button></div></section>
