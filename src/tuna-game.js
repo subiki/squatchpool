@@ -13,6 +13,7 @@ import {adjudicateTunaShot} from './tuna-shot-adapter.js';
 import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {mountTableKit} from './table-kit-controls.js';
+import {attachShotKeyboard} from './shot-keyboard.js';
 const mountedGames=new WeakMap();
 export function mountTunaGame(root=globalThis.document){
  mountedGames.get(root)?.dispose();
@@ -260,6 +261,10 @@ function fire(bot=false){
  $('power').value='68';$('spin-top').value='0';$('spin-side').value='0';
  $('shoot').disabled=true;
 }
+cleanups.push(attachShotKeyboard(globalThis.window,{
+ getPhase:()=>shot.phase,isHumanTurn:()=>!isBotTurn(),
+ shoot:()=>fire(),nudgeAim:delta=>{angle+=delta;}
+}));
 bind($('shoot'),'onclick',()=>fire());
 bind($('place'),'onclick',()=>{if(!isBotTurn()&&shot.confirmPlacement()){message(playerName(turn)+' to shoot.');update();}});
 listen($('call-ball'),'change',()=>{$('call-pocket').value='';updateCallHint();});
