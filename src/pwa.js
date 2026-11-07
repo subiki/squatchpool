@@ -2,7 +2,6 @@
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   const header = document.querySelector('.squatch-unified-header') || document.querySelector('header') || document.body;
   let ready = false;
-  let pendingInstall = null;
   let updateWaiting = false;
   let offlineCheckFailed = false;
   let registration = null;
@@ -11,15 +10,11 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   const status = document.createElement('span');
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
-  const install = document.createElement('button');
-  install.type = 'button';
-  install.textContent = 'Install game';
-  install.hidden = true;
   const retry = document.createElement('button');
   retry.type = 'button';
   retry.textContent = 'Retry offline download';
   retry.hidden = true;
-  bar.append(status, install, retry);
+  bar.append(status, retry);
   header?.append(bar);
   function render() {
     if (!navigator.onLine) {
@@ -31,16 +26,8 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     } else {
       status.textContent = ready ? 'Ready to play offline' : 'Downloading offline game…';
     }
-    install.hidden = !pendingInstall || window.matchMedia('(display-mode: standalone)').matches;
     retry.hidden = !offlineCheckFailed || !navigator.onLine;
   }
-  install.addEventListener('click', () => {
-    if (!pendingInstall) return;
-    const prompt = pendingInstall;
-    pendingInstall = null;
-    render();
-    void prompt.prompt();
-  });
   retry.addEventListener('click', () => {
     // A transient 404 or interrupted first install can leave no active worker.
     // Retry the actual registration instead of trapping players in a failed
@@ -50,15 +37,6 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     ready = false;
     render();
     void registration.update().then(() => checkReady(registration), () => checkReady(registration));
-  });
-  window.addEventListener('beforeinstallprompt', event => {
-    event.preventDefault();
-    pendingInstall = event;
-    render();
-  });
-  window.addEventListener('appinstalled', () => {
-    pendingInstall = null;
-    render();
   });
   window.addEventListener('online', () => {
     render();
