@@ -1,17 +1,20 @@
-# Squatch Pool — footprint/8-ball branding kit
+# Squatch Pool identity / v3
 
-## Consistent assets
-- **Vector masters:** mark-dark.svg, mark-light.svg and mark-mono.svg. These are resolution-independent. No spade or caricature.
-- **Brand treatments:** favicon.svg, badge.svg, badge-light.svg, textured-badge.svg, wordmark-dark.svg, wordmark-light.svg, social-square.svg.
-- **Environment:** forest-banner.svg and pattern-fern.svg. Use only as subtle decoration, not behind small text.
-- **Visual guide:** brand-artboard.svg (scalable vector artboard). A downloadable 2400px raster export is available separately.
-- **Production icons:** app-icon-192.png, app-icon-512.png, apple-touch-icon.png, favicon-32.png are tracked alongside the masters. The PWA build copies the icons to root manifest paths.
-- **Auditable color system:** palette.json and contrast-matrix.json. Shared header CSS and tests use the same semantic colors.
+This folder contains the approved **five-toe** footprint + prominent eight-ball system, not the former jellybean/paw mark. All icons are derived from the same visible silhouette and adjusted for a compact PWA launcher.
 
-## Readability
-Light surface `#F7F5EC` with `#102923` text; `#14513D` primary buttons with light text; copper `#865016` as the complementary readable accent. Dark surface `#0C2119` with `#F4EEDA` text; light moss `#A4CC99` buttons with deep text; brass `#F0C478` for links and focus. Do not put brass or yellow small copy on cream. Keep Cutthroat group colors accompanied by written labels.
+## Use
+- `favicon.svg`: square browser icon master, and the shared site's header mark.
+- `app-icon-master.svg`: editable launcher master. The committed 192/512 PNG exports are copied into the static PWA output in `scripts/build-pwa.mjs`.
+- `mark-dark.svg`, `mark-light.svg`, `mark-mono.svg`: standalone clean vector variations.
+- `badge.svg`, `textured-badge.svg`: print and decorative applications.
+- `wordmark-dark.svg`, `wordmark-light.svg`: accessible horizontal lockups.
+- `texture-felt.svg`, `texture-cedar.svg`, `texture-topography.svg`: small procedural patterns loaded by `src/pnw-theme.css`.
+- `forest-banner.svg`: illustration behind the homepage hero; non-essential to game rendering.
+- `palette.json`, `contrast-matrix.json`: colors and measured token contrast.
+- Existing v2 artboard is superseded by the approved downloadable v3 high-resolution asset kit; do not use the old artboard as a new production graphic.
 
-Every reviewed normal-text contrast pair is >=4.5:1; important component boundaries/focus are >=3:1 against their neighbor. The color audit certifies **defined tokens and shared header components**, not every legacy game page. Audit remaining hardcoded UI colors as separate slices.
+## Visual rules
+Pacific Northwest temperate rainforest, subdued. No playing-card spades, sunglasses characters, neon/glossy arcade elements, stretched marks, or UI overlays on playing canvases. Use wood grain on buttons/surrounds, felt on card panels, topographic pattern on background. Keep copy on sufficiently opaque surfaces.
 
-## Usage
-Use clean, high-contrast icon at favicon sizes and optional badge texture only for large artwork. Keep the same header icon across all nine routes. Preserve browser-native PWA install rather than an in-page Install button. Avoid embedded web fonts; use readable platform UI fonts.
+## Accessibility
+Normal body text requires ≥4.5:1 contrast; nontext UI boundaries ≥3:1. Light and dark sample color-pair checks live in `tests/brand-identity.test.js`; route-specific UI still needs browser-based contrast review, including pressed/disabled/focus states.
