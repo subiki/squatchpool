@@ -45,6 +45,14 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
  const drag=(x,y)=>listeners.get('table:pointermove')({clientX:x,clientY:y,pointerId:1,buttons:1});
  const release=()=>listeners.get('table:pointerup')({pointerId:1,buttons:0});
  const tick=()=>{time+=1000/60;nextFrame(time);};
+ const pressSpace=(tagName='BODY',extra={})=>{
+  const event={code:'Space',key:' ',repeat:false,
+   target:{tagName,isContentEditable:false},prevented:false,
+   preventDefault(){this.prevented=true;},...extra};
+  const listener=listeners.get('window:keydown');
+  assert.equal(typeof listener,'function','active match registers shot key listener');
+  listener(event);return event.prevented;
+ };
  try{
   await import('../src/press-your-luck-entry.js');
   for(const size of [7,8,9]){
@@ -70,7 +78,11 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    listeners.get('table:pointerup')({pointerId:3});
    assert.match(node('status').textContent,/Cue positioned/,'capture loss must allow a fresh pointer to place the cue');
    assert.match(node('table-call-hint').textContent,/No call needed/);
-   node('shoot').onclick();
+   assert.equal(pressSpace('BUTTON'),false,'focused button keeps native Space activation');
+   assert.equal(node('shoot').disabled,false,'break is ready before keyboard strike');
+   assert.equal(pressSpace('BODY'),true,'Space on page fires BREAK instead of scrolling');
+   assert.equal(node('shoot').disabled,true,'Space started the physics simulation');
+   assert.equal(pressSpace('BODY',{repeat:true}),true,'held Space cannot scroll during ball motion');
    listeners.get('window:beforeunload')(exiting);
    assert.equal(exiting.prevented,true,'actual break protects the unfinished rack from document exit');
    const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules.html',hasAttribute:()=>false,target:''})},preventDefault(){this.prevented=true;}};
@@ -121,7 +133,7 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    node('call-ball').value=id;listeners.get('call-ball:change')();
    node('call-pocket').value='BR';listeners.get('call-pocket:change')();
    assert.equal(node('shoot').disabled,false);
-   node('shoot').onclick();
+   assert.equal(pressSpace('CANVAS'),true,'Space on focused felt fires called shot');
    assert.equal(node('shoot').disabled,true,'called shot begins moving');
    assert.equal(node('power').value,'68','power resets after the shot');
   }
@@ -131,6 +143,7 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
   assert.equal(listeners.has('table:pointerdown'),false,'unmount removes canvas input');
   assert.equal(listeners.has('window:beforeunload'),false,'unmount removes navigation guard');
   assert.equal(listeners.has('window:online'),false,'unmount removes telemetry retry listener');
+  assert.equal(listeners.has('window:keydown'),false,'unmount removes shortcut listener');
   assert.equal(node('shoot').onclick,undefined,'unmount restores control properties');
   staleFrame(time+1000);staleClick();
   assert.equal(frames,atExit,'stale callbacks cannot restart physics');

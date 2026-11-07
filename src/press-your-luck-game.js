@@ -14,6 +14,7 @@ import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {groupOf} from './rules.js';
 import {mountTableKit} from './table-kit-controls.js';
+import {attachShotKeyboard} from './shot-keyboard.js';
 const mountedGames=new WeakMap();
 export function mountPressGame(root=globalThis.document){
  mountedGames.get(root)?.dispose();
@@ -269,6 +270,10 @@ listen(canvas,'pointerup',e=>{
 listen(canvas,'pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
 listen(canvas,'lostpointercapture',e=>{cuePlacement.pointerUp(e.pointerId);});
 function fire(fromBot=false){if(shot.phase!=='aim'||(isBotTurn()&&!fromBot))return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;cuePlacement.cancel();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';$('shoot').disabled=true;}
+cleanups.push(attachShotKeyboard(globalThis.window,{
+ getPhase:()=>shot.phase,isHumanTurn:()=>!isBotTurn(),
+ shoot:()=>fire(),nudgeAim:delta=>{angle+=delta;}
+}));
 bind($('shoot'),'onclick',()=>fire(false));
 bind($('place'),'onclick',()=>{if(!isBotTurn()&&shot.confirmPlacement()){message('Player '+(turn+1)+' to shoot.');update();}});
 listen($('call-ball'),'change',()=>{callPocket.value='';updateCallHint();});
