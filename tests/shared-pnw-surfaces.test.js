@@ -23,7 +23,7 @@ test('every route uses the same persistent shared header and PNW surface sheet',
 test('header nav uses fixed-size grid tracks independent of route or selected state',()=>{
  const css=read('src/pnw-theme.css');
  const shared=read('src/site-header.js');
- assert.equal((shared.match(/\['\/[^']*',\s*'/g)||[]).length,8,
+ assert.equal((shared.match(/\['\/[^']*',\s*'/g)||[]).length,9,
   'nine fixed shared nav entries including homepage');
  for(const fragment of [
   'squatch-header .squatch-header-nav{',
@@ -87,5 +87,5 @@ test('opaque dark panels and light moss/brass controls meet WCAG AA text thresho
   ['#F4EEDA','#214333'], // game HUD
  ];
  for(const [text,bg] of pairs)
-  assert.ok(contrast(text,bg)>=4.5,\`${text} on ${bg} contrast ${contrast(text,bg).toFixed(2)}\`);
+  assert.ok(contrast(text,bg)>=4.5,text+' on '+bg+' contrast '+contrast(text,bg).toFixed(2));
 });
