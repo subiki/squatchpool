@@ -278,11 +278,11 @@ function chooseOption(center,fromBot=false){
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 function draw(){
  renderer.drawTable(ctx,state.balls);
- // Caroms-specific head string remains visible on the common table.
+ // Caroms breaks WITH the 1-ball. Never tell a player to place the white
+ // ball: the regulation head string still marks the correct 1-ball kitchen.
+ renderer.drawHeadString(ctx,{active:state.breakShot&&state.phase==='aim',
+  persistent:true,label:'1-BALL BREAK · HEAD STRING'});
  const r=TABLE.radius;
- ctx.strokeStyle='#ffffff50';ctx.lineWidth=3;ctx.setLineDash([6,8]);ctx.beginPath();
- ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),TABLE.height-r);
- ctx.stroke();ctx.setLineDash([]);
  // No stick until a required called ball and pocket have both been selected.
  const callPending=!state.breakShot&&
   caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn]))&&

@@ -15,7 +15,7 @@ test('nature textures and light/dark contrast never sit above the playing canvas
  const css=read('src/pnw-theme.css');
  for(const asset of ['texture-topography.svg','texture-cedar.svg','texture-felt.svg','forest-banner.svg'])
   assert.ok(css.includes('/assets/brand/'+asset),asset);
- assert.match(css,/@media\(prefers-color-scheme:light\)/);
+ assert.match(css,/@media\s*\(prefers-color-scheme:light\)/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/\.table-stage canvas\{box-shadow:none!important\}/);
  assert.doesNotMatch(css,/canvas\s*\{\s*background-image/);

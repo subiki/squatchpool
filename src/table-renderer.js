@@ -36,7 +36,35 @@ export function createTableRenderer({table,pockets,cushions,renderPocket}){
    }
   }
  }
- function drawTable(ctx,balls){drawSurface(ctx);drawBalls(ctx,balls);}
+ // Regulation head string is identical in all five game modes. Show the
+ // kitchen before breaks; Caroms uses the 1-ball as its striker rather than
+ // the white cue ball, so callers provide the appropriate instruction.
+ function drawHeadString(ctx,{active=false,persistent=false,shadeKitchen=active,label=active?'BREAK · KITCHEN':null}={}){
+  if(!active&&!persistent)return;
+  const {width:w,height:h,radius:r}=table;
+  const x=r+(w-2*r)/4;
+  ctx.save();
+  if(active&&shadeKitchen){
+   ctx.fillStyle='#f3d47b33';
+   ctx.fillRect(2*r,2*r,Math.max(0,x-2*r),h-4*r);
+  }
+  ctx.beginPath();ctx.setLineDash(active?[7,7]:[5,9]);
+  ctx.strokeStyle=active?'#ffedb9':'#e3eacc59';
+  ctx.lineWidth=active?3:1.5;
+  ctx.moveTo(x,r);ctx.lineTo(x,h-r);ctx.stroke();
+  ctx.setLineDash([]);
+  if(active&&label){
+   ctx.fillStyle='#fff0c9';ctx.font='bold 25px system-ui';
+   ctx.textAlign='center';ctx.textBaseline='alphabetic';
+   ctx.fillText(label,w/2,Math.max(40,r*3));
+  }
+  ctx.restore();
+ }
+ function drawTable(ctx,balls,{breakSetup=false,breakLabel}={}){
+  drawSurface(ctx);
+  if(breakSetup)drawHeadString(ctx,{active:true,label:breakLabel});
+  drawBalls(ctx,balls);
+ }
  // Explicit striker supports Caroms object-ball shots (not always ball 0).
  function drawAim(ctx,striker,angle){
   if(!striker||striker.pocketed)return;
@@ -48,5 +76,5 @@ export function createTableRenderer({table,pockets,cushions,renderPocket}){
   ctx.moveTo(striker.x-dx*(r+15),striker.y-dy*(r+15));
   ctx.lineTo(striker.x-dx*(r+140),striker.y-dy*(r+140));ctx.stroke();
  }
- return {drawSurface,drawBalls,drawTable,drawAim};
+ return {drawSurface,drawBalls,drawTable,drawAim,drawHeadString};
 }
