@@ -1,5 +1,5 @@
 import {groupOf,liveGroupBalls} from './rules.js';
-import {pocketOpponentBalls,forfeitBonus,endRack} from './press-your-luck-score.js';
+import {pocketOpponentBalls,forfeitBonus,endRack,recordRackPockets} from './press-your-luck-score.js';
 
 // This adapter only adjudicates owner-confirmed outcomes. Physics, calls,
 // group assignment and foul legality are supplied by the table controller.
@@ -16,7 +16,7 @@ export function pressTurn({match,balls,groups,shooter,shotEvents=[],breakShot=fa
  // Eligibility must be captured BEFORE shot by the controller: balls already
  // pocketed by this shot must not make an early 8 suddenly legal.
  // Caller must supply balls representing the pre-shot layout.
- let next=match,finish=null,winner=null,keepTurn=false;
+ let next=recordRackPockets(match,shooter,pocketed,groups),finish=null,winner=null,keepTurn=false;
  if(breakShot&&eight)return {match:next,respotEight:true,finish:null,winner:null,keepTurn:!scratch,nextPlayer:scratch?1-shooter:shooter,scratch,ballInHand:scratch};
  if(eight){
   winner=!scratch&&legalShot&&eligible?shooter:1-shooter;
