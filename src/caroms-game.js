@@ -181,7 +181,7 @@ function update(){
 }
 function newGame(){
  if(matchWinner()>=0)return;
- session.startRack();
+ cancelPointer();session.startRack();
  setTableSize(Number($('caroms-size').value));
  // Share the regulation table-size preference with But Wait across game modes.
  // Private browsing or disabled storage must never prevent a rack from starting.
@@ -245,6 +245,7 @@ function hit(fromBot=false){
  const b=striker();if(!b||b.pocketed||b.id===0)return;
  const statsShotId=newCaromsStatsId();
  if(!session.startShot(statsShotId))return;
+ cancelPointer();
  const speed=shotSpeed(state.power,state.breakShot);
  b.vx=Math.cos(state.angle)*speed;b.vy=Math.sin(state.angle)*speed;
  applyCueSpin(b,state.spinTop/100,state.spinSide/100);
@@ -317,11 +318,12 @@ function aim(p){
  if(angle!==null)state.angle=angle;
 }
 const radiansToPixels=()=>TABLE.radius;
-let dragging=false,startedOnBall=false,dragStart=null;
+let dragging=false,startedOnBall=false,dragStart=null,activePointer=null;
+function cancelPointer(){dragging=false;startedOnBall=false;dragStart=null;activePointer=null;}
 const movedFromStart=e=>dragStart&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY)&&
  Math.hypot(e.clientX-dragStart.x,e.clientY-dragStart.y)>=6;
 listen(canvas,'pointerdown',e=>{
- if(state.phase!=='aim'||!humanTurn())return;
+ if(state.phase!=='aim'||!humanTurn()||activePointer!==null)return;
  const p=point(e),nearest=eligibleBalls().map(b=>({b,d:Math.hypot(b.x-p.x,b.y-p.y)}))
   .sort((a,b)=>a.d-b.d)[0];
  // Regulation balls render only ~7px wide on a phone. Keep the real ball
@@ -344,22 +346,23 @@ listen(canvas,'pointerdown',e=>{
    caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn])))
    state.calledBall=nearest.b.id;
   update();
-  dragging=true;canvas.setPointerCapture(e.pointerId);return;
+  dragging=true;activePointer=e.pointerId;canvas.setPointerCapture(e.pointerId);return;
  }
- dragging=true;canvas.setPointerCapture(e.pointerId);aim(p);
+ dragging=true;activePointer=e.pointerId;canvas.setPointerCapture(e.pointerId);aim(p);
 });
 listen(canvas,'pointermove',e=>{
- if(dragging&&(!startedOnBall||movedFromStart(e)))aim(point(e));
+ if(dragging&&activePointer===e.pointerId&&(!startedOnBall||movedFromStart(e)))aim(point(e));
 });
 listen(canvas,'pointerup',e=>{
+ if(activePointer!==e.pointerId)return;
  // Some touch devices deliver the final position only with pointerup.
  // Do not reinterpret a stationary finger tap as an aim command.
  if(dragging&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY)&&
   (!startedOnBall||movedFromStart(e)))aim(point(e));
- dragging=false;startedOnBall=false;dragStart=null;
+ cancelPointer();
 });
-listen(canvas,'pointercancel',()=>{
- dragging=false;startedOnBall=false;dragStart=null;
+for(const event of ['pointercancel','lostpointercapture'])listen(canvas,event,e=>{
+ if(activePointer===e.pointerId)cancelPointer();
 });
 listen($('caroms-striker'),'change',e=>{state.shooterBall=Number(e.target.value);update();});
 listen($('caroms-call-ball'),'change',e=>{state.calledBall=e.target.value?Number(e.target.value):null;update();});
@@ -409,7 +412,7 @@ const controller={
  get isRackInProgress(){return session.isRackInProgress;},
  dispose(){
   if(disposed)return;
-  disposed=true;cancelBot();dragging=false;dragStart=null;
+  disposed=true;cancelBot();cancelPointer();
   globalThis.cancelAnimationFrame?.(frameId);
   for(const cleanup of cleanups.splice(0).reverse())cleanup();
   if(mountedGames.get(root)===controller)mountedGames.delete(root);
