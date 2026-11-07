@@ -175,7 +175,10 @@ function placeCue(p){
  update();
 }
 function draw(){
- renderer.drawSurface(ctx);renderer.drawBalls(ctx,game.balls,drawCutthroatBall);
+ renderer.drawSurface(ctx);
+ renderer.drawHeadString(ctx,{active:session.breakShot&&['placeBreak','aim'].includes(game.phase),
+  label:'BREAK · KITCHEN'});
+ renderer.drawBalls(ctx,game.balls,drawCutthroatBall);
  if(game.phase==='aim')renderer.drawAim(ctx,cue(),game.angle);
 }
 function frame(t){

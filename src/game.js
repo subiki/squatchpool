@@ -384,13 +384,9 @@ function render(){
    ctx.stroke();ctx.restore();
   }
  });
- // Regulation head string: break cue center must remain behind this line.
- if(state.phase==='placeBreak'){
-  ctx.fillStyle='#e6cb7135';ctx.fillRect(2*r,2*r,headStringX()-2*r,h-4*r);
- }
- ctx.setLineDash([6,9]);ctx.strokeStyle=state.phase==='placeBreak'?'#ffe6a5':'#f7e8c129';
- ctx.lineWidth=state.phase==='placeBreak'?3:1;
- ctx.beginPath();ctx.moveTo(headStringX(),r);ctx.lineTo(headStringX(),h-r);ctx.stroke();ctx.setLineDash([]);
+ // Shared guide remains up through the entire break setup and aiming phase.
+ renderer.drawHeadString(ctx,{active:state.isBreak&&['placeBreak','aim'].includes(state.phase),
+  persistent:true,label:state.phase==='placeBreak'?'POSITION WHITE BALL BEHIND HEAD STRING':'BREAK · KITCHEN'});
  ctx.fillStyle='#e6c89566';ctx.beginPath();ctx.arc(r+(w-2*r)*.75,h/2,3,0,2*Math.PI);ctx.fill();
  if(state.phase==='aim'&&state.callPocket){
   const p=pockets.find(p=>p.id===state.callPocket);
@@ -422,9 +418,9 @@ function render(){
    ctx.strokeStyle='#78c3bd';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(cb.x-dx*(r+back),cb.y-dy*(r+back));ctx.lineTo(cb.x-dx*(r+back+15),cb.y-dy*(r+back+15));ctx.stroke();ctx.restore();
   }
  }
- if(state.phase==='placeBreak'||state.phase==='placeCue'||state.phase==='placeStash'){
+ if(state.phase==='placeCue'||state.phase==='placeStash'){
   ctx.fillStyle='#f2d6a6ed';ctx.font='bold 25px system-ui';ctx.textAlign='center';
-  ctx.fillText(state.phase==='placeBreak'?'POSITION WHITE BALL BEHIND HEAD STRING':state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
+  ctx.fillText(state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
  }
  renderer.drawBalls(ctx,state.balls,drawBall);
  if(state.phase==='placeStash'&&state.pendingStashBall!==null&&state.pendingStashPoint){

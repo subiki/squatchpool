@@ -99,7 +99,7 @@ function update(){
 }
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 function draw(){
- renderer.drawTable(ctx,balls);
+ renderer.drawTable(ctx,balls,{breakSetup:shot.breakShot&&shot.phase==='aim'});
  drawCallTargets();
  if(shot.phase==='aim'&&(shot.breakShot||callReady()))renderer.drawAim(ctx,cue(),angle);
 }
