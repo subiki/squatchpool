@@ -41,7 +41,8 @@ cleanups.push(()=>invertAim.dispose());
 const botSeat=seat=>seat>=Number($('cut-players')?.value||3);
 const seatName=seat=>botSeat(seat)?'Squatch Bot '+(seat+1):'Player '+(seat+1);
 const ranges=['1–5','6–10','11–15'];
-let game,lastTime=0,accumulator=0,dragging=false;
+let game,lastTime=0,accumulator=0,dragging=false,activePointer=null;
+function cancelPointer(){dragging=false;activePointer=null;}
 const botTurns=createBotTurnScheduler();
 function cancelBot(){botTurns.cancel();}
 function say(message){
@@ -59,7 +60,7 @@ cleanups.push(session.subscribe(result=>{
  say(result.announcement);
 }));
 function newGame(){
- cancelBot();
+ cancelPointer();cancelBot();
  session.startRack();
  setTableSize(Number($('cut-size').value));
  try{localStorage.setItem('squatch-table-size',String(TABLE.size));}catch{}
@@ -133,6 +134,7 @@ function shoot(fromBot=false){
  if(game.phase!=='aim'||(botSeat(game.match.turn)&&!fromBot))return;
  const shotId=newCutthroatStatsId();
  if(!session.startShot(shotId))return;
+ cancelPointer();
  const b=cue(),speed=shotSpeed(game.power,session.breakShot);
  b.vx=Math.cos(game.angle)*speed;b.vy=Math.sin(game.angle)*speed;
  applyCueSpin(b,game.top/100,game.side/100);
@@ -188,22 +190,25 @@ function aim(p){
  if(angle!==null)game.angle=angle;
 }
 listen(canvas,'pointerdown',e=>{
- if(botSeat(game.match.turn))return;
+ if(botSeat(game.match.turn)||activePointer!==null)return;
  if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));
  else if(game.phase==='aim')aim(point(e));
  else return;
- dragging=true;canvas.setPointerCapture(e.pointerId);
+ dragging=true;activePointer=e.pointerId;canvas.setPointerCapture(e.pointerId);
 });
 listen(canvas,'pointermove',e=>{
- if(!dragging||botSeat(game.match.turn))return;
+ if(!dragging||activePointer!==e.pointerId||botSeat(game.match.turn))return;
  if(['placeBreak','placeCue'].includes(game.phase))placeCue(point(e));
  else if(game.phase==='aim')aim(point(e));
 });
 listen(canvas,'pointerup',e=>{
+ if(activePointer!==e.pointerId)return;
  if(!botSeat(game.match.turn)&&dragging&&game.phase==='aim')aim(point(e));
- dragging=false;
+ cancelPointer();
 });
-listen(canvas,'pointercancel',()=>dragging=false);
+for(const event of ['pointercancel','lostpointercapture'])listen(canvas,event,e=>{
+ if(activePointer===e.pointerId)cancelPointer();
+});
 function confirmPlacement(fromBot=false){
  if(!game.placementValid||!['placeBreak','placeCue'].includes(game.phase)||
     (botSeat(game.match.turn)&&!fromBot))return;
@@ -211,7 +216,7 @@ function confirmPlacement(fromBot=false){
   if(!session.confirmPlacement())return;
   const b=cue();b.pocketed=false;b.vx=0;b.vy=0;b.wx=0;b.wy=0;b.wz=0;b.motion='stationary';
  }
- game.phase='aim';update();
+ cancelPointer();game.phase='aim';update();
 }
 function chooseGroup(group,fromBot=false){
  if(!['aim','chooseGroup'].includes(game.phase)||game.match.groupChoicePlayer!==game.match.turn||
@@ -319,7 +324,7 @@ const controller={
  get isRackInProgress(){return session.isRackInProgress;},
  dispose(){
   if(disposed)return;
-  disposed=true;cancelBot();dragging=false;
+  disposed=true;cancelBot();cancelPointer();
   globalThis.cancelAnimationFrame?.(frameId);
   for(const cleanup of cleanups.splice(0).reverse())cleanup();
   if(mountedGames.get(root)===controller)mountedGames.delete(root);

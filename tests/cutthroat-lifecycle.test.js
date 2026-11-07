@@ -55,10 +55,33 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
    node('cut-size').value=String(size);listeners.get('cut-size:change')();
    assert.equal(node('cut-table').width,Math.round(TABLE.width));
    listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
+   assert.equal(node('cut-place').disabled,false,'owner placed a legal break cue');
+   listeners.get('cut-table:pointerdown')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:2});
+   listeners.get('cut-table:pointermove')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:2});
+   assert.equal(node('cut-place').disabled,false,'secondary finger cannot invalidate owner placement');
+   listeners.get('cut-table:pointerup')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:2});
+   listeners.get('cut-table:lostpointercapture')({pointerId:2});
+   listeners.get('cut-table:pointermove')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:1});
+   assert.equal(node('cut-place').disabled,true,'owner still controls placement after secondary release');
+   listeners.get('cut-table:pointermove')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
+   assert.equal(node('cut-place').disabled,false,'owner restores legal position');
+   listeners.get('cut-table:lostpointercapture')({pointerId:1});
+   listeners.get('cut-table:pointermove')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:1});
+   assert.equal(node('cut-place').disabled,false,'capture loss ends ownership');
+   listeners.get('cut-table:pointerdown')({clientX:headStringX()*2,clientY:TABLE.height/2,pointerId:3});
+   assert.equal(node('cut-place').disabled,true,'fresh pointer works after capture loss');
+   listeners.get('cut-table:pointercancel')({pointerId:3});
+   listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
+
    listeners.get('cut-table:pointerup')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
    click('cut-place');assert.equal(node('cut-shoot').disabled,false);
    click('cut-shoot');assert.equal(controller.isRackInProgress,true);assert.equal(node('cut-power').value,'68');
   }
+  click('cut-new');
+  listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:41});
+  click('cut-new');
+  listeners.get('cut-table:pointermove')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:41});
+  assert.equal(node('cut-place').disabled,true,'reset rejects stale held pointer');
   const staleFrame=frame,staleShoot=listeners.get('cut-shoot:click'),staleAim=listeners.get('invert-aim:click');
   controller.dispose();controller.dispose();assert.equal(cancelled,1);
   for(const key of ['cut-table:pointerdown','cut-shoot:click','window:keydown','window:storage','window:online','window:beforeunload'])assert.equal(listeners.has(key),false,key);
