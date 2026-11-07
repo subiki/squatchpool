@@ -295,3 +295,21 @@ test('But Wait GameSession keeps break, scratch placement and restart',()=>{
  assert.equal(next.game,'but-wait');
  assert.equal(events.length,3);
 });
+
+
+test('deferred group or claim decisions can complete a settled rack without another shot',()=>{
+ for(const ballInHand of [false,true]){
+  const game=createGameSession({game:'cutthroat',adjudicate:adjudicateCutthroatShot});
+  game.startRack();game.startShot('deferred');
+  game.settle({ballInHand});
+  assert.equal(game.phase,ballInHand?'place':'aim');
+  assert.equal(game.isRackInProgress,true,'pending decision still protects the rack');
+  assert.equal(game.settle(),false,'ordinary settlement still requires a moving shot');
+  assert.equal(game.settle({done:true}),true);
+  assert.equal(game.phase,'done');assert.equal(game.isRackInProgress,false);
+  assert.equal(game.startShot('after-winner'),false);
+  assert.equal(game.confirmPlacement(),false);
+  assert.throws(()=>game.resolveShot({shotId:'deferred',context:{}}),/inactive or stale/);
+  game.startRack();assert.equal(game.startShot('next-rack'),true);
+ }
+});

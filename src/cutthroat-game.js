@@ -231,7 +231,7 @@ function chooseGroup(group,fromBot=false){
  const chooser=game.match.turn;
  game.match=assignCutthroatGroup(game.match,chooser,group);
  say(seatName(chooser)+' chose '+ranges[group]+'.');
- if(game.match.winner!==null)game.phase='done';
+ if(game.match.winner!==null){game.phase='done';session.settle({done:true});}
  else if(game.match.pendingClaim)game.phase='claim';
  else if(game.phase==='chooseGroup')game.phase='aim';
  update();
@@ -242,7 +242,7 @@ function resolveClaim(id,fromBot=false){
  const claimant=game.match.pendingClaim.claimant;
  game.match=resolveCutthroatClaim(game.match,id);
  say(seatName(claimant)+(id!==null?' claimed ball '+id+'.':' declined the scratch claim.'));
- if(game.match.winner!==null)game.phase='done';
+ if(game.match.winner!==null){game.phase='done';session.settle({done:true});}
  else{
   const b=cue(),p=findPlacement(game.balls);
   if(p){Object.assign(b,p);game.placementValid=true;}

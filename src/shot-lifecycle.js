@@ -9,7 +9,8 @@ export function createShotLifecycle(){
   startRack(){phase='aim';breakShot=true;},
   startShot(){if(phase!=='aim')return false;phase='moving';return true;},
   settle({done=false,ballInHand=false}={}){
-   if(phase!=='moving')return false;
+   // A deferred house-rule decision can finish an already settled rack.
+   if(phase!=='moving'&&!(done&&(phase==='aim'||phase==='place')))return false;
    breakShot=false;
    phase=done?'done':ballInHand?'place':'aim';
    return true;
