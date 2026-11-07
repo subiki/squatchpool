@@ -52,6 +52,7 @@ function collect(dir){
   }
 }
 collect('src');
+collect('assets/brand');
 collect('archive/source');
 if(existsSync(join(root,'deployment.json')))expected.add('/deployment.json');
 for(const path of assets){
