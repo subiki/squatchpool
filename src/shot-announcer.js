@@ -3,7 +3,7 @@
  * The session, not the UI, decides what happened. This consumer has no
  * effect on rules, physics, history or telemetry and can be disposed on route exit.
  */
-export function attachShotAnnouncer(session, stage, {holdMs = 3400} = {}) {
+export function attachShotAnnouncer(session, stage, {holdMs = 1600} = {}) {
   if (!session?.subscribe || !stage?.ownerDocument) {
     throw new TypeError('Shot announcer requires a session and table stage');
   }
