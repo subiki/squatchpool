@@ -19,7 +19,11 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (request.method !== 'GET' || url.origin !== self.location.origin ||
       url.pathname.startsWith('/api/')) return; // Stats/API must never be cached.
-  const path = url.pathname === '/' ? '/index.html' : url.pathname;
+  const pathname = url.pathname.replace(/\/+$/, '') || '/';
+  let path = pathname === '/' ? '/index.html' : pathname;
+  // Cloudflare redirects page.html to /page. Installed cold launches retain
+  // that URL, so resolve only aliases of pages actually in this edition.
+  if (!PRECACHE_SET.has(path) && PRECACHE_SET.has(path + '.html')) path += '.html';
   // Always refresh navigations when online. Cached HTML can otherwise trap users
   // on a broken release after the first visit; cache remains the offline fallback.
   if (request.mode === 'navigate' && PRECACHE_SET.has(path)) {
