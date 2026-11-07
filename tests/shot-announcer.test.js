@@ -2,6 +2,15 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createGameSession} from '../src/game-session.js';
 import {attachShotAnnouncer} from '../src/shot-announcer.js';
+import {readFileSync} from 'node:fs';
+
+test('default ruling duration is shorter and fade-in stays half a second', () => {
+  const source = readFileSync(new URL('../src/shot-announcer.js', import.meta.url), 'utf8');
+  const css = readFileSync(new URL('../src/shot-announcer.css', import.meta.url), 'utf8');
+  assert.match(source, /holdMs = 1600/);
+  assert.match(css, /transition: opacity \.5s ease, transform \.5s ease;/);
+  assert.match(css, /transition: opacity \.25s ease, transform \.25s ease, visibility 0s linear \.25s;/);
+});
 
 function fakeStage() {
   let banner;
