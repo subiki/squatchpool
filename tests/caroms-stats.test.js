@@ -17,7 +17,7 @@ test('Caroms playtest reports a rack only when the 1-ball break is struck',()=>{
  assert.match(game,/session\.settle\(\{done:result\.rackEnd\}\)/);
  assert.match(read('src/caroms-shot-adapter.js'),/decision\.pocketed\.filter\(id=>id>0\)/);
  assert.match(game,/function newMatch\(\)\{\s*matchWins=\[0,0\];newGame\(\)/);
- assert.match(game,/initCaromsStats\(\);newMatch\(\);requestAnimationFrame\(frame\)/);
+ assert.match(game,/newMatch\(\);requestAnimationFrame\(frame\)/);
 });
 
 test('Caroms stats panel is visible above the game table and honest about outages',()=>{

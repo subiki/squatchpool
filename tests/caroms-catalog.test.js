@@ -13,7 +13,7 @@ test('Caroms remains offered as bot or local two-player beta',()=>{
  assert.equal(game.url,'/caroms.html');
  assert.match(game.players,/Solo.*Squatch Bot.*2.*players/);
  assert.match(caroms,/id="caroms-table"/);
- assert.match(caroms,/src="\.\/src\/caroms-game\.js"/);
+ assert.match(caroms,/src="\.\/src\/caroms-entry\.js"/);
  assert.match(caroms,/<option value="bot" selected>Squatch Bot · solo<\/option>/);
  assert.match(caroms,/<option value="local">Local player · pass and play<\/option>/);
  assert.match(caroms,/Solo bot or two local players/);

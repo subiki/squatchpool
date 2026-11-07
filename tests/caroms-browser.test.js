@@ -7,6 +7,7 @@ import {TABLE,setTableSize} from '../src/table-geometry.js';
 test('Caroms browser: break, reset, advanced call, and regulation table rerack',async()=>{
  const originals=Object.fromEntries(
   ['document','window','Option','fetch','requestAnimationFrame','localStorage'].map(k=>[k,globalThis[k]]));
+ let controller;
  const elements=new Map(),listeners=new Map();
  let aimLineEnd=null;
  const ctx=new Proxy({lineTo(x,y){if(this.strokeStyle==='#f4e1a3')aimLineEnd={x,y};}},
@@ -58,7 +59,8 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
  globalThis.localStorage={getItem:key=>saved.get(key)??null,
   setItem:(key,value)=>saved.set(key,String(value))};
  try{
-  await import('../src/caroms-game.js');
+  const {mountCaromsGame}=await import('../src/caroms-game.js');
+  controller=mountCaromsGame(document);
   assert.equal(el('caroms-turn').textContent,'BREAK');
   assert.equal(el('caroms-hud-score-0').textContent,'0');
   assert.equal(el('caroms-hud-score-1').textContent,'0');
@@ -206,6 +208,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   change('caroms-size','7');
   assert.equal(el('caroms-table').width,w7,'storage denial cannot block a new rack');
  }finally{
+  controller?.dispose();
   setTableSize(9);
   for(const [key,value] of Object.entries(originals)){
    if(value===undefined)delete globalThis[key];else globalThis[key]=value;

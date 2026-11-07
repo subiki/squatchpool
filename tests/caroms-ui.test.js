@@ -6,10 +6,11 @@ import {setTableSize} from '../src/table-geometry.js';
 // rules-only test this catches disconnected buttons, call controls and shot
 // reset regressions without requiring a third-party browser dependency.
 test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', async()=>{
- const names=['document','window','requestAnimationFrame','Option','fetch','localStorage'];
+ const names=['document','window','requestAnimationFrame','cancelAnimationFrame','Option','fetch','localStorage'];
  const saved=Object.fromEntries(names.map(n=>[n,globalThis[n]]));
+ let controller;
  const elements=new Map(),listeners=new Map();
- let nextFrame=null,now=0;
+ let nextFrame=null,now=0,scheduled=0,cancelled=0;
  const ctx=new Proxy({},{
   get(o,k){return k in o?o[k]:()=>{};},
   set(o,k,v){o[k]=v;return true;}
@@ -23,6 +24,7 @@ test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', as
     id,value:defaults[id]??'',options:[],children:[],style:{},
     hidden:false,disabled:false,textContent:'',attributes:{},
     addEventListener(event,fn){listeners.set(id+':'+event,fn);},
+    removeEventListener(event,fn){if(listeners.get(id+':'+event)===fn)listeners.delete(id+':'+event);},
     setAttribute(name,value){this.attributes[name]=value;},
     replaceChildren(...items){this.children=items;this.options=[];},
     add(option){this.options.push(option);},
@@ -39,14 +41,15 @@ test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', as
   getElementById:el,
   createElement(){return{textContent:'',remove(){}};}
  };
- globalThis.window={addEventListener(){}};
+ globalThis.window={addEventListener(event,fn){listeners.set('window:'+event,fn);},removeEventListener(event,fn){if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
  globalThis.Option=class {constructor(text,value){this.text=text;this.value=value;}};
  globalThis.localStorage={
   getItem:key=>storage.get(key)??null,
   setItem:(key,value)=>storage.set(key,String(value))
  };
  globalThis.fetch=async()=>({ok:false,status:503});
- globalThis.requestAnimationFrame=fn=>{nextFrame=fn;};
+ globalThis.requestAnimationFrame=fn=>{nextFrame=fn;return ++scheduled;};
+ globalThis.cancelAnimationFrame=()=>{cancelled++;};
  const click=id=>{
   const fn=listeners.get(id+':click');
   assert.ok(fn,'Missing click handler for '+id);
@@ -69,7 +72,8 @@ test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', as
   now+=1000/60;nextFrame(now);
  };
  try{
-  await import('../src/caroms-game.js');
+  const {mountCaromsGame}=await import('../src/caroms-game.js');
+  controller=mountCaromsGame(document);
   assert.equal(el('caroms-hud-possession').textContent.includes('Player 1'),true);
   assert.match(el('caroms-score').textContent,/Best of 3.*0.*0/);
   assert.ok(listeners.has('caroms-match-reset:click'),'new match control must be wired');
@@ -120,7 +124,23 @@ test('Caroms: local break, called shot, neutral controls and 7/8/9ft rerack', as
   assert.equal(el('caroms-hud-possession').textContent.includes('Player 1'),true);
   click('caroms-match-reset');
   assert.match(el('caroms-score').textContent,/Best of 3.*0.*0/);
+  click('caroms-shoot');assert.equal(controller.isRackInProgress,true);
+  const staleFrame=nextFrame,staleShoot=listeners.get('caroms-shoot:click'),staleAim=listeners.get('invert-aim:click');
+  controller.dispose();controller.dispose();
+  assert.equal(cancelled,1,'disposal cancels exactly one frame');
+  for(const key of ['caroms-table:pointerdown','caroms-shoot:click','window:keydown','window:storage','window:beforeunload','window:online'])
+   assert.equal(listeners.has(key),false,'removed '+key);
+  const atExit=scheduled,status=el('caroms-status').textContent,invert=el('invert-aim').textContent;
+  staleFrame(now+1000);staleShoot();staleAim();
+  assert.equal(scheduled,atExit);assert.equal(el('caroms-status').textContent,status);assert.equal(el('invert-aim').textContent,invert);
+  controller=mountCaromsGame(document);
+  assert.equal(controller.isRackInProgress,false);assert.equal(el('caroms-power').value,'85');
+  assert.match(el('caroms-score').textContent,/Best of 3.*0.*0/);
+  const previous=controller;controller=mountCaromsGame(document);previous.dispose();
+  assert.equal(cancelled,2,'same-root remount disposes predecessor once');
+  assert.equal(el('caroms-shoot').disabled,false);
  }finally{
+  controller?.dispose();
   setTableSize(9);
   for(const [name,value] of Object.entries(saved)){
    if(value===undefined)delete globalThis[name];else globalThis[name]=value;

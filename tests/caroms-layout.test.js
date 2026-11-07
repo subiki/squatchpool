@@ -62,7 +62,7 @@ test('Caroms has concise rules before play, with optional panels after the table
  assert.doesNotMatch(html,/#caroms-shoot\{position:fixed/);
  assert.match(html,/id="table-stage"/);
  assert.match(html,/id="kit-fullscreen"/);
- assert.match(html,/src="\/src\/table-kit.js"/);
+ assert.match(html,/src="\.\/src\/caroms-entry.js"/);
  assert.equal(html.split('<details').length,html.split('</details>').length,
   'all collapsible panels must close');
  for(const id of ['caroms-rules-panel','caroms-setup-panel','caroms-shot-panel','caroms-history-panel'])
