@@ -7,7 +7,7 @@ import {TABLE,headStringX} from '../src/physics.js';
 test('Tuna starts ready to break and supports kitchen dragging without confirmation on all table sizes',async()=>{
  const originals={document:globalThis.document,window:globalThis.window,requestAnimationFrame:globalThis.requestAnimationFrame,cancelAnimationFrame:globalThis.cancelAnimationFrame,Option:globalThis.Option,localStorage:globalThis.localStorage};
  let controller;
- const nodes=new Map(),listeners=new Map(),panel={open:false};
+ const nodes=new Map(),listeners=new Map(),panel={open:false,setAttribute(){this.open=true;}};
  const ctx=new Proxy({}, {get:(obj,key)=>obj[key]??(()=>{}),set:(obj,key,value)=>{obj[key]=value;return true;}});
  function node(id){
   if(!nodes.has(id))nodes.set(id,{
@@ -17,7 +17,7 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    get clientHeight(){return this.height;},
    getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};},
    getContext(){return ctx;},
-   setPointerCapture(){},
+   setPointerCapture(){},focus(){},
    addEventListener(event,fn){listeners.set(id+':'+event,fn);},
    removeEventListener(event,fn){if(listeners.get(id+':'+event)===fn)listeners.delete(id+':'+event);},
    replaceChildren(...children){this.children=children;},
@@ -84,6 +84,22 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    assert.equal(node('status').textContent,statusAtStrike,'stale held-finger input cannot re-enter cue placement during a shot');
    assert.equal(node('shoot').disabled,true,'BREAK immediately starts a physical shot without a call');
    assert.equal(node('power').value,'68','break consumes power and resets controls');
+   let time=1000,settled=false;
+   for(let i=0;i<3000;i++){
+    time+=1000/120;queuedFrame(time);
+    if(/Tap a ball|Place and confirm/.test(node('table-call-hint').textContent)){settled=true;break;}
+   }
+   assert.equal(settled,true,'physical break must settle and keep the frame loop alive');
+   if(!node('place').hidden)node('place').onclick();
+   node('shoot').onclick();
+   assert.match(node('status').textContent,/before shooting/,'missing call blocks an ordinary strike');
+   node('call-ball').value='1';node('call-pocket').value='TM';
+   listeners.get('call-pocket:change')();
+   queuedFrame(time+1000/120);
+   node('shoot').onclick();
+   assert.equal(node('shoot').disabled,true,'complete call permits the next physical shot');
+   queuedFrame(time+2000/120);
+
 
   }
   assert.equal(controller.isRackInProgress,true,'struck rack is exposed to navigation');

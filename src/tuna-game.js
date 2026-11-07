@@ -104,6 +104,7 @@ function draw(){
  if(shot.phase==='aim'&&(shot.breakShot||callReady()))renderer.drawAim(ctx,cue(),angle);
 }
 
+const callReady=()=>Boolean($('call-ball').value&&$('call-pocket').value);
 function updateCallHint(){
  const undo=$('undo-call');
  undo.hidden=shot.phase!=='aim'||!($('call-ball').value||$('call-pocket').value);
