@@ -598,3 +598,41 @@ body .table-stage :is(input:not([type=range]),select,textarea){
  color:#102923!important;
  box-shadow:inset 0 2px 4px #10292323!important;
 }
+
+/* The remaining route-level surfaces that legacy sheets previously painted
+   as bare solid green: setup rows, player cards and arcade controls. */
+body main :is(.controls,.player,.arcade-choice,.arcade-two,
+ .game-rules-layout,.table-size-buttons,.below,
+ .call-panel,.spin-panel,.arcade-reset){
+ background-color:#18382c!important;
+ background-image:var(--squatch-panel-surface)!important;
+ background-size:auto,420px 280px,auto,256px 256px!important;
+ border-color:#85ad95!important;
+ box-shadow:inset 0 1px 0 #f4eeda2b,inset 0 -5px 11px #04150d48,
+            0 5px 14px #051b1245!important;
+}
+body main :is(.controls,.game-rules-layout,.table-size-buttons,.below){
+ border-radius:14px;
+}
+body main .player.active{
+ border:2px solid #f0c478!important;
+ background-image:
+  var(--squatch-topo),
+  radial-gradient(ellipse at 18% 0%,#63875e35,transparent 66%),
+  linear-gradient(145deg,#31583e,#1c3c2e)!important;
+ box-shadow:inset 0 1px 0 #f4eeda2b,inset 0 -4px 10px #0c21196b!important;
+}
+squatch-header .squatch-brand-row .brand-mark{
+ background-color:#14513d!important;
+ background-image:var(--squatch-topo),linear-gradient(145deg,#1f6449,#0e3226)!important;
+ background-size:420px 280px,auto!important;
+ border:1px solid #85ad95!important;
+ box-shadow:inset 0 1px 0 #ffffff42,inset 0 -5px 10px #03170c55,
+            0 4px 11px #051b1255!important;
+}
+body main :is(select,input:not([type=range]),textarea){
+ background-image:linear-gradient(180deg,#fffef6,#e6ede7)!important;
+ background-color:#f7f5ec!important;
+ color:#102923!important;
+ box-shadow:inset 0 2px 4px #10292322!important;
+}
