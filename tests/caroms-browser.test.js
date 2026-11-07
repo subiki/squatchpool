@@ -95,6 +95,12 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   el('caroms-table').setPointerCapture=id=>{captured=id;};
   down({clientX:ballX,clientY:ballY,pointerId:7});
   assert.equal(captured,7,'press on striker captures pointer for one-gesture aim');
+  down({clientX:ballX+100,clientY:ballY-100,pointerId:17});
+  assert.equal(captured,7,'second finger cannot capture the active aim drag');
+  move({clientX:ballX+100,clientY:ballY-100,pointerId:17});
+  up({clientX:ballX+100,clientY:ballY-100,pointerId:17});
+  listeners.get('caroms-table:lostpointercapture')({pointerId:17});
+
   move({clientX:ballX+80,clientY:ballY+120,pointerId:7});
   up({clientX:ballX+80,clientY:ballY+120,pointerId:7});
   tick();
@@ -133,6 +139,26 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   assert.ok(aimLineEnd?.y<ballY-100,
    'a deliberate touch drag must aim even with pointerup as the only move');
   table.getBoundingClientRect=originalRect;
+  for(const size of [7,8,9]){
+   change('caroms-size',size);
+   const x=TABLE.radius+TABLE.width*.11,y=TABLE.height/2;
+   down({clientX:x+80,clientY:y,pointerId:21});tick();
+   const straight={...aimLineEnd};
+   move({clientX:x+80,clientY:y-120,pointerId:22});
+   up({clientX:x+80,clientY:y-120,pointerId:22});tick();
+   assert.deepEqual(aimLineEnd,straight,'secondary move/release cannot change aim');
+   move({clientX:x+80,clientY:y+120,pointerId:21});tick();
+   assert.ok(aimLineEnd.y>y+100,'owner still aims after secondary release');
+   listeners.get('caroms-table:lostpointercapture')({pointerId:21});
+   const released={...aimLineEnd};move({clientX:x+80,clientY:y-120,pointerId:21});tick();
+   assert.deepEqual(aimLineEnd,released,'lost capture releases stale owner');
+   down({clientX:x+80,clientY:y,pointerId:23});up({clientX:x+80,clientY:y,pointerId:23});tick();
+   assert.ok(Math.abs(aimLineEnd.y-y)<3,'fresh pointer works after capture loss');
+   down({clientX:x+80,clientY:y,pointerId:24});change('caroms-size',size);tick();
+   const reracked={...aimLineEnd};move({clientX:x+80,clientY:y+120,pointerId:24});tick();
+   assert.deepEqual(aimLineEnd,reracked,'rack reset clears held-pointer aim');
+  }
+  change('caroms-size','8');
   // Return to the original straight break direction for the physics test.
   down({clientX:ballX+80,clientY:ballY,pointerId:8});
   up({clientX:ballX+80,clientY:ballY,pointerId:8});
