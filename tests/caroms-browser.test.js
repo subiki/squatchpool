@@ -6,8 +6,8 @@ import {TABLE,setTableSize} from '../src/table-geometry.js';
 // surface. No duplicate game logic or external browser dependency in CI.
 test('Caroms browser: break, reset, advanced call, and regulation table rerack',async()=>{
  const originals=Object.fromEntries(
-  ['document','window','Option','fetch','requestAnimationFrame','localStorage'].map(k=>[k,globalThis[k]]));
- let controller;
+  ['document','window','Option','fetch','requestAnimationFrame','cancelAnimationFrame','localStorage'].map(k=>[k,globalThis[k]]));
+ let scheduled=0,cancelled=0;
  const elements=new Map(),listeners=new Map();
  let aimLineEnd=null;
  const ctx=new Proxy({lineTo(x,y){if(this.strokeStyle==='#f4e1a3')aimLineEnd={x,y};}},
@@ -23,6 +23,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
    const node={id,value:defaults[id]??'',hidden:false,disabled:false,
     textContent:'',children:[],options:[],style:{},width:0,height:0,
     addEventListener(type,fn){listeners.set(id+':'+type,fn);},
+    removeEventListener(type,fn){if(listeners.get(id+':'+type)===fn)listeners.delete(id+':'+type);},
     setAttribute(name,value){this[name]=String(value);},
     replaceChildren(...items){this.children=items;this.options=[];},
     add(option){this.options.push(option);},
@@ -51,16 +52,22 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
  const tick=()=>{now+=1000/120;frame(now);};
  globalThis.document={getElementById:el,
   createElement:tag=>({tagName:tag,textContent:'',remove(){}})};
- globalThis.window={addEventListener(){}};
+ const root={getElementById:el,ownerDocument:document,querySelector:()=>null,setAttribute(){},focus(){}};
+ document.querySelector=s=>s==='main'?root:null;document.querySelectorAll=()=>[];
+ document.addEventListener=(event,fn)=>listeners.set('document:'+event,fn);
+ document.removeEventListener=event=>listeners.delete('document:'+event);
+ globalThis.window={document,location:{href:'https://squatch.example/caroms',origin:'https://squatch.example'},
+  history:{state:null,scrollRestoration:'auto',replaceState(state){this.state=state;}},scrollTo(){},confirm:()=>false,
+  addEventListener(event,fn){listeners.set('window:'+event,fn);},removeEventListener(event,fn){if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
- globalThis.requestAnimationFrame=fn=>{frame=fn;};
+ globalThis.requestAnimationFrame=fn=>{frame=fn;return ++scheduled;};
+ globalThis.cancelAnimationFrame=()=>{cancelled++;};
  globalThis.fetch=async()=>({ok:false,status:503});
  const saved=new Map([['squatch-table-size','8']]);
  globalThis.localStorage={getItem:key=>saved.get(key)??null,
   setItem:(key,value)=>saved.set(key,String(value))};
  try{
-  const {mountCaromsGame}=await import('../src/caroms-game.js');
-  controller=mountCaromsGame(document);
+  await import('../src/caroms-entry.js');
   assert.equal(el('caroms-turn').textContent,'BREAK');
   assert.equal(el('caroms-hud-score-0').textContent,'0');
   assert.equal(el('caroms-hud-score-1').textContent,'0');
@@ -135,6 +142,11 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   change('caroms-top',-35,'input');
   change('caroms-side',50,'input');
   click('caroms-shoot');
+  const shootBeforeLeave=listeners.get('caroms-shoot:click');
+  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+  listeners.get('document:click')(navigation);assert.equal(navigation.prevented,true);
+  assert.equal(listeners.get('caroms-shoot:click'),shootBeforeLeave,'cancelled leave preserves controller');
+
   assert.equal(el('caroms-power').value,'68','break power reset at strike');
   assert.equal(el('caroms-top').value,'0','draw reset at strike');
   assert.equal(el('caroms-side').value,'0','English reset at strike');
@@ -207,8 +219,15 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
    setItem(){throw Error('Storage blocked');}};
   change('caroms-size','7');
   assert.equal(el('caroms-table').width,w7,'storage denial cannot block a new rack');
+  const oldFrame=frame,oldShoot=listeners.get('caroms-shoot:click'),atExit=scheduled;
+  listeners.get('window:pagehide')();
+  for(const key of ['caroms-table:pointerdown','window:keydown','window:online','window:storage','window:beforeunload'])assert.equal(listeners.has(key),false,key);
+  oldFrame(now+1000);oldShoot();assert.equal(scheduled,atExit);assert.equal(cancelled,1);
+  await listeners.get('window:pageshow')({persisted:true});
+  assert.equal(scheduled,atExit+1,'native cache restore starts exactly one loop');
+  assert.equal(el('caroms-power').value,'85');assert.match(el('caroms-score').textContent,/Best of 3.*0.*0/);
+  listeners.get('window:pagehide')();
  }finally{
-  controller?.dispose();
   setTableSize(9);
   for(const [key,value] of Object.entries(originals)){
    if(value===undefined)delete globalThis[key];else globalThis[key]=value;

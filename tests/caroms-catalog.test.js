@@ -48,7 +48,7 @@ test('Home remounts five ranked game cards without stale renders or repeated ran
 });
 
 test('static shell page styles remain self-contained for offline swaps',()=>{
- for(const file of ['src/world.css','src/game-hub.css','src/game-page-layout.css','src/shot-announcer.css'])assert.doesNotMatch(read(file),/url\s*\(|@import/i);
+ for(const file of ['src/world.css','src/game-hub.css','src/game-page-layout.css','src/shot-announcer.css','src/aim-preference.css'])assert.doesNotMatch(read(file),/url\s*\(|@import/i);
 });
 
 test('homepage gives five original games equal cards and shows Arcade separately',()=>{

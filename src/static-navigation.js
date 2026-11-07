@@ -1,17 +1,18 @@
 import {mountGameHub} from './game-hub.js';
 // Only views with a proven mount/dispose lifecycle share this document.
-const PRESS='/press-your-luck',TUNA='/tuna';
+const PRESS='/press-your-luck',TUNA='/tuna',CAROMS='/caroms';
 const route=url=>{
  const path=url.pathname.replace(/\/+$/,'').replace(/\.html$/,'');
  return !path||path==='/index'?'/':path;
 };
-const supported=url=>['/','/rules','/archive',PRESS,TUNA].includes(route(url));
+const supported=url=>['/','/rules','/archive',PRESS,TUNA,CAROMS].includes(route(url));
 
-export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js'),loadTuna=()=>import('./tuna-game.js')}={}){
+export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js'),loadTuna=()=>import('./tuna-game.js'),loadCaroms=()=>import('./caroms-game.js')}={}){
  if(!win?.document)return ()=>{};
  const doc=win.document;
  const loadGame=async url=>route(url)===PRESS?(await loadPress()).mountPressGame:
-  route(url)===TUNA?(await loadTuna()).mountTunaGame:null;
+  route(url)===TUNA?(await loadTuna()).mountTunaGame:
+  route(url)===CAROMS?(await loadCaroms()).mountCaromsGame:null;
  let current=new URL(win.location.href),entry=0,currentEntry=0,currentIndex=0,pending=0,reverting=false;
  if(!supported(current))return ()=>{};
  let view=initialView||{dispose:route(current)==='/'?mountGameHub(doc):()=>{}};
@@ -131,4 +132,4 @@ export function attachStaticNavigation(win=globalThis.window,{initialView,loadPr
 }
 
 // Direct game pages seed the shell from their standalone controller entry.
-if(globalThis.window?.location?.href&&![PRESS,TUNA].includes(route(new URL(window.location.href))))attachStaticNavigation();
+if(globalThis.window?.location?.href&&![PRESS,TUNA,CAROMS].includes(route(new URL(window.location.href))))attachStaticNavigation();

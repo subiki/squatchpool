@@ -2,14 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {attachStaticNavigation} from '../src/static-navigation.js';
 
-test('Home/Rules/Archive/Press/Tuna navigation preserves header, rack progress, history and fallback',async()=>{
+test('Home/Rules/Archive/Press/Tuna/Caroms navigation preserves header, rack progress, history and fallback',async()=>{
  const events=new Map(),requests=[],assigned=[],history=[];
  const header={stamp:'verified',stats:'live'},doc={header};
- let tunaMounts=0,tunaDisposals=0;
+ let tunaMounts=0,tunaDisposals=0,caromsMounts=0,caromsDisposals=0;
  let href='https://squatch.example/rules',state={},y=450,paused=0,fail=false,pending,active=false,mounts=0,disposals=0,allowLeave=false,goTarget;
  const link=path=>({href:'https://squatch.example'+path,attributes:{},target:'',
   hasAttribute(){return false;},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];}});
- const links=[link('/rules.html'),link('/archive.html'),link('/but-wait.html'),link('/'),link('/press-your-luck.html'),link('/tuna.html')];
+ const links=[link('/rules.html'),link('/archive.html'),link('/but-wait.html'),link('/'),link('/press-your-luck.html'),link('/tuna.html'),link('/caroms.html')];
  function page(name){
   const main={name,attributes:{},querySelector:()=>null,
    querySelectorAll:()=>[{pause(){paused++;}}],
@@ -37,7 +37,7 @@ test('Home/Rules/Archive/Press/Tuna navigation preserves header, rack progress, 
    pushState(next,unused,url){state=next;href=url;history.push({state:next,url});}},
   confirm:()=>allowLeave,
   addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name),
-  fetch:async url=>{requests.push(url);if(pending)return pending;if(fail)throw new Error('offline');return {ok:true,text:async()=>url.endsWith('.css')?'body{color:green}':url.includes('press-your-luck')?'press':url.includes('tuna')?'tuna':url.includes('archive')?'archive':url.includes('index')?'home':'rules'};},
+  fetch:async url=>{requests.push(url);if(pending)return pending;if(fail)throw new Error('offline');return {ok:true,text:async()=>url.endsWith('.css')?'body{color:green}':url.includes('press-your-luck')?'press':url.includes('tuna')?'tuna':url.includes('caroms')?'caroms':url.includes('archive')?'archive':url.includes('index')?'home':'rules'};},
   DOMParser:class{parseFromString(text){return page(text);}},
  };
  const dispose=attachStaticNavigation(win,{loadPress:async()=>({mountPressGame(root){
@@ -46,6 +46,9 @@ test('Home/Rules/Archive/Press/Tuna navigation preserves header, rack progress, 
  }}),loadTuna:async()=>({mountTunaGame(root){
   assert.equal(root.name,'tuna');tunaMounts++;active=false;
   return {get isRackInProgress(){return active;},dispose(){tunaDisposals++;}};
+ }}),loadCaroms:async()=>({mountCaromsGame(root){
+  assert.equal(root.name,'caroms');caromsMounts++;active=false;
+  return {get isRackInProgress(){return active;},dispose(){caromsDisposals++;}};
  }})});
  win.history.go=delta=>{assert.equal(delta,1,'Back cancellation reverses exactly one history position');href=goTarget.url;state=goTarget.state;events.get('popstate')({state});};
  const click=(target,extra={})=>{
@@ -114,5 +117,20 @@ test('Home/Rules/Archive/Press/Tuna navigation preserves header, rack progress, 
  assert.equal(tunaMounts,2,'Forward remounts Tuna');
  events.get('pagehide')();assert.equal(tunaDisposals,2);
  await events.get('pageshow')({persisted:true});assert.equal(tunaMounts,3);
- dispose();assert.equal(tunaDisposals,3);assert.equal(events.size,0);assert.equal(win.history.scrollRestoration,'auto');
+ click(links[6]);await flush();
+ assert.equal(doc.main.name,'caroms');assert.equal(caromsMounts,1);assert.equal(tunaDisposals,3);
+ assert.equal(doc.header,header);assert.equal(links[6].attributes['aria-current'],'page');
+ const caromsEntry=history.at(-1),beforeCaroms=history.at(-2);
+ active=true;allowLeave=false;
+ const beforeCaromsCancel=requests.length;
+ click(links[5]);await flush();assert.equal(requests.length,beforeCaromsCancel);assert.equal(caromsDisposals,0);
+ goTarget=caromsEntry;href=beforeCaroms.url;state=beforeCaroms.state;events.get('popstate')({state});await flush();
+ assert.equal(href,caromsEntry.url);assert.equal(caromsDisposals,0);
+ allowLeave=true;href=beforeCaroms.url;state=beforeCaroms.state;events.get('popstate')({state});await flush();
+ assert.equal(doc.main.name,'tuna');assert.equal(caromsDisposals,1);
+ href=caromsEntry.url;state=caromsEntry.state;events.get('popstate')({state});await flush();
+ assert.equal(caromsMounts,2,'Forward remounts Caroms');
+ events.get('pagehide')();assert.equal(caromsDisposals,2);
+ await events.get('pageshow')({persisted:true});assert.equal(caromsMounts,3);
+ dispose();assert.equal(caromsDisposals,3);assert.equal(events.size,0);assert.equal(win.history.scrollRestoration,'auto');
 });
