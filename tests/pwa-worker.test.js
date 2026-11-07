@@ -58,6 +58,18 @@ function workerHarness() {
   return {request,lifecycle,offlineStatus,stored,deleted,cache,setOffline(value){offline=value;},setResponse(value){response=value;},get fetches(){return fetches;}};
 }
 
+test('browser owns installation UI while offline status and repair remain available', () => {
+  const page = readFileSync(new URL('../src/pwa.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(page, /beforeinstallprompt|preventDefault\(|Install game|pendingInstall/,
+    'Do not suppress native browser install promotion or render a site install button');
+  assert.match(page, /navigator\.serviceWorker\.register\('\/service-worker\.js'/,
+    'Keep offline installation and updates working');
+  assert.match(page, /Retry offline download/,
+    'Keep the explicit repair control for damaged offline caches');
+  assert.match(page, /Ready to play offline/,
+    'Keep the offline readiness status');
+});
+
 test('install preloads playable pages and activation retains only new offline edition',async () => {
   const h=workerHarness();
   await h.lifecycle('install');
