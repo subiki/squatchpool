@@ -87,10 +87,11 @@ test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming
   match:{turn:1,winner:null,owners:[0,1,2],pendingClaim:{
    claimant:2,scratcher:0,returnable:[4]},groupChoicePlayer:null}};
  const update=new Function('$','game','session','seatName','botSeat','scheduleBot','ranges','remainingCutthroatBalls',
-  'availableGroups','Option',source[0].replace(/\nfunction finishShot\(\)$/,'')+
+  'availableGroups','Option','groupForBall','TABLE',source[0].replace(/\nfunction finishShot\(\)$/,'')+
   '\nreturn update;')($,game,{breakShot:false},seat=>'Player '+(seat+1),()=>false,()=>{},
-  ['1–5','6–10','11–15'],()=>[1],()=>[],
-  class Option{constructor(text,value){this.text=text;this.value=value;}});
+  ['Blue','Yellow','Red'],()=>[1],()=>[],
+  class Option{constructor(text,value){this.text=text;this.value=value;}},
+  id=>Math.floor((id-1)/5),TABLE);
  update();
  assert.match($('cut-turn').textContent,/^Player 3 · scratch claim$/);
  assert.match($('cut-status').textContent,/Player 3 may claim.*Player 1/);
