@@ -41,7 +41,9 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
   assert.match(readFileSync(new URL('../tuna.html',import.meta.url),'utf8'),/id="break-reposition"/);
   for(const size of [7,8,9]){
    node('size').value=String(size);
-   node('reset-match').onclick();
+   node('size').onchange();
+   assert.equal(TABLE.size,size,'size change rebuilds the regulation geometry immediately');
+   assert.equal(controller.isRackInProgress,false,'size change starts an untouched rack');
    assert.equal(node('table').width,TABLE.width);
    assert.equal(node('shoot').disabled,false,'legal default cue placement permits immediate BREAK');
    assert.equal(node('shoot').textContent,'BREAK');

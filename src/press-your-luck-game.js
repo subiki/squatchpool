@@ -277,7 +277,7 @@ bind($('next'),'onclick',rack);bind($('start'),'onclick',begin);
 bind($('opponent'),'onchange',()=>{cancelBot();cuePlacement.cancel();update();});
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 bind($('invert-aim'),'onchange',()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}});
-bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}});
+bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}rack();});
 const controller={
  get isRackInProgress(){return shot.isRackInProgress;},
  dispose(){

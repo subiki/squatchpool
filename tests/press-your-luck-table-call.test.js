@@ -48,7 +48,10 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
  try{
   await import('../src/press-your-luck-entry.js');
   for(const size of [7,8,9]){
-   node('size').value=String(size);node('start').onclick();
+   node('size').value=String(size);node('size').onchange();
+   assert.equal(TABLE.size,size,'size change rebuilds the regulation geometry immediately');
+   assert.equal(node('table').width,TABLE.width);
+   assert.equal(node('table').height,TABLE.height);
    const exiting={preventDefault(){this.prevented=true;}};
    listeners.get('window:beforeunload')(exiting);
    assert.equal(exiting.prevented,undefined,'untouched rack may be left without a warning');
