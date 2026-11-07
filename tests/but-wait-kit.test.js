@@ -46,3 +46,9 @@ test('But Wait preserves unique controller IDs and collapsed shot history',()=>{
  assert.equal(html.split('<details').length,html.split('</details>').length);
  assert.match(html,/:fullscreen \.table-frame/);
 });
+
+test('But Wait keeps the result dialog inside its disposable main view',()=>{
+ assert.ok(html.indexOf('id="result-modal"')<html.indexOf('</main>'));
+ assert.match(html,/<main class="app">/);
+ assert.equal((html.match(/data-page-style/g)||[]).length,6);
+});
