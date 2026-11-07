@@ -258,7 +258,7 @@ function resolveClaim(id,fromBot=false){
     (botSeat(game.match.pendingClaim.claimant)&&!fromBot))return;
  const claimant=game.match.pendingClaim.claimant;
  game.match=resolveCutthroatClaim(game.match,id);
- say(seatName(claimant)+(id!==null?' claimed ball '+id+'.':' declined the scratch claim.'));
+ say(seatName(claimant)+(id!==null?' claimed a '+ranges[groupForBall(id)]+' ball.':' declined the scratch claim.'));
  if(game.match.winner!==null){game.phase='done';session.settle({done:true});}
  else{
   const b=cue(),p=findPlacement(game.balls);
