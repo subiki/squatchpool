@@ -11,6 +11,7 @@ import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateCaromsShot} from './caroms-shot-adapter.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
+import {planCaromsPot} from './caroms-bot-plan.js';
 import {createGameTelemetry,newGameStatsId as newCaromsStatsId} from './game-telemetry.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 
@@ -57,7 +58,14 @@ function scheduleBot(){
   botTimer=null;
   if(state.phase==='option'){chooseOption(false,true);return;}
   const candidates=eligibleBalls(),white=cue();if(!candidates.length||!white||white.pocketed)return;
-  // Bounded deterministic geometric baseline. All strokes use the real physics engine.
+  const pot=!state.breakShot&&planCaromsPot(state.balls,candidates);
+  if(pot){
+   state.shooterBall=pot.ballId;state.angle=pot.angle;state.power=pot.power;
+   state.spinTop=0;state.spinSide=0;state.calledBall=pot.ballId;state.calledPocket=pot.pocketId;
+   update();hit(true);return;
+  }
+  // No clear scoring tangent: retain the bounded contact-first fallback.
+  // All strokes use the real physics engine.
   // Prefer a clear object-ball-to-white-ball lane. Never use the white ball as striker.
   const laneBlocked=b=>state.balls.some(other=>{
    if(other.pocketed||other.id===b.id||other.id===0)return false;
