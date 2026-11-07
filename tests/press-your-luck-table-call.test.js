@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {TABLE,headStringX} from '../src/physics.js';
 import {pockets} from '../src/table-geometry.js';
+import {readFileSync} from 'node:fs';
 
 // Drive the real Press Your Luck controller: the call drawer must not be
 // required for touch play, and the cue must wait until the call is complete.
@@ -64,6 +65,14 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    listeners.get('window:beforeunload')(exiting);
    assert.equal(exiting.prevented,undefined,'untouched rack may be left without a warning');
    assert.equal(node('shoot').disabled,false,'legal default cue is immediately ready to BREAK');
+   assert.match(node('score').textContent,/Rack \d+ · Race to 15/);
+   assert.equal(node('press-banked-0').textContent,'0');
+   assert.equal(node('press-own-0').textContent,'0');
+   assert.equal(node('press-press-0').textContent,'0');
+   assert.equal(node('press-projected-0').textContent,'2','projection includes legal 8 points');
+   assert.match(node('bonus').textContent,/bonus at risk/);
+   assert.equal(node('press-score-player-0')['data-active'],'true');
+
    tap(headStringX()*.55,TABLE.height/2);release();
    assert.equal(node('shoot').disabled,false,'dragging break cue needs no confirmation');
    tap(headStringX()*.55,TABLE.height/2);
@@ -156,4 +165,20 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
  }finally{
   for(const [name,value] of Object.entries(originals)){if(value===undefined)delete globalThis[name];else globalThis[name]=value;}
  }
+});
+
+test('Press Your Luck scoreboard labels are clear on mobile and inside fullscreen table',()=>{
+ const html=readFileSync(new URL('../press-your-luck.html',import.meta.url),'utf8');
+ for(const id of ['score','bonus','press-score-player-0','press-score-player-1',
+ 'press-banked-0','press-banked-1','press-own-0','press-own-1',
+ 'press-press-0','press-press-1','press-projected-0','press-projected-1']){
+  assert.match(html,new RegExp('id="'+id+'"'),id+' missing');
+ }
+ assert.match(html,/Banked/);
+ assert.match(html,/Own balls/);
+ assert.match(html,/Press <span>\(at risk\)<\/span>/);
+ assert.match(html,/If legal 8/);
+ assert.match(html,/grid-template-columns:1fr/,'small screens need stacked scorecards');
+ assert.ok(html.indexOf('class="press-scoreboard"')<html.indexOf('<canvas id="table"'),
+  'scoreboard stays above table within fullscreen stage');
 });

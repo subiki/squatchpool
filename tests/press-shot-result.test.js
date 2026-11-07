@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createShotResultSession} from '../src/shot-result.js';
 import {adjudicatePressShot} from '../src/press-shot-adapter.js';
-import {newMatch,pocketOpponentBalls} from '../src/press-your-luck-score.js';
+import {newMatch,pocketOpponentBalls,rackScorePreview} from '../src/press-your-luck-score.js';
 
 const balls=(live=[])=>Array.from({length:16},(_,id)=>({
  id,pocketed:id!==0&&id!==8&&!live.includes(id),
@@ -113,4 +113,38 @@ test('press result requires a stable shot id before publishing',()=>{
  const shots=session(),events=[];shots.subscribe(r=>events.push(r));
  assert.throws(()=>shots.resolve({context:base}),/shotId/);
  assert.equal(events.length,0);
+});
+
+test('complete rack: own balls on break, claimed group, press shot, then legal 8',()=>{
+ const all=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+ let match=newMatch({targetScore:25}),groups=[null,null];
+ const adjudicate=(id,rest)=>{
+  const r=adjudicatePressShot({...rest,match,groups,shooter:0});
+  match=r.actions.match;groups=r.actions.groups;
+  return r;
+ };
+ const br=adjudicate('break',{balls:balls(all),breakShot:true,firstContact:1,
+  calledBall:0,calledPocket:'',shotEvents:[pocket(1),pocket(9)]});
+ assert.equal(br.rackEnd,false);
+ assert.deepEqual(match.rackPoints,[0,0],'break pockets deferred until a group is claimed');
+ adjudicate('assign',{balls:balls([2,3,4,5,6,7,8,10,11,12,13,14,15]),
+  firstContact:2,calledBall:2,calledPocket:'TL',shotEvents:[pocket(2)]});
+ assert.deepEqual(groups,['solids','stripes']);
+ assert.deepEqual(match.rackPoints,[2,0],'credit own ball from break and first called solid');
+ adjudicate('clear',{balls:balls([3,4,5,6,7,8,10,11,12,13,14,15]),
+  firstContact:3,calledBall:3,calledPocket:'TL',
+  shotEvents:[pocket(3),pocket(4),pocket(5),pocket(6),pocket(7)]});
+ assert.equal(match.rackPoints[0],7);
+ adjudicate('press',{balls:balls([8,10,11]),firstContact:10,
+  calledBall:10,calledPocket:'TL',shotEvents:[pocket(10)]});
+ assert.equal(rackScorePreview(match,0).own,7);
+ assert.equal(rackScorePreview(match,0).press,1);
+ assert.equal(rackScorePreview(match,0).ifLegalEight,10);
+ const result=adjudicate('eight',{balls:balls([8,11]),firstContact:8,
+  calledBall:8,calledPocket:'TL',shotEvents:[pocket(8)]});
+ assert.equal(result.rackEnd,true);
+ assert.equal(result.points,10,'seven own + one press + two for the 8');
+ assert.deepEqual(result.actions.match.scores,[10,0]);
+ assert.equal(result.actions.match.lastRack.ownPoints,7);
+ assert.match(result.announcement,/10 points/);
 });

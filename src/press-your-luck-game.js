@@ -5,7 +5,7 @@ import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
-import {newMatch,validateTargetScore} from './press-your-luck-score.js';
+import {newMatch,validateTargetScore,rackScorePreview} from './press-your-luck-score.js';
 import {createGameSession} from './game-session.js';
 import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
@@ -82,15 +82,35 @@ cleanups.push(shot.subscribe(result=>{
 function message(s){$('status').textContent=s;}
 function rack(){
  cancelBot();cuePlacement.cancel();
- match={...match,bonus:[0,0]}; // Provisional points belong only to the abandoned rack.
+ match={...match,bonus:[0,0],rackPoints:[0,0],rackPocketed:[[],[]],lastRack:null}; // An abandoned rack banks nothing.
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];shot.startRack();angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
  $('place').hidden=true;root.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · '+playerName(turn)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK.');update();
 }
 function update(){
- $('score').textContent='Player 1: '+match.scores[0]+' · '+playerName(1)+': '+match.scores[1]+' · Target '+match.targetScore;
- $('bonus').textContent='Provisional: '+match.bonus[0]+' · '+match.bonus[1]+' · Groups: '+(groups[0]||'open')+' / '+(groups[1]||'open');
+ const rackComplete=shot.phase==='done'&&Boolean(match.lastRack);
+ const displayedRack=rackComplete&&!match.finished?match.rack-1:match.rack;
+ $('score').textContent='Rack '+displayedRack+(rackComplete?' complete':'')+' · Race to '+match.targetScore;
+ for(let i=0;i<2;i++){
+  const preview=rackScorePreview(match,i);
+  $('press-player-'+i).textContent=(i===0?'You':playerName(1))+' · '+(groups[i]||'open table');
+  $('press-banked-'+i).textContent=String(preview.banked);
+  $('press-own-'+i).textContent=String(preview.own);
+  $('press-press-'+i).textContent=String(preview.press);
+  $('press-projected-'+i).textContent=rackComplete?'—':String(preview.ifLegalEight);
+  $('press-score-player-'+i).setAttribute('data-active',String(!rackComplete&&i===turn));
+ }
+ if(rackComplete){
+  const {winner,ownPoints,pressBonus,eightPoints,multiplier,awarded}=match.lastRack;
+  $('bonus').textContent=(winner===0?'You':playerName(1))+' banked '+awarded+
+   ' this rack ('+ownPoints+' own balls + '+pressBonus+' press bonus + '+eightPoints+
+   ' for the 8)'+(multiplier===2?' × 2 bank/kick':'')+'.';
+ }else{
+  $('bonus').textContent='Banked = locked match score. Own balls = 1 each if you win this rack. '+
+   'Press = bonus at risk. If legal 8 = projected match total, including 2 for the 8. '+
+   'A successful declared bank/kick doubles this rack only.';
+ }
  const selectedCall=callBall.value;
  const options=balls.filter(b=>!b.pocketed&&b.id);
  callBall.replaceChildren(new Option('Choose ball',''),...options.map(b=>new Option(String(b.id),String(b.id))));
