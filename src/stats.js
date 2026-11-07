@@ -88,11 +88,11 @@ function put(id,value,root){
 export function renderStats(data,root=globalThis.document){
  const document=root.ownerDocument||root;
  for(const field of ['players','racks','balls']){
-  put('site-stats-'+field,data.site[field],root);
+  put('site-stats-'+field,data.site[field],document);
   const game=data.games.find(g=>g.id===CURRENT_GAME);
   put('game-stats-'+field,game?.[field],root);
  }
- const container=root.querySelector('#site-stats-breakdown');
+ const container=document.querySelector('#site-stats-breakdown');
  if(container){
   const table=document.createElement('table');table.className='squatch-stats-table';
   const caption=document.createElement('caption');caption.textContent='Live statistics by game - players are distinct anonymous browsers';table.append(caption);
@@ -123,7 +123,7 @@ export function renderStats(data,root=globalThis.document){
 let live=null;
 export function initStats(root=globalThis.document){
  if(typeof document==='undefined')return;
- const status=root.querySelector('#stats-status');
+ const status=(root.ownerDocument||root).querySelector('#stats-status');
  let disposed=false;
  // Browser storage access may throw before the client can handle getItem errors.
  // Missing telemetry storage must not stop the original playable game.
