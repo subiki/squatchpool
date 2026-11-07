@@ -23,6 +23,9 @@ test('Cutthroat browser page wires three-seat match, group choice and scratch cl
  assert.match(controller,/session\.settle\(/);
  assert.match(controller,/session\.confirmPlacement\(\)/);
  assert.match(controller,/adjudicateCutthroatShot/);
+ assert.match(controller,/renderer\.drawBalls\(ctx,game\.balls,drawCutthroatBall\)/,'color-only balls use the shared canvas renderer');
+ assert.match(controller,/const ranges=\['Blue','Yellow','Red'\]/,'team labels are colors, not ball numbers');
+ assert.doesNotMatch(controller,/fillText\(ball\.id/,'Cutthroat balls must not have printed numbers');
  assert.match(controller,/resolveCutthroatClaim\(/);
  assert.match(controller,/assignCutthroatGroup\(/);
  assert.match(controller,/requestAnimationFrame\(frame\)/);
@@ -40,7 +43,11 @@ test('Cutthroat keeps the core shot kit and required decisions attached to the f
  for(const id of ['cut-group','cut-claim','cut-place','cut-reposition','cut-turn','cut-scores','cut-status','cut-new',
   'current-game-stats-players','current-game-stats-racks','current-game-stats-balls','current-game-stats-status'])
   assert.ok(stage.includes('id="'+id+'"'),id+' must remain available inside fullscreen');
- assert.match(controller,/\$\('cut-options'\)\.open=true/,'required decisions must open the drawer');
+ assert.match(controller,/if\(game\.phase==='claim'\) \$\('cut-options'\)\.open=true/,'scratch claims open the drawer');
+ assert.ok(stage.indexOf('id="cut-group"')<stage.indexOf('id="cut-table"'),
+  'team color chooser must appear ABOVE the felt, inside fullscreen');
+ assert.match(html,/Choose your team color/);
+ assert.match(html,/five blue, five yellow and five red/i);
 });
 
 test('regulation 7/8/9 ft Cutthroat racks retain 15 object balls and real physics',()=>{
@@ -80,10 +87,11 @@ test('Cutthroat scratch claim UI names the third-seat claimant, not the incoming
   match:{turn:1,winner:null,owners:[0,1,2],pendingClaim:{
    claimant:2,scratcher:0,returnable:[4]},groupChoicePlayer:null}};
  const update=new Function('$','game','session','seatName','botSeat','scheduleBot','ranges','remainingCutthroatBalls',
-  'availableGroups','Option',source[0].replace(/\nfunction finishShot\(\)$/,'')+
+  'availableGroups','Option','groupForBall','TABLE',source[0].replace(/\nfunction finishShot\(\)$/,'')+
   '\nreturn update;')($,game,{breakShot:false},seat=>'Player '+(seat+1),()=>false,()=>{},
-  ['1–5','6–10','11–15'],()=>[1],()=>[],
-  class Option{constructor(text,value){this.text=text;this.value=value;}});
+  ['Blue','Yellow','Red'],()=>[1],()=>[],
+  class Option{constructor(text,value){this.text=text;this.value=value;}},
+  id=>Math.floor((id-1)/5),TABLE);
  update();
  assert.match($('cut-turn').textContent,/^Player 3 · scratch claim$/);
  assert.match($('cut-status').textContent,/Player 3 may claim.*Player 1/);

@@ -1,6 +1,7 @@
 /** Three-seat Coin-Op Cutthroat: original Episode 4 rules, shared 120 Hz table physics. */
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
+import {groupForBall} from './squatch-modes.js';
 import {createTableRenderer} from './table-renderer.js';
 import {tablePoint} from './table-pointer.js';
 import {startCutthroat,availableGroups,assignCutthroatGroup,remainingCutthroatBalls,resolveCutthroatClaim} from './cutthroat-rules.js';
@@ -40,7 +41,18 @@ const invertAim=bindInvertAim($('invert-aim'));
 cleanups.push(()=>invertAim.dispose());
 const botSeat=seat=>seat>=Number($('cut-players')?.value||3);
 const seatName=seat=>botSeat(seat)?'Squatch Bot '+(seat+1):'Player '+(seat+1);
-const ranges=['1–5','6–10','11–15'];
+const ranges=['Blue','Yellow','Red'];
+const teamColors=['#2477df','#efc441','#df493f'];
+function drawCutthroatBall(ball,ctx){
+ const r=TABLE.radius;
+ const group=groupForBall(ball.id);
+ ctx.beginPath();ctx.arc(ball.x,ball.y,r,0,Math.PI*2);
+ ctx.fillStyle=group<0?'#f8f5e9':teamColors[group];
+ ctx.fill();ctx.strokeStyle='#192a24';ctx.lineWidth=1.5;ctx.stroke();
+ // A gleam gives depth without numbered billiard-ball markings.
+ ctx.beginPath();ctx.arc(ball.x-r*.32,ball.y-r*.32,r*.22,0,Math.PI*2);
+ ctx.fillStyle='#ffffff8e';ctx.fill();
+}
 let game,lastTime=0,accumulator=0,dragging=false,activePointer=null;
 function cancelPointer(){dragging=false;activePointer=null;}
 const botTurns=createBotTurnScheduler();
@@ -92,7 +104,7 @@ function update(){
   game.phase==='claim'&&claim?seatName(claim.claimant)+' may claim one on-table ball from '+seatName(claim.scratcher)+', or decline.':
   game.phase==='chooseGroup'?'Your turn has ended. Choose your earned group before play passes.':
   game.phase==='moving'?'Balls rolling…':
-  m.groupChoicePlayer===m.turn?'You earned a group choice. Select 1–5, 6–10 or 11–15 now, or keep shooting.':
+  m.groupChoicePlayer===m.turn?'You earned a team choice. Choose Blue, Yellow or Red above the table, or keep shooting.':
   session.breakShot?'Break the rack; balls pocketed on the break stay down.':
   'Aim from the white ball, then shoot. Any object ball may be pocketed, including your own.';
  $('cut-reposition').hidden=!(game.phase==='aim'&&session.breakShot);
@@ -105,9 +117,14 @@ function update(){
  const choices=availableGroups(m);
  $('cut-group-select').replaceChildren(...choices.map(g=>new Option(ranges[g],String(g))));
  $('cut-claim').hidden=game.phase!=='claim';
- // Keep required group/third-seat decisions usable inside fullscreen, not behind the page.
- if(game.phase==='claim'||game.phase==='chooseGroup'||m.groupChoicePlayer===m.turn) $('cut-options').open=true;
- $('cut-claim-select').replaceChildren(new Option('Decline claim',''),...(claim?.returnable||[]).map(id=>new Option('Claim ball '+id,String(id))));
+ // The team choice stays above the table; scratch-claim actions remain in the drawer.
+ if(game.phase==='claim') $('cut-options').open=true;
+ $('cut-claim-select').replaceChildren(new Option('Decline claim',''),...(claim?.returnable||[]).map(id=>{
+  const ball=game.balls?.find(b=>b.id===id);
+  if(!ball)return new Option('Claim on-table '+ranges[groupForBall(id)]+' ball',String(id));
+  const x=Math.round(ball.x/TABLE.width*100),y=Math.round(ball.y/TABLE.height*100);
+  return new Option(ranges[groupForBall(id)]+' ball at '+x+'% across, '+y+'% down',String(id));
+ }));
  $('cut-group-confirm').disabled=botSeat(m.turn);
  $('cut-claim-confirm').disabled=!!claim&&botSeat(claim.claimant);
  for(const id of ['cut-power','cut-top','cut-side'])$(id).disabled=!canShoot||botSeat(m.turn);
@@ -158,7 +175,7 @@ function placeCue(p){
  update();
 }
 function draw(){
- renderer.drawTable(ctx,game.balls);
+ renderer.drawSurface(ctx);renderer.drawBalls(ctx,game.balls,drawCutthroatBall);
  if(game.phase==='aim')renderer.drawAim(ctx,cue(),game.angle);
 }
 function frame(t){
@@ -241,7 +258,7 @@ function resolveClaim(id,fromBot=false){
     (botSeat(game.match.pendingClaim.claimant)&&!fromBot))return;
  const claimant=game.match.pendingClaim.claimant;
  game.match=resolveCutthroatClaim(game.match,id);
- say(seatName(claimant)+(id!==null?' claimed ball '+id+'.':' declined the scratch claim.'));
+ say(seatName(claimant)+(id!==null?' claimed a '+ranges[groupForBall(id)]+' ball.':' declined the scratch claim.'));
  if(game.match.winner!==null){game.phase='done';session.settle({done:true});}
  else{
   const b=cue(),p=findPlacement(game.balls);

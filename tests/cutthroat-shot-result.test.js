@@ -21,7 +21,8 @@ test('Cutthroat emits one ruling and physical pocket event even on repeated sett
  assert.equal(result.nextPlayer,0);
  assert.equal(result.actions.match.groupChoicePlayer,0);
  assert.equal(result.rackEnd,false);
- assert.match(result.announcement,/Player 1: pocketed 1/);
+ assert.match(result.announcement,/Player 1: pocketed 1 blue ball/);
+ assert.doesNotMatch(result.announcement,/pocketed 1, 2/,'shot ruling describes colors rather than ball IDs');
  assert.equal(shots.resolve({shotId:'cut-a',context}),result);
  assert.equal(received.length,1,'history and telemetry subscribers fire once');
  shots.reset();

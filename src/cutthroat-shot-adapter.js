@@ -1,4 +1,5 @@
 import {finishCutthroatShot} from './cutthroat-rules.js';
+import {groupForBall} from './squatch-modes.js';
 
 /**
  * Pure three-seat Cutthroat house-rule adapter.
@@ -21,8 +22,12 @@ export function adjudicateCutthroatShot({match,shotEvents=[],breakShot=false}){
  const missedContact=!contacted&&!breakShot;
  const nextMatch=finishCutthroatShot(match,{pocketed,scratch,foul:missedContact});
  const foul=scratch||missedContact;
+ const colors=['blue','yellow','red'],counts=[0,0,0];
+ for(const id of pocketed)counts[groupForBall(id)]++;
+ const made=counts.map((n,i)=>n?n+' '+colors[i]+' ball'+(n===1?'':'s'):null)
+  .filter(Boolean).join(', ');
  const announcement='Player '+(match.turn+1)+': '+
-  (pocketed.length?'pocketed '+pocketed.join(', '):'no ball pocketed')+
+  (made?'pocketed '+made:'no ball pocketed')+
   (scratch?' · scratch. Third player decides a claim.':'.');
  return {
   legal:!foul,foul,pocketed,points:0,
