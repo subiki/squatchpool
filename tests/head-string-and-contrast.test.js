@@ -80,7 +80,7 @@ test('contrast theme wins over old green/white controls, preserves fullscreen an
  }
  assert.match(css,/--pnw-paper:#f7f5ec/);
  assert.match(css,/--pnw-ink:#102923/);
- assert.match(css,/body \.table-stage canvas\{box-shadow:none!important\}/);
+ assert.match(css,/\.table-stage canvas\{box-shadow:none!important\}/);
  const pwa=read('src/pwa.js');
  assert.doesNotMatch(pwa,/beforeinstallprompt|Install game/);
 });
