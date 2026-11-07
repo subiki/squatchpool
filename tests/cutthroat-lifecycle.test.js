@@ -20,7 +20,13 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
   return nodes.get(id);
  };
  globalThis.document={getElementById:node,createElement:()=>({textContent:'',remove(){}})};
- globalThis.window={addEventListener(event,fn){listeners.set('window:'+event,fn);},removeEventListener(event,fn){if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
+ const root={getElementById:node,ownerDocument:document,querySelector:()=>null,setAttribute(){},focus(){}};
+ document.querySelector=s=>s==='main'?root:null;document.querySelectorAll=()=>[];
+ document.addEventListener=(event,fn)=>listeners.set('document:'+event,fn);
+ document.removeEventListener=event=>listeners.delete('document:'+event);
+ globalThis.window={document,location:{href:'https://squatch.example/cutthroat',origin:'https://squatch.example'},
+  history:{state:null,scrollRestoration:'auto',replaceState(state){this.state=state;}},scrollTo(){},confirm:()=>false,
+  addEventListener(event,fn){listeners.set('window:'+event,fn);},removeEventListener(event,fn){if(listeners.get('window:'+event)===fn)listeners.delete('window:'+event);}};
  globalThis.Option=class{constructor(text,value){this.text=text;this.value=value;}};
  globalThis.localStorage={getItem:()=>null,setItem(){}};
  globalThis.fetch=async()=>({ok:false,status:503});
@@ -30,6 +36,19 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
  globalThis.clearTimeout=id=>timers.delete(id);
  const click=id=>listeners.get(id+':click')();
  try{
+  await import('../src/cutthroat-entry.js');
+  listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
+  click('cut-place');click('cut-shoot');
+  const beforeLeave=listeners.get('cut-shoot:click');
+  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+  listeners.get('document:click')(navigation);assert.equal(navigation.prevented,true);
+  assert.equal(listeners.get('cut-shoot:click'),beforeLeave,'cancelled shell leave preserves live controller');
+  const atExit=frames,oldFrame=frame;listeners.get('window:pagehide')();
+  oldFrame(1000);assert.equal(frames,atExit);
+  await listeners.get('window:pageshow')({persisted:true});
+  assert.equal(frames,atExit+1,'native cache restore starts one fresh loop');
+  assert.equal(node('cut-power').value,'85');assert.equal(node('cut-place').hidden,false);
+  listeners.get('window:pagehide')();cancelled=0;
   const {mountCutthroatGame}=await import('../src/cutthroat-game.js');
   controller=mountCutthroatGame(document);
   for(const size of [7,8,9]){
