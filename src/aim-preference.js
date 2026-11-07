@@ -15,21 +15,32 @@ export function angleFromPointer(striker, point, inverted = false, threshold = 8
 }
 
 export function bindInvertAim(button) {
-  let inverted = readInvertAim();
+  let inverted = readInvertAim(), disposed = false;
   function render() {
     if (!button) return;
     button.setAttribute('aria-pressed', String(inverted));
     button.textContent = inverted ? '↔ Reverse aim: ON · drag behind cue' : '↔ Reverse aim: OFF';
     button.setAttribute('aria-label', inverted ? 'Reverse aim on. Drag behind the cue ball to aim away from your finger.' : 'Reverse aim off. Drag toward the target to aim.');
   }
-  if (button) button.addEventListener('click', () => {
+  const toggle = () => {
+    if (disposed) return;
     inverted = !inverted;
     try { if (typeof localStorage !== 'undefined') localStorage.setItem(INVERT_AIM_KEY, String(inverted)); } catch {}
     render();
-  });
-  if (button && typeof window !== 'undefined') window.addEventListener('storage', event => {
+  };
+  const storage = event => {
+    if (disposed) return;
     if (event.key === INVERT_AIM_KEY) { inverted = event.newValue === 'true'; render(); }
-  });
+  };
+  const target = globalThis.window;
+  button?.addEventListener('click', toggle);
+  if (button) target?.addEventListener('storage', storage);
   render();
-  return () => inverted;
+  const read = () => inverted;
+  read.dispose = () => {
+    disposed = true;
+    button?.removeEventListener?.('click', toggle);
+    if (button) target?.removeEventListener?.('storage', storage);
+  };
+  return read;
 }

@@ -11,7 +11,8 @@ for (const [name,path] of [
 ]) {
  test(name+' respects focused controls without disabling table shortcuts',()=>{
   const source=readFileSync(new URL('../'+path,import.meta.url),'utf8');
-  const handler=source.match(/window\.addEventListener\('keydown',e=>\{[\s\S]*?\n\}\);/);
+  const keyboardSource=source.replace("listen(window,'keydown'","window.addEventListener('keydown'");
+  const handler=keyboardSource.match(/window\.addEventListener\('keydown',e=>\{[\s\S]*?\n\}\);/);
   assert.ok(handler,'actual browser keyboard listener exists');
   let onKey=null,shots=0;
   const state={phase:'aim',turn:0,angle:0};

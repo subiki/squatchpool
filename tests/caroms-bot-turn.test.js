@@ -9,6 +9,7 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   'localStorage','setTimeout','clearTimeout'];
  const originals=Object.fromEntries(keys.map(k=>[k,
   Object.getOwnPropertyDescriptor(globalThis,k)]));
+ let controller;
  const elements=new Map(),listeners=new Map(),timers=new Map();
  let frame=()=>{},now=0,timerId=0;
  const ctx=new Proxy({},{
@@ -80,7 +81,8 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
  globalThis.setTimeout=fn=>{const id=++timerId;timers.set(id,fn);return id;};
  globalThis.clearTimeout=id=>{timers.delete(id);};
  try{
-  await import('../src/caroms-game.js');
+  const {mountCaromsGame}=await import('../src/caroms-game.js');
+  controller=mountCaromsGame(document);
   assert.equal(el('caroms-mode').value,'bot');
   assert.equal(el('caroms-shoot').disabled,false,'human may break');
   change('caroms-level-1','advanced');
@@ -140,7 +142,14 @@ test('Caroms solo bot takes the next turn and stale turns cannot survive restart
   assert.match(el('caroms-hud-possession').textContent,/Player 1/,
    'local mode begins a fresh human-controlled rack');
   assert.equal(el('caroms-shoot').disabled,false);
+  change('caroms-mode','bot');breakAwayFromCue();
+  assert.equal(timers.size,1,'bot work pending before disposal');
+  const disposedBot=timers.values().next().value;
+  controller.dispose();assert.equal(timers.size,0,'dispose cancels pending bot timer');
+  const disposedStatus=el('caroms-status').textContent;disposedBot();
+  assert.equal(el('caroms-status').textContent,disposedStatus,'racing bot callback cannot strike after disposal');
  }finally{
+  controller?.dispose();
   setTableSize(9);
   for(const [key,descriptor] of Object.entries(originals)){
    if(descriptor)Object.defineProperty(globalThis,key,descriptor);

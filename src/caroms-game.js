@@ -11,13 +11,34 @@ import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateCaromsShot} from './caroms-shot-adapter.js';
 import {respotCaromsBall} from './caroms-placement.js';
 import {caromsBreaker} from './caroms-match.js';
-import {initCaromsStats,newCaromsStatsId,reportCaromsRack,reportCaromsBalls} from './caroms-stats.js';
+import {createGameTelemetry,newGameStatsId as newCaromsStatsId} from './game-telemetry.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 
-const $=id=>document.getElementById(id);
+import {mountTableKit} from './table-kit-controls.js';
+const mountedGames=new WeakMap();
+export function mountCaromsGame(root=globalThis.document){
+ mountedGames.get(root)?.dispose();
+ const document=root.ownerDocument||root,cleanups=[];
+ let disposed=false,frameId=null;
+ const requestAnimationFrame=callback=>{
+  if(!disposed)frameId=globalThis.requestAnimationFrame(time=>{if(!disposed)callback(time);});
+ };
+ function listen(node,event,callback){
+  const handler=(...args)=>{if(!disposed)callback(...args);};
+  node?.addEventListener(event,handler);
+  cleanups.push(()=>node?.removeEventListener?.(event,handler));
+ }
+ const $=id=>root.getElementById?.(id)||root.querySelector('#'+id);
+ cleanups.push(mountTableKit(root));
+ const telemetry=createGameTelemetry('caroms',{root});
+ cleanups.push(()=>telemetry.dispose());
+ const reportCaromsRack=id=>telemetry.rack(id);
+ const reportCaromsBalls=(rack,id,count)=>telemetry.balls(rack,id,count);
+
 const POCKET_BUTTONS=['TL','TM','TR','BL','BM','BR'];
 const canvas=$('caroms-table'),ctx=canvas.getContext('2d');
 const invertAim=bindInvertAim($('invert-aim'));
+cleanups.push(()=>invertAim.dispose());
 const level=i=>$('caroms-level-'+i).value;
 let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0],historyNumber=0;
 const solo=()=>$('caroms-mode').value==='bot';
@@ -71,14 +92,14 @@ function log(message){
  while($('caroms-log').children.length>14)$('caroms-log').lastElementChild.remove();
 }
 const session=createGameSession({game:'caroms',adjudicate:adjudicateCaromsShot});
-attachMatchExitGuard(session);
+cleanups.push(attachMatchExitGuard(session));
 if (typeof document !== 'undefined' && $('table-stage')?.ownerDocument) {
- attachShotAnnouncer(session,$('table-stage'));
+ cleanups.push(attachShotAnnouncer(session,$('table-stage')));
 }
-session.subscribe(result=>{
+cleanups.push(session.subscribe(result=>{
  if(result.pocketed.length)reportCaromsBalls(state.statsRackId,result.shotId,result.pocketed.length);
  log(result.announcement);
-});
+}));
 function eligibleBalls(){
  if(state.breakShot)return state.balls.filter(b=>b.id===1&&!b.pocketed);
  const group=state.groups[state.turn];
@@ -299,7 +320,7 @@ const radiansToPixels=()=>TABLE.radius;
 let dragging=false,startedOnBall=false,dragStart=null;
 const movedFromStart=e=>dragStart&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY)&&
  Math.hypot(e.clientX-dragStart.x,e.clientY-dragStart.y)>=6;
-canvas.addEventListener('pointerdown',e=>{
+listen(canvas,'pointerdown',e=>{
  if(state.phase!=='aim'||!humanTurn())return;
  const p=point(e),nearest=eligibleBalls().map(b=>({b,d:Math.hypot(b.x-p.x,b.y-p.y)}))
   .sort((a,b)=>a.d-b.d)[0];
@@ -327,46 +348,46 @@ canvas.addEventListener('pointerdown',e=>{
  }
  dragging=true;canvas.setPointerCapture(e.pointerId);aim(p);
 });
-canvas.addEventListener('pointermove',e=>{
+listen(canvas,'pointermove',e=>{
  if(dragging&&(!startedOnBall||movedFromStart(e)))aim(point(e));
 });
-canvas.addEventListener('pointerup',e=>{
+listen(canvas,'pointerup',e=>{
  // Some touch devices deliver the final position only with pointerup.
  // Do not reinterpret a stationary finger tap as an aim command.
  if(dragging&&Number.isFinite(e.clientX)&&Number.isFinite(e.clientY)&&
   (!startedOnBall||movedFromStart(e)))aim(point(e));
  dragging=false;startedOnBall=false;dragStart=null;
 });
-canvas.addEventListener('pointercancel',()=>{
+listen(canvas,'pointercancel',()=>{
  dragging=false;startedOnBall=false;dragStart=null;
 });
-$('caroms-striker').addEventListener('change',e=>{state.shooterBall=Number(e.target.value);update();});
-$('caroms-call-ball').addEventListener('change',e=>{state.calledBall=e.target.value?Number(e.target.value):null;update();});
-$('caroms-call-pocket').addEventListener('change',e=>{state.calledPocket=e.target.value||null;update();});
+listen($('caroms-striker'),'change',e=>{state.shooterBall=Number(e.target.value);update();});
+listen($('caroms-call-ball'),'change',e=>{state.calledBall=e.target.value?Number(e.target.value):null;update();});
+listen($('caroms-call-pocket'),'change',e=>{state.calledPocket=e.target.value||null;update();});
 for(const id of POCKET_BUTTONS){
- $('caroms-pocket-'+id)?.addEventListener('click',()=>{
+ listen($('caroms-pocket-'+id),'click',()=>{
   if(state.phase!=='aim'||state.breakShot||
    !caromsCallRequired(level(state.turn),caromsEligible(state.balls,state.groups[state.turn])))return;
   state.calledPocket=id;update();
  });
 }
-$('caroms-undo').addEventListener('click',()=>{
+listen($('caroms-undo'),'click',()=>{
  if(state.phase!=='aim')return;
  state.calledBall=null;state.calledPocket=null;update();
 });
 for(const [id,key] of [['caroms-power','power'],['caroms-top','spinTop'],['caroms-side','spinSide']]){
- $(id).addEventListener('input',e=>{state[key]=Number(e.target.value);update();});
+ listen($(id),'input',e=>{state[key]=Number(e.target.value);update();});
 }
-for(const i of [0,1])$('caroms-level-'+i).addEventListener('change',update);
-$('caroms-shoot').addEventListener('click',hit);
-$('caroms-new').addEventListener('click',newGame);
-$('caroms-match-reset').addEventListener('click',newMatch);
-$('caroms-match-settings').addEventListener('click',newMatch);
-$('caroms-size').addEventListener('change',newMatch);
-$('caroms-mode').addEventListener('change',newMatch);
-$('caroms-center').addEventListener('click',()=>chooseOption(true));
-$('caroms-leave').addEventListener('click',()=>chooseOption(false));
-window.addEventListener('keydown',e=>{
+for(const i of [0,1])listen($('caroms-level-'+i),'change',update);
+listen($('caroms-shoot'),'click',hit);
+listen($('caroms-new'),'click',newGame);
+listen($('caroms-match-reset'),'click',newMatch);
+listen($('caroms-match-settings'),'click',newMatch);
+listen($('caroms-size'),'change',newMatch);
+listen($('caroms-mode'),'change',newMatch);
+listen($('caroms-center'),'click',()=>chooseOption(true));
+listen($('caroms-leave'),'click',()=>chooseOption(false));
+listen(window,'keydown',e=>{
  // Let focused buttons, links, sliders and other controls handle their own keys.
  // Space on Undo/New rack must never fire a shot instead of activating the control.
  const tag=e.target?.tagName?.toLowerCase();
@@ -384,4 +405,17 @@ try{
   if(['7','8','9'].includes(saved))$('caroms-size').value=saved;
  }
 }catch{}
-initCaromsStats();newMatch();requestAnimationFrame(frame);
+const controller={
+ get isRackInProgress(){return session.isRackInProgress;},
+ dispose(){
+  if(disposed)return;
+  disposed=true;cancelBot();dragging=false;dragStart=null;
+  globalThis.cancelAnimationFrame?.(frameId);
+  for(const cleanup of cleanups.splice(0).reverse())cleanup();
+  if(mountedGames.get(root)===controller)mountedGames.delete(root);
+ },
+};
+mountedGames.set(root,controller);
+newMatch();requestAnimationFrame(frame);
+return controller;
+}
