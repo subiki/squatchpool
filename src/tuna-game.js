@@ -12,7 +12,7 @@ import {createGameSession} from './game-session.js';
 import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicateTunaShot} from './tuna-shot-adapter.js';
-import {planBotShot} from './bot-shot-planner.js';
+import {planBotShot,planBotCuePlacement} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {createBotShowtime} from './bot-showtime.js';
 import {mountTableKit} from './table-kit-controls.js';
@@ -67,6 +67,8 @@ function scheduleBot(){
  botScheduler.schedule(()=>{
   if(!isBotTurn())return;
   if(shot.phase==='place'){
+   const point=planBotCuePlacement({balls,targets:tunaTargets(balls).filter(id=>id!==10||tunaCanWin(balls)),pockets,radius:TABLE.radius});
+   if(point)Object.assign(cue(),point);
    if(shot.confirmPlacement()){message('Squatch Bot placed the cue ball.');update();}
    return;
   }

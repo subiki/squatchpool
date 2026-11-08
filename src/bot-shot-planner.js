@@ -1,4 +1,4 @@
-import {TABLE,step,shotSpeed,stationary} from './physics.js';
+import {TABLE,canPlace,step,shotSpeed,stationary} from './physics.js';
 
 /**
  * Shared, deterministic Squatch Bot stroke planner.
@@ -67,4 +67,26 @@ export function planBotShot({balls,targets,pockets,radius,breakShot=false,table}
  const pocket=[...pockets].sort((a,b)=>Math.hypot(a.x-nearest.x,a.y-nearest.y)-Math.hypot(b.x-nearest.x,b.y-nearest.y))[0];
  return {ballId:nearest.id,pocketId:pocket?.id||null,
   angle:Math.atan2(nearest.y-cue.y,nearest.x-cue.x),power:65};
+}
+
+
+// Ball in hand is an opportunity to establish a clear, nearly straight pot.
+// Keep the caller's existing legal position if no such lane is available.
+export function planBotCuePlacement({balls,targets,pockets,radius}){
+ for(const object of balls.filter(b=>!b.pocketed&&b.id>0&&targets.includes(b.id))){
+  const nearest=[...pockets].sort((a,b)=>Math.hypot(a.x-object.x,a.y-object.y)-Math.hypot(b.x-object.x,b.y-object.y));
+  for(const pocket of nearest){
+   const dx=object.x-pocket.x,dy=object.y-pocket.y,length=Math.hypot(dx,dy);
+   if(length<2*radius)continue;
+   const point={x:object.x+dx/length*6*radius,y:object.y+dy/length*6*radius};
+   if(canPlace(balls,point.x,point.y,0)&&
+      clearSegment(point,object,balls,[0,object.id],radius)&&
+      clearSegment(object,pocket,balls,[0,object.id],radius)){
+    const placed=balls.map(b=>b.id===0?{...b,...point}:{...b});
+    const plan=planBotShot({balls:placed,targets,pockets,radius,table:TABLE});
+    if(plan?.ballId===object.id&&plan.pocketId===pocket.id)return point;
+   }
+  }
+ }
+ return null;
 }
