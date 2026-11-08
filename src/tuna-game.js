@@ -56,7 +56,7 @@ cleanups.push(shot.subscribe(result=>{
 }));
 let statsRackId=null,statsShotId=null;
 const botScheduler=createBotTurnScheduler();
-const solo=()=>$('opponent')?.value!=='local';
+const solo=()=>['bot','bots'].includes($('opponent')?.value);
 const isBotTurn=()=>$('opponent')?.value==='bots'||(solo()&&turn===1);
 const playerName=i=>$('opponent')?.value==='bots'?'Squatch Bot '+(i+1):
  i===1&&solo()?'Squatch Bot':'Player '+(i+1);
