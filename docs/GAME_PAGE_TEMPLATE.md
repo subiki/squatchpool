@@ -31,7 +31,7 @@ Shared persistent site header / deployment / statistics
 | More | Expandable optional inputs beneath main action | Calls, spin, bank/kick and scratch claims |
 | Rack controls | Consistent bottom bar inside table stage | Next rack, new rack or new match as applicable |
 
-A shared renderer may relocate elements, **never clone them**. Preserve IDs, cue/table canvas, listeners, values, shared `squatch-table-size` preference, game legality and bot behavior. But Wait's old size buttons remain a *hidden compatibility adapter* behind the visible common select until its controller natively accepts a select.
+A shared renderer may relocate elements, **never clone them**. Preserve IDs, cue/table canvas, listeners, values, shared `squatch-table-size` preference, game legality and bot behavior. But Wait now uses a **real native 7/8/9-foot select** wired directly into its controller, just like other games. Do not reintroduce hidden button adapters.
 
 ## Do not do
 

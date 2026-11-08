@@ -21,9 +21,12 @@ test('one canonical game template config covers every playable route',()=>{
  assert.match(shell,/'squatch-shot-row'/);
  assert.match(shell,/'squatch-shot-actions'/);
  assert.match(shell,/main\.dataset\.squatchGameShell=gameId/);
- assert.match(shell,/size\.addEventListener\('change'/,
-   'But Wait needs a real visible select driving its existing size behavior');
- assert.match(shell,/squatch-legacy-size/);
+ assert.equal(GAME_PAGE_CONFIG['but-wait'].size,'size','But Wait uses the shared native size control');
+ assert.doesNotMatch(shell,/squatch-legacy-size|\.table-size-buttons/,
+  'no hidden-button adapter may remain inside the shared template');
+ const butWait=read('but-wait.html');
+ assert.match(butWait,/<select id="size" aria-label="Table size">/);
+ assert.doesNotMatch(butWait,/table-size-pick|table-size-buttons/);
  assert.equal(prepareGamePage({},'unknown'),false,'unsupported game is a no-op');
 });
 test('every game imports the same composer before wiring controls',()=>{

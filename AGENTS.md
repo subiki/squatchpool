@@ -13,7 +13,7 @@
 
 - **Only one page composer:** `src/game-page-shell.js`. **Only one common layout stylesheet:** `src/game-shell.css`. Classic (`src/pnw-theme.css`) and Rock & Roll (`src/wild-squatch.css`) are **skins**, not alternative page templates.
 - All five original games and Arcade use identical slots in order: **Introduction → Set up your game → How to play → At the table → Details and history**.
-- Player and table-size inputs use the shared setup grid and the same labels, padding, dimensions and responsive layout. Game-specific skill, target or team choices are extensions *inside* the shared slots.
+- Player and table-size inputs use the shared setup grid and the same labels, padding, dimensions and responsive layout. **But Wait uses its actual native 7/8/9-foot select, not simulated clicks on hidden buttons.** Game-specific skill, target or team choices are extensions *inside* the shared slots.
 - Common shot layout: optional striker → power → Shoot/Break; reverse aim and fullscreen; expandable call/spin/game options; rack actions below.
 - Game controllers own mechanics, scoring, bots, rules, state and named exceptional controls—not headers, cards, page spacing, selectors, background or independent button design.
 - **Move existing canvas and control nodes; never clone them.** Preserve controller DOM IDs, event bindings, break placement and shared size preference.

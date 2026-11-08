@@ -17,12 +17,6 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   setAttribute(name,value){this.attributes[name]=String(value);},
   addEventListener(event,fn){events.set('pocket-'+id+':'+event,fn);}
  }));
- const sizeButtons=['7','8','9'].map(size=>({
-  dataset:{size},pressed:false,attributes:{},
-  classList:{toggle(){}},
-  setAttribute(name,value){this.attributes[name]=value;},
-  addEventListener(event,fn){events.set('size-'+size+':'+event,fn);}
- }));
  const grad={addColorStop(){}};
  let cueDraws=0,nextFrame=()=>{},time=0,lastTranslate={x:0,y:0};
  const objectBallPositions=new Map();
@@ -35,7 +29,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  },{get(o,key){return key in o?o[key]:()=>{};},set(o,key,v){o[key]=v;return true;}});
  function element(id){
   if(!elements.has(id))elements.set(id,{
-   id,value:id==='#mode'?'local':id==='#power'?'68':'',
+   id,value:id==='#mode'?'local':id==='#power'?'68':id==='#size'?'7':'',
    hidden:false,disabled:false,textContent:'',children:[],
    classList:{toggle(){}},
    attributes:{},
@@ -57,7 +51,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  });
  globalThis.document={
   querySelector:element,
-  querySelectorAll(selector){return selector==='.pocket-pick'?markers:selector==='.table-size-pick'?sizeButtons:[];},
+  querySelectorAll(selector){return selector==='.pocket-pick'?markers:[];},
   createElement:makeElement,
  };
  const root={querySelector:element,querySelectorAll:document.querySelectorAll,ownerDocument:document,setAttribute(){},focus(){}};
@@ -91,6 +85,13 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('window:pagehide')();cancelled=0;
   const {mountButWaitGame}=await import('../src/game.js');
   controller=mountButWaitGame(document);
+  assert.equal(element('#size').value,'7','native table select shows the active size');
+  element('#size').value='8';
+  events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'8','native selection persists after rack reset');
+  element('#size').value='7';
+  events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'7','size control can return to the bar table');
   events.get('#table:pointerdown')({clientX:90,clientY:120,pointerId:31});
   events.get('#table:pointerdown')({clientX:130,clientY:150,pointerId:32});
   events.get('#table:pointermove')({clientX:140,clientY:160,pointerId:32});
@@ -134,7 +135,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'repositioned cue can break');
 
-  assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
+  assert.equal(element('#size').value,'7','native select reflects selected table');
   assert.match(element('#table-dimensions').textContent,/7 FT.*78.*39/);
   const width7=element('#table').width,height7=element('#table').height;
   assert.ok(width7<800&&height7<420,'default is the compact 7 foot bar box');
@@ -212,9 +213,8 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'new rack can place and break');
   assert.equal(element('#undo-call').disabled,true);
-  events.get('size-8:click')();
-  assert.equal(sizeButtons[1].attributes['aria-pressed'],'true');
-  assert.equal(sizeButtons[0].attributes['aria-pressed'],'false');
+  element('#size').value='8';events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'8');
   assert.match(element('#table-dimensions').textContent,/8 FT.*88.*44/);
   assert.ok(element('#table').width>width7&&element('#table').height>height7);
   assert.equal(element('#shoot').disabled,true,'size change starts cue-placement phase');
@@ -223,16 +223,16 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#shoot').disabled,false,'size 8 accepts head-quarter placement');
   assert.equal(element('#pocket-targets').hidden,true);
   const width8=element('#table').width,height8=element('#table').height;
-  events.get('size-9:click')();
-  assert.equal(sizeButtons[2].attributes['aria-pressed'],'true');
+  element('#size').value='9';events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'9');
   assert.match(element('#table-dimensions').textContent,/9 FT.*100.*50/);
   assert.ok(element('#table').width>width8&&element('#table').height>height8);
   assert.equal(element('#shoot').disabled,true,'size 9 requires cue placement');
   events.get('#table:pointerdown')({clientX:145,clientY:215,pointerId:6});
   events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'size 9 accepts legal placement');
-  events.get('size-7:click')();
-  assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
+  element('#size').value='7';events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'7');
   assert.equal(element('#table').width,width7);
   assert.equal(element('#table').height,height7);
   assert.equal(element('#shoot').disabled,true,'switching back reracks and requires cue placement');

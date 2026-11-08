@@ -66,11 +66,8 @@ function newGame(){
  cancelPointer();clearTimeout(botTimer);
  session.startRack();
  setTableSize(selectedTableSize);
- for(const button of root.querySelectorAll('.table-size-pick')){
-  const chosen=Number(button.dataset.size)===TABLE.size;
-  button.classList.toggle('selected',chosen);
-  button.setAttribute('aria-pressed',String(chosen));
- }
+ // Keep the actual native select in sync with restored preferences and rack resets.
+ $('#size').value=String(TABLE.size);
  canvas.width=Math.round(TABLE.width);
  canvas.height=Math.round(TABLE.height);
  // Canonical simulation coordinates must match the browser's pixel canvas.
@@ -542,9 +539,10 @@ listen($('#shoot'),'click',()=>{if(state.phase==='aim'&&human(state.turn))hit();
 listen($('#new-game'),'click',newGame);
 listen($('#play-again'),'click',newGame);
 listen($('#mode'),'change',newGame);
-for(const button of root.querySelectorAll('.table-size-pick')){
- listen(button,'click',()=>{selectedTableSize=Number(button.dataset.size);newGame();});
-}
+listen($('#size'),'change',event=>{
+ const next=Number(event.target.value);
+ if([7,8,9].includes(next)){selectedTableSize=next;newGame();}
+});
 listen(window,'keydown',e=>{
  // Preserve native keyboard activation of focused controls (especially Undo).
  const tag=e.target?.tagName?.toLowerCase();
