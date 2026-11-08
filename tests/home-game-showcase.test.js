@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {existsSync,readFileSync} from 'node:fs';
 import {GAMES,renderGameCards} from '../src/game-catalog.js';
+import {GAME_GUIDES} from '../src/game-guides.js';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const pages=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
@@ -57,8 +58,15 @@ test('home promotes each game with a rules summary, expanded strategy and local 
    assert.equal(details.className,'hub-rules');
    assert.equal(details.children[0].tag,'summary');
    assert.match(details.children[0].textContent,/rules.*strategy/i);
-   assert.equal(details.children[1].children.length,
-    GAMES.find(g=>g.id===card.dataset.game).rules.length);
+   const guide=GAME_GUIDES[card.dataset.game];
+   const sections=details.children.filter(node=>node.tag==='section');
+   assert.equal(sections.length,guide.sections.length);
+   for(let i=0;i<sections.length;i++){
+    assert.equal(sections[i].children[0].textContent,guide.sections[i].title);
+    assert.equal(sections[i].children[1].children.length,guide.sections[i].items.length);
+   }
+   assert.ok(details.children.some(node=>node.className==='hub-rule-example'));
+   assert.ok(details.children.some(node=>node.className==='hub-rule-controls'));
    const play=card.children.at(-1);
    assert.equal(play.tag,'a');
    assert.match(play.href,/^\/[a-z-]+\.html$/);

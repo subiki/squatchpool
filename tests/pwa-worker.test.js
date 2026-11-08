@@ -64,10 +64,12 @@ test('browser owns installation UI while offline status and repair remain availa
     'Do not suppress native browser install promotion or render a site install button');
   assert.match(page, /navigator\.serviceWorker\.register\('\/service-worker\.js'/,
     'Keep offline installation and updates working');
-  assert.match(page, /Retry offline download/,
-    'Keep the explicit repair control for damaged offline caches');
-  assert.match(page, /Ready to play offline/,
-    'Keep the offline readiness status');
+  assert.doesNotMatch(page, /Retry offline download|Ready to play offline|squatch-offline-tools/,
+    'Keep the offline banner removed as requested; native browser owns install UI');
+  assert.match(page, /SQUATCH_OFFLINE_REPAIR/,
+    'Preserve silent automatic cache repair without an on-page status banner');
+  assert.match(page, /verifyCache\(reg, true\)/,
+    'Continue repairing evicted offline files automatically');
 });
 
 test('install preloads playable pages and activation retains only new offline edition',async () => {

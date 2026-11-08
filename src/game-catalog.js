@@ -1,3 +1,4 @@
+import {GAME_GUIDES} from './game-guides.js';
 // Source of truth for homepage promotion and playable, local house rules.
 // Keep rules visible in the site, not in external documents or retired pages.
 export const GAMES=[
@@ -72,11 +73,23 @@ export function renderGameCards(container,stats){
   const rules=document.createElement('details');rules.className='hub-rules';
   if(expanded.has(game.id))rules.open=true;
   const summary=document.createElement('summary');summary.textContent='Explore the rules & strategy';
-  const list=document.createElement('ol');
-  for(const item of game.rules){const li=document.createElement('li');li.textContent=item;list.append(li);}
+  const guide=GAME_GUIDES[game.id];
+  const lead=document.createElement('p');lead.className='hub-rule-lead';lead.textContent=guide.intro;
+  rules.append(summary,lead);
+  for(const section of guide.sections){
+   const block=document.createElement('section');block.className='hub-rule-section';
+   const heading=document.createElement('h4');heading.textContent=section.title;
+   const list=document.createElement('ol');
+   for(const item of section.items){const li=document.createElement('li');li.textContent=item;list.append(li);}
+   block.append(heading,list);rules.append(block);
+  }
+  const example=document.createElement('p');example.className='hub-rule-example';
+  example.textContent='Example: '+guide.example;
+  const controls=document.createElement('p');controls.className='hub-rule-controls';
+  controls.textContent='Playing on this site: '+guide.controls;
   const strategy=document.createElement('p');strategy.className='hub-strategy';
   strategy.textContent='The Squatch edge: '+game.strategy;
-  rules.append(summary,list,strategy);
+  rules.append(example,controls,strategy);
   const link=document.createElement('a');link.className='hub-play';
   link.href=game.url;link.textContent='Play '+game.name.replace(' · Whacky Pool','');
   link.setAttribute('aria-label','Play '+game.name);
