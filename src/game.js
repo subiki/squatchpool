@@ -7,7 +7,7 @@ import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForS
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
 import {createTableRenderer} from './table-renderer.js';
-import {drawAimAssistance} from './aim-assist.js';
+import {drawAimAssistance,readAimAssistMode} from './aim-assist.js';
 import {createGameSession} from './game-session.js';
 import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
@@ -422,7 +422,7 @@ function render(){
      const approach=proj-Math.sqrt(Math.max(0,(2*r)**2-side**2));if(approach>0)reach=Math.min(reach,approach);
     }
    }
-   ctx.save();ctx.setLineDash([11,11]);ctx.lineWidth=2.5;ctx.strokeStyle='#f0dda4ad';ctx.beginPath();ctx.moveTo(cb.x+dx*16,cb.y+dy*16);ctx.lineTo(cb.x+dx*reach,cb.y+dy*reach);ctx.stroke();ctx.setLineDash([]);
+   ctx.save();if(readAimAssistMode()!=='minimal'){ctx.setLineDash([11,11]);ctx.lineWidth=2.5;ctx.strokeStyle='#f0dda4ad';ctx.beginPath();ctx.moveTo(cb.x+dx*16,cb.y+dy*16);ctx.lineTo(cb.x+dx*reach,cb.y+dy*reach);ctx.stroke();ctx.setLineDash([]);}
    const back=30+state.power/100*45;
    ctx.strokeStyle='#d4a76c';ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(cb.x-dx*(r+back),cb.y-dy*(r+back));ctx.lineTo(cb.x-dx*(r+back+180),cb.y-dy*(r+back+180));ctx.stroke();
    ctx.strokeStyle='#78c3bd';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(cb.x-dx*(r+back),cb.y-dy*(r+back));ctx.lineTo(cb.x-dx*(r+back+15),cb.y-dy*(r+back+15));ctx.stroke();ctx.restore();
