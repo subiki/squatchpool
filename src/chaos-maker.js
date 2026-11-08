@@ -5,6 +5,10 @@ const ctx=canvas.getContext('2d');
 const $=id=>document.getElementById(id);
 const W=960,H=520,R=13,KEY='squatch-chaos-tables-v1';
 let balls=[],bumpers=[],playing=false,shots=0,pocketed=0,drag=null,aim={x:1,y:0},snapshot=null,last=0,frame=0,stage=0,events=[],goalFinished=false,editDraft=null;
+const AIM_KEY='squatch-invert-aim';
+try{$('chaos-invert').checked=localStorage.getItem(AIM_KEY)==='true';}catch{}
+$('chaos-invert').addEventListener('change',()=>{try{localStorage.setItem(AIM_KEY,String($('chaos-invert').checked));}catch{}draw();});
+$('chaos-guide').addEventListener('change',draw);
 const rand=(a,b)=>a+Math.random()*(b-a);
 const mods=()=>({bounce:$('mod-bounce').checked,gravity:$('mod-gravity').checked,magnet:$('mod-magnet').checked,pinball:$('mod-pinball').checked,...Object.fromEntries(NIGHTMARE_MODS.map(k=>[k,$('mod-'+k).checked]))});
 const setMods=m=>{for(const [key,id] of [['bounce','mod-bounce'],['gravity','mod-gravity'],['magnet','mod-magnet'],['pinball','mod-pinball']])$(id).checked=!!m[key];for(const k of NIGHTMARE_MODS)$('mod-'+k).checked=!!m[k];};
@@ -42,7 +46,41 @@ function draw(){
  if(mods().magnet){ctx.strokeStyle='#d4b96b';ctx.setLineDash([9,8]);ctx.beginPath();ctx.arc(W/2,H/2,54,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
  if(mods().pinball)for(const b of bumpers){ctx.fillStyle='#e9a845';ctx.strokeStyle='#fff0a8';ctx.lineWidth=4;ctx.beginPath();ctx.arc(b.x,b.y,b.r,0,Math.PI*2);ctx.fill();ctx.stroke();}
  for(const b of balls){if(b.eight){ctx.strokeStyle='#f4d35e';ctx.lineWidth=5;ctx.beginPath();ctx.arc(b.x,b.y,R+5,0,Math.PI*2);ctx.stroke();}ctx.fillStyle=b.c;ctx.strokeStyle='#10241b';ctx.lineWidth=2;ctx.beginPath();ctx.arc(b.x,b.y,R,0,Math.PI*2);ctx.fill();ctx.stroke();}
- if(playing&&balls.length&&Math.hypot(balls[0].vx,balls[0].vy)<.25){const b=balls[0];ctx.strokeStyle='#fff3b0';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(b.x+aim.x*95,b.y+aim.y*95);ctx.stroke();}
+ if(playing&&balls.length&&Math.hypot(balls[0].vx,balls[0].vy)<.25){
+  const b=balls[0],dx=aim.x,dy=aim.y;
+  if($('chaos-guide').checked){
+   let distance=Infinity,target=null,kind='rail';
+   const railDistances=[dx>0?(W-24-R-b.x)/dx:Infinity,dx<0?(24+R-b.x)/dx:Infinity,dy>0?(H-24-R-b.y)/dy:Infinity,dy<0?(24+R-b.y)/dy:Infinity].filter(t=>t>0);
+   distance=Math.min(...railDistances);
+   for(let i=1;i<balls.length;i++){
+    const other=balls[i],ox=other.x-b.x,oy=other.y-b.y;
+    const projection=ox*dx+oy*dy,perp2=ox*ox+oy*oy-projection*projection;
+    if(projection<=0||perp2>(2*R)*(2*R))continue;
+    const t=projection-Math.sqrt(Math.max(0,(2*R)*(2*R)-perp2));
+    if(t>=0&&t<distance){distance=t;target=other;kind='ball';}
+   }
+   if(mods().pinball)for(const bumper of bumpers){
+    const ox=bumper.x-b.x,oy=bumper.y-b.y,projection=ox*dx+oy*dy,rad=R+bumper.r;
+    const perp2=ox*ox+oy*oy-projection*projection;
+    if(projection<=0||perp2>rad*rad)continue;
+    const t=projection-Math.sqrt(Math.max(0,rad*rad-perp2));
+    if(t>=0&&t<distance){distance=t;target=bumper;kind='bumper';}
+   }
+   if(Number.isFinite(distance)){
+    const hitX=b.x+dx*distance,hitY=b.y+dy*distance;
+    ctx.save();ctx.setLineDash([10,7]);ctx.strokeStyle='#f8edb6';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(hitX,hitY);ctx.stroke();ctx.setLineDash([]);
+    ctx.strokeStyle=kind==='ball'?'#7ef2d5':'#ffc66d';ctx.lineWidth=3;
+    ctx.beginPath();ctx.arc(hitX,hitY,R,0,Math.PI*2);ctx.stroke();
+    if(kind==='ball'&&target){
+      const nx=(target.x-hitX)/(2*R),ny=(target.y-hitY)/(2*R);
+      ctx.strokeStyle='#7ef2d5';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(target.x,target.y);ctx.lineTo(target.x+nx*70,target.y+ny*70);ctx.stroke();
+    }
+    ctx.restore();
+   }
+  }
+  ctx.strokeStyle='#fff3b0';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(b.x-dx*26,b.y-dy*26);ctx.lineTo(b.x-dx*58,b.y-dy*58);ctx.stroke();
+ }
 }
 function tick(time){
  const dt=Math.min(2,(time-last)/16.67||1);last=time;
@@ -82,7 +120,7 @@ function checkGoal(){
 const coords=e=>{const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};};
 canvas.addEventListener('pointerdown',e=>{
  const p=coords(e);canvas.setPointerCapture(e.pointerId);
- if(playing){drag={type:'aim',x:p.x,y:p.y};return;}
+ if(playing){drag={type:'aim',x:p.x,y:p.y};const b=balls[0];if(b){const invert=$('chaos-invert').checked?-1:1,dx=(p.x-b.x)*invert,dy=(p.y-b.y)*invert,d=Math.hypot(dx,dy);if(d>6)aim={x:dx/d,y:dy/d};}draw();return;}
  const tool=$('chaos-tool').value;
  let i=balls.findIndex(b=>Math.hypot(b.x-p.x,b.y-p.y)<R+12);
  let j=bumpers.findIndex(b=>Math.hypot(b.x-p.x,b.y-p.y)<b.r+9);
@@ -97,7 +135,7 @@ canvas.addEventListener('pointerdown',e=>{
  else if((tool==='ball'||tool==='eight')&&balls.length<70){if(tool==='eight'&&balls.some(b=>b.eight)){status('Only one special 8-ball per game.');return;}balls.push({...ball(p.x,p.y,tool==='eight'?'#202020':['#f7bb45','#ee6060','#63b1f5'][balls.length%3]),eight:tool==='eight'});drag={type:'ball',i:balls.length-1};}
  draw();
 });
-canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=coords(e);if(drag.type==='aim'&&balls.length){const b=balls[0],dx=p.x-b.x,dy=p.y-b.y,d=Math.hypot(dx,dy)||1;aim={x:dx/d,y:dy/d};}else if(!playing){const b=drag.type==='ball'?balls[drag.i]:bumpers[drag.i];if(b)Object.assign(b,bounded(p.x,p.y));}draw();});
+canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=coords(e);if(drag.type==='aim'&&balls.length){const b=balls[0],invert=$('chaos-invert').checked?-1:1,dx=(p.x-b.x)*invert,dy=(p.y-b.y)*invert,d=Math.hypot(dx,dy);if(d>6)aim={x:dx/d,y:dy/d};}else if(!playing){const b=drag.type==='ball'?balls[drag.i]:bumpers[drag.i];if(b)Object.assign(b,bounded(p.x,p.y));}draw();});
 canvas.addEventListener('pointerup',()=>{drag=null;});canvas.addEventListener('pointercancel',()=>{drag=null;});
 $('chaos-random').addEventListener('click',randomize);
 $('chaos-play').addEventListener('click',()=>{if(playing){if(editDraft){load(editDraft);editDraft=null;}else if(snapshot)load(snapshot);status('Back to editing the original layout.');return;}snapshot=state();editDraft=state();goalFinished=false;$('chaos-result').textContent='';playing=true;$('chaos-play').textContent=playing?'✎ Build':'▶ Play';status(playing?'Play mode: drag from the white ball to aim, then shoot.':'Build mode: drag objects and tap felt to add balls.');draw();});

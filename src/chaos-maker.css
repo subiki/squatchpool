@@ -22,3 +22,10 @@
 
 .chaos-share-label{display:grid!important;gap:6px;width:100%;font-weight:700}
 #chaos-share-code{box-sizing:border-box;width:100%;max-width:100%;min-height:55px;resize:vertical;background:#f5f2e8;color:#17291e;border-radius:8px;padding:8px;font:12px/1.4 monospace}
+
+.chaos-mod-option{position:relative;min-height:38px;padding:5px 8px;border:1px solid #50745d;border-radius:9px;background:#204b37}
+.chaos-mod-option:has(input:checked){border-color:#dfbd78;background:#315a3d}
+.chaos-tip{position:relative;display:inline-flex;align-items:center;justify-content:center;min-width:28px;min-height:28px;border-radius:50%;color:#ffe5a4;font-size:1.1rem;cursor:help;outline-offset:3px}
+.chaos-tip:hover::after,.chaos-tip:focus-visible::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);z-index:20;width:min(270px,75vw);padding:12px;border:1px solid #d4b878;border-radius:10px;background:#0b261c;color:#fff;font-size:14px;line-height:1.4;font-weight:500;white-space:normal;box-shadow:0 6px 22px #0009;pointer-events:none}
+.chaos-tip:focus-visible{outline:3px solid #f9d37b}
+.chaos-mods{overflow:visible}
