@@ -2,170 +2,105 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {attachStaticNavigation} from '../src/static-navigation.js';
 
-test('Home/Rules/Archive/Press/Tuna/Caroms/Cutthroat/But Wait navigation preserves header, rack progress, history and fallback',async()=>{
- const events=new Map(),requests=[],assigned=[],history=[];
- const header={stamp:'verified',stats:'live'},doc={header};
- let tunaMounts=0,tunaDisposals=0,caromsMounts=0,caromsDisposals=0,cutMounts=0,cutDisposals=0,butMounts=0,butDisposals=0;
- let href='https://squatch.example/rules',state={},y=450,paused=0,fail=false,pending,active=false,mounts=0,disposals=0,allowLeave=false,goTarget;
+// The remaining shell handles Home and the five mountable game routes.
+// Arcade keeps ordinary document navigation until it has a lifecycle mount.
+test('internal SPA navigation preserves the header, updates games, and guards unfinished racks',async()=>{
+ const events=new Map(),requests=[],redirects=[],history=[],navLinks=[];
+ let href='https://squatch.example/',state={},y=100,busy=false,allowLeave=false;
+ let pressMounts=0,pressDisposals=0,tunaMounts=0;
  const link=path=>({href:'https://squatch.example'+path,attributes:{},target:'',
-  hasAttribute(){return false;},setAttribute(k,v){this.attributes[k]=v;},removeAttribute(k){delete this.attributes[k];}});
- const links=[link('/rules.html'),link('/archive.html'),link('/but-wait.html'),link('/'),link('/press-your-luck.html'),link('/tuna.html'),link('/caroms.html'),link('/cutthroat.html')];
+  hasAttribute(){return false;},setAttribute(k,v){this.attributes[k]=v;},
+  removeAttribute(k){delete this.attributes[k];}});
+ for(const path of ['/','/but-wait.html','/caroms.html','/cutthroat.html',
+                    '/press-your-luck.html','/tuna.html','/arcade.html'])navLinks.push(link(path));
+ const doc={header:{name:'shared'},styles:[],main:null,title:'home'};
  function page(name){
-  const main={name,attributes:{},querySelector:()=>null,
-   querySelectorAll:()=>[{pause(){paused++;}}],
-   replaceWith(next){doc.main=next;},after(footer){doc.footer=footer;},
-   setAttribute(k,v){this.attributes[k]=v;},focus(){this.focused=true;}};
-  const style={name,tagName:'STYLE',remove(){doc.styles=doc.styles.filter(node=>node!==this);}};
-  const sheet={tagName:'LINK',getAttribute:()=>name==='home'?'/src/game-hub.css':'/src/world.css',remove(){doc.styles=doc.styles.filter(node=>node!==this);}};
-  const footer=name==='rules'?{remove(){doc.footer=null;}}:null;
-  return {title:name,main,style,styles:[style,sheet],footer,
-   querySelector:selector=>selector==='main'?main:footer,querySelectorAll:()=>[style,sheet]};
+  const main={name,focused:false,
+   querySelector(){return null;},querySelectorAll(){return [];},
+   replaceWith(next){doc.main=next;},after(){},
+   setAttribute(){},focus(){this.focused=true;}};
+  const sheet={tagName:'LINK',
+   getAttribute(){return name==='home'?'/src/game-hub.css':'/src/game-page-layout.css';},
+   remove(){doc.styles=doc.styles.filter(x=>x!==this);}};
+  return {title:name,main,querySelector:k=>k==='main'?main:null,
+   querySelectorAll:()=>[sheet]};
  }
- Object.assign(doc,page('rules'));
- doc.querySelector=selector=>selector==='main'?doc.main:selector==='body > footer'?doc.footer:null;
- doc.querySelectorAll=selector=>selector==='[data-page-style]'?doc.styles:links;
- doc.head={append(...styles){doc.styles=styles;doc.style=styles[0];}};
- doc.createElement=()=>({tagName:'STYLE',setAttribute(){},remove(){doc.styles=doc.styles.filter(node=>node!==this);}});
- doc.importNode=node=>node;
- doc.getElementById=id=>id==='episode-4'?{scrollIntoView(){y=900;}}:null;
- doc.addEventListener=(name,fn)=>events.set(name,fn);
- doc.removeEventListener=name=>events.delete(name);
- const win={document:doc,scrollX:0,get scrollY(){return y;},scrollTo(x,next){y=next;},
-  location:{get href(){return href;},get origin(){return new URL(href).origin;},assign(url){assigned.push(url);}},
+ doc.main=page('home').main;
+ doc.querySelector=k=>k==='main'?doc.main:null;
+ doc.querySelectorAll=k=>k==='[data-page-style]'?doc.styles:navLinks;
+ doc.head={append(...xs){doc.styles=xs;}};
+ doc.createElement=()=>({tagName:'STYLE',setAttribute(){},
+  remove(){doc.styles=doc.styles.filter(x=>x!==this);}});
+ doc.importNode=x=>x;
+ doc.getElementById=k=>k==='game-caroms'?{scrollIntoView(){y=250;}}:null;
+ doc.addEventListener=(k,fn)=>events.set('doc:'+k,fn);
+ doc.removeEventListener=k=>events.delete('doc:'+k);
+ const win={document:doc,scrollX:0,get scrollY(){return y;},scrollTo(x,v){y=v;},
+  location:{get href(){return href;},get origin(){return 'https://squatch.example';},
+   assign(url){redirects.push(url);}},
   history:{scrollRestoration:'auto',get state(){return state;},
    replaceState(next,unused,url){state=next;href=url;},
    pushState(next,unused,url){state=next;href=url;history.push({state:next,url});}},
   confirm:()=>allowLeave,
-  addEventListener:(name,fn)=>events.set(name,fn),removeEventListener:name=>events.delete(name),
-  fetch:async url=>{requests.push(url);if(pending)return pending;if(fail)throw new Error('offline');return {ok:true,text:async()=>url.endsWith('.css')?'body{background:url("data:image/svg+xml,%3Csvg/%3E")}':url.includes('press-your-luck')?'press':url.includes('tuna')?'tuna':url.includes('caroms')?'caroms':url.includes('cutthroat')?'cutthroat':url.includes('but-wait')?'but-wait':url.includes('archive')?'archive':url.includes('index')?'home':'rules'};},
-  DOMParser:class{parseFromString(text){return page(text);}},
+  addEventListener:(k,fn)=>events.set('win:'+k,fn),
+  removeEventListener:k=>events.delete('win:'+k),
+  fetch:async url=>{
+   requests.push(url);
+   return {ok:true,text:async()=>url.endsWith('.css')?'body{color:#fff}':
+    url.includes('press-your-luck')?'press':url.includes('tuna')?'tuna':
+    url.includes('caroms')?'caroms':url.includes('cutthroat')?'cutthroat':
+    url.includes('but-wait')?'but-wait':'home'};
+  },
+  DOMParser:class{parseFromString(content){return page(content);}}
  };
- const dispose=attachStaticNavigation(win,{loadPress:async()=>({mountPressGame(root){
-  assert.equal(root.name,'press');mounts++;active=false;
-  return {get isRackInProgress(){return active;},dispose(){disposals++;}};
- }}),loadTuna:async()=>({mountTunaGame(root){
-  assert.equal(root.name,'tuna');tunaMounts++;active=false;
-  return {get isRackInProgress(){return active;},dispose(){tunaDisposals++;}};
- }}),loadCaroms:async()=>({mountCaromsGame(root){
-  assert.equal(root.name,'caroms');caromsMounts++;active=false;
-  return {get isRackInProgress(){return active;},dispose(){caromsDisposals++;}};
- }}),loadCutthroat:async()=>({mountCutthroatGame(root){
-  assert.equal(root.name,'cutthroat');cutMounts++;active=false;
-  return {get isRackInProgress(){return active;},dispose(){cutDisposals++;}};
- }}),loadButWait:async()=>({mountButWaitGame(root){
-  assert.equal(root.name,'but-wait');butMounts++;active=false;
-  return {get isRackInProgress(){return active;},dispose(){butDisposals++;}};
- }})});
- win.history.go=delta=>{assert.equal(delta,1,'Back cancellation reverses exactly one history position');href=goTarget.url;state=goTarget.state;events.get('popstate')({state});};
- const click=(target,extra={})=>{
-  const event={button:0,target:{closest:()=>target},preventDefault(){this.prevented=true;},...extra};
-  events.get('click')(event);return event;
+ const stop=attachStaticNavigation(win,{
+  initialView:{dispose(){}},
+  loadPress:async()=>({mountPressGame(root){assert.equal(root.name,'press');pressMounts++;
+   return {get isRackInProgress(){return busy;},dispose(){pressDisposals++;}};}}),
+  loadTuna:async()=>({mountTunaGame(root){assert.equal(root.name,'tuna');tunaMounts++;
+   return {get isRackInProgress(){return busy;},dispose(){}};}}),
+  loadCaroms:async()=>({mountCaromsGame(root){
+   assert.equal(root.name,'caroms');return {dispose(){}};}}),
+  loadCutthroat:async()=>({mountCutthroatGame(root){
+   assert.equal(root.name,'cutthroat');return {dispose(){}};}}),
+  loadButWait:async()=>({mountButWaitGame(root){
+   assert.equal(root.name,'but-wait');return {dispose(){}};}})
+ });
+ const click=(linkNode,extra={})=>{
+  const ev={button:0,target:{closest:()=>linkNode},preventDefault(){this.prevented=true;},...extra};
+  events.get('doc:click')(ev);return ev;
  };
  const flush=()=>new Promise(resolve=>setImmediate(resolve));
- assert.equal(click(link('/arcade.html')).prevented,undefined,'parked Arcade retains native navigation');
- assert.equal(click(links[1],{ctrlKey:true}).prevented,undefined,'new-tab gestures remain native');
- assert.equal(click(links[1]).prevented,true);await flush();
- assert.equal(doc.header,header);assert.deepEqual(header,{stamp:'verified',stats:'live'});
- assert.equal(doc.main.name,'archive');assert.equal(doc.style.name,'archive');assert.equal(doc.footer,null);
- assert.equal(doc.title,'archive');assert.equal(doc.main.focused,true);assert.equal(y,0);
- assert.equal(links[1].attributes['aria-current'],'page');assert.equal(paused,1);
- assert.deepEqual(requests,['/archive.html','https://squatch.example/src/world.css'],'only page HTML/styles are fetched, never header stats or scripts');
- y=600;href='https://squatch.example/rules';events.get('popstate')({state:{squatchStatic:0}});await flush();
- assert.equal(doc.main.name,'rules');assert.equal(y,450);assert.ok(doc.footer);
- const archiveEntry=history[0];href=archiveEntry.url;events.get('popstate')({state:archiveEntry.state});await flush();
- assert.equal(doc.main.name,'archive');assert.equal(y,600);
- click(link('/archive.html#episode-4'));await flush();assert.equal(y,900,'same-view anchors scroll without a reload');
- click(links[3]);await flush();
- assert.equal(doc.main.name,'home');assert.equal(doc.header,header);
- assert.equal(links[3].attributes['aria-current'],'page');
- click(links[1]);await flush();
- assert.equal(doc.main.name,'archive');
- assert.equal(requests.filter(url=>url.endsWith('/src/world.css')).length,1,'page styles are reused on return');
- assert.equal(requests.filter(url=>url.endsWith('/src/game-hub.css')).length,1);
- click(link('/archive.html#episode-4'));await flush();
- fail=true;click(links[0]);await flush();
- assert.equal(assigned.at(-1),links[0].href,'failed fetch falls back to a normal static link');
- fail=false;let resolve;pending=new Promise(done=>{resolve=done;});
- click(links[0]);click(link('/archive.html#episode-4'));
- resolve({ok:true,text:async()=>'rules'});await flush();
- assert.equal(doc.main.name,'archive','a stale response cannot replace the chosen current view');
- pending=null;
- click(links[4]);await flush();
- assert.equal(doc.main.name,'press');assert.equal(mounts,1);assert.equal(doc.header,header);
- const pressEntry=history.at(-1),backEntry=history.at(-2);
- active=true;
- const beforeCancel=requests.length;
- click(links[0]);await flush();
- assert.equal(doc.main.name,'press');assert.equal(requests.length,beforeCancel,'cancelled leave does not fetch or dispose');
- assert.equal(disposals,0);
- goTarget=pressEntry;href=backEntry.url;state=backEntry.state;events.get('popstate')({state});await flush();
- assert.equal(href,pressEntry.url);assert.equal(doc.main.name,'press');assert.equal(disposals,0);
- allowLeave=true;href=backEntry.url;state=backEntry.state;events.get('popstate')({state});await flush();
- assert.equal(doc.main.name,'archive');assert.equal(disposals,1,'confirmed leave disposes the game once');
- href=pressEntry.url;state=pressEntry.state;events.get('popstate')({state});await flush();
- assert.equal(mounts,2,'Forward starts one fresh game');
- events.get('pagehide')();assert.equal(disposals,2);
- await events.get('pageshow')({persisted:true});
- assert.equal(mounts,3,'native cached history restore remounts one game');
- click(links[5]);await flush();
- assert.equal(doc.main.name,'tuna');assert.equal(tunaMounts,1);assert.equal(disposals,3);
- assert.equal(doc.header,header);assert.equal(links[5].attributes['aria-current'],'page');
- const tunaEntry=history.at(-1),priorEntry=history.at(-2);
- active=true;allowLeave=false;
- const beforeTunaCancel=requests.length;
- click(links[4]);await flush();
- assert.equal(requests.length,beforeTunaCancel);assert.equal(tunaDisposals,0);
- goTarget=tunaEntry;href=priorEntry.url;state=priorEntry.state;events.get('popstate')({state});await flush();
- assert.equal(href,tunaEntry.url);assert.equal(doc.main.name,'tuna');assert.equal(tunaDisposals,0);
- allowLeave=true;href=priorEntry.url;state=priorEntry.state;events.get('popstate')({state});await flush();
- assert.equal(doc.main.name,'press');assert.equal(tunaDisposals,1);
- href=tunaEntry.url;state=tunaEntry.state;events.get('popstate')({state});await flush();
- assert.equal(tunaMounts,2,'Forward remounts Tuna');
- events.get('pagehide')();assert.equal(tunaDisposals,2);
- await events.get('pageshow')({persisted:true});assert.equal(tunaMounts,3);
- click(links[6]);await flush();
- assert.equal(doc.main.name,'caroms');assert.equal(caromsMounts,1);assert.equal(tunaDisposals,3);
- assert.equal(doc.header,header);assert.equal(links[6].attributes['aria-current'],'page');
- const caromsEntry=history.at(-1),beforeCaroms=history.at(-2);
- active=true;allowLeave=false;
- const beforeCaromsCancel=requests.length;
- click(links[5]);await flush();assert.equal(requests.length,beforeCaromsCancel);assert.equal(caromsDisposals,0);
- goTarget=caromsEntry;href=beforeCaroms.url;state=beforeCaroms.state;events.get('popstate')({state});await flush();
- assert.equal(href,caromsEntry.url);assert.equal(caromsDisposals,0);
- allowLeave=true;href=beforeCaroms.url;state=beforeCaroms.state;events.get('popstate')({state});await flush();
- assert.equal(doc.main.name,'tuna');assert.equal(caromsDisposals,1);
- href=caromsEntry.url;state=caromsEntry.state;events.get('popstate')({state});await flush();
- assert.equal(caromsMounts,2,'Forward remounts Caroms');
- events.get('pagehide')();assert.equal(caromsDisposals,2);
- await events.get('pageshow')({persisted:true});assert.equal(caromsMounts,3);
- click(links[7]);await flush();
- assert.equal(doc.main.name,'cutthroat');assert.equal(cutMounts,1);assert.equal(caromsDisposals,3);
- assert.equal(doc.header,header);assert.equal(links[7].attributes['aria-current'],'page');
- const cutEntry=history.at(-1),beforeCut=history.at(-2);
- active=true;allowLeave=false;
- const beforeCutCancel=requests.length;
- click(links[6]);await flush();assert.equal(requests.length,beforeCutCancel);assert.equal(cutDisposals,0);
- goTarget=cutEntry;href=beforeCut.url;state=beforeCut.state;events.get('popstate')({state});await flush();
- assert.equal(href,cutEntry.url);assert.equal(cutDisposals,0);
- allowLeave=true;href=beforeCut.url;state=beforeCut.state;events.get('popstate')({state});await flush();
- assert.equal(doc.main.name,'caroms');assert.equal(cutDisposals,1);
- href=cutEntry.url;state=cutEntry.state;events.get('popstate')({state});await flush();
- assert.equal(cutMounts,2,'Forward remounts Cutthroat');
- events.get('pagehide')();assert.equal(cutDisposals,2);
- await events.get('pageshow')({persisted:true});assert.equal(cutMounts,3);
- click(links[2]);await flush();
- assert.equal(doc.main.name,'but-wait');assert.equal(butMounts,1);assert.equal(cutDisposals,3);
- assert.equal(doc.header,header);assert.equal(links[2].attributes['aria-current'],'page');
- const butEntry=history.at(-1),beforeBut=history.at(-2);
- active=true;allowLeave=false;
- const beforeButCancel=requests.length;
- click(links[7]);await flush();assert.equal(requests.length,beforeButCancel);assert.equal(butDisposals,0);
- goTarget=butEntry;href=beforeBut.url;state=beforeBut.state;events.get('popstate')({state});await flush();
- assert.equal(href,butEntry.url);assert.equal(butDisposals,0);
- allowLeave=true;href=beforeBut.url;state=beforeBut.state;events.get('popstate')({state});await flush();
- assert.equal(doc.main.name,'cutthroat');assert.equal(butDisposals,1);
- href=butEntry.url;state=butEntry.state;events.get('popstate')({state});await flush();assert.equal(butMounts,2);
- events.get('pagehide')();assert.equal(butDisposals,2);
- await events.get('pageshow')({persisted:true});assert.equal(butMounts,3);
- dispose();assert.equal(butDisposals,3);assert.equal(events.size,0);assert.equal(win.history.scrollRestoration,'auto');
+ assert.equal(click(link('/rules.html')).prevented,undefined,'retired Rules is not a soft-nav route');
+ assert.equal(click(link('/archive.html')).prevented,undefined,'retired Field Notes is not a soft-nav route');
+ assert.equal(click(link('/arcade.html')).prevented,undefined,'Arcade retains native navigation');
+ assert.equal(click(link('/press-your-luck.html'),{ctrlKey:true}).prevented,undefined);
+ assert.equal(click(link('https://outside.example/')).prevented,undefined,'external URLs are not intercepted');
+ assert.equal(click(navLinks[4]).prevented,true);await flush();
+ assert.equal(doc.main.name,'press');assert.equal(pressMounts,1);
+ assert.equal(doc.header.name,'shared');assert.equal(navLinks[4].attributes['aria-current'],'page');
+ busy=true;
+ const count=requests.length;
+ assert.equal(click(navLinks[0]).prevented,true);await flush();
+ assert.equal(doc.main.name,'press');assert.equal(requests.length,count);
+ allowLeave=true;
+ click(navLinks[0]);await flush();
+ assert.equal(doc.main.name,'home');assert.equal(pressDisposals,1);
+ assert.equal(navLinks[0].attributes['aria-current'],'page');
+ assert.equal(doc.header.name,'shared');
+ busy=false;
+ click(navLinks[5]);await flush();assert.equal(doc.main.name,'tuna');
+ assert.equal(tunaMounts,1);
+ click(navLinks[2]);await flush();assert.equal(doc.main.name,'caroms');
+ click(navLinks[3]);await flush();assert.equal(doc.main.name,'cutthroat');
+ click(navLinks[1]);await flush();assert.equal(doc.main.name,'but-wait');
+ click(navLinks[0]);await flush();assert.equal(doc.main.name,'home');
+ const countBefore=requests.length;
+ click(link('/#game-caroms'));await flush();
+ assert.equal(y,250,'homepage game cards offer working internal anchors');
+ assert.equal(requests.length,countBefore,'anchor does not reload home');
+ assert.equal(redirects.length,0);
+ stop();
+ assert.equal(events.size,0);
+ assert.equal(win.history.scrollRestoration,'auto');
 });
