@@ -50,5 +50,8 @@ test('But Wait preserves unique controller IDs and collapsed shot history',()=>{
 test('But Wait keeps the result dialog inside its disposable main view',()=>{
  assert.ok(html.indexOf('id="result-modal"')<html.indexOf('</main>'));
  assert.match(html,/<main class="app">/);
- assert.equal((html.match(/data-page-style/g)||[]).length,6);
+ const sharedAt=html.indexOf('data-squatch-shared-styles');
+ assert.ok(sharedAt>0,'But Wait has one persistent common stylesheet');
+ for(const local of html.matchAll(/data-page-style/g))
+  assert.ok(local.index<sharedAt,'unique styles load before the common shell');
 });

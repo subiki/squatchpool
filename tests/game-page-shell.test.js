@@ -32,8 +32,9 @@ test('one canonical game template config covers every playable route',()=>{
 test('every game imports the same composer before wiring controls',()=>{
  for(const [id,path,controller,mount] of pages){
   const html=read(path),script=read(controller);
-  assert.equal(html.split('href="/src/game-shell.css"').length-1,1,path+' shared CSS');
-  assert.match(html,/href="\/src\/pnw-theme\.css"/,path+' local brand');
+  assert.equal(html.split('href="/src/site-styles.css"').length-1,1,path+' common CSS');
+  assert.match(read('src/site-styles.css'),/game-shell\.css/,path+' common shell');
+  assert.match(read('src/site-styles.css'),/pnw-theme\.css/,path+' local brand');
   assert.match(html,/<squatch-header><\/squatch-header>/,path+' shared header');
   assert.equal((html.match(/id="table-stage"/g)||[]).length,1,path+' unique stage');
   assert.equal((html.match(/class="table-kit"/g)||[]).length,1,path+' kit');

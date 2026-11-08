@@ -1,0 +1,32 @@
+/*
+ * Squatch Pool — single shared stylesheet entry point for every route.
+ *
+ * THE ORDER IS A CONTRACT. Game-specific legacy styles are loaded BEFORE this
+ * entry point, and Rock & Roll is an optional stylesheet AFTER it. Never add a
+ * second shared <link> to individual HTML pages.
+ *
+ * Source ownership:
+ *   game-page-layout / aim-preference / shot-announcer: shared control utilities
+ *   shared-header: persistent navigation and site statistics
+ *   pnw-theme: Classic materials (base of both modes)
+ *   game-shell: identical six-game geometry, responsive and fullscreen behavior
+ *   wild-squatch: optional Rock & Roll artwork, loaded by site-header.js only
+ */
+@import url('/src/game-page-layout.css');
+@import url('/src/aim-preference.css');
+@import url('/src/shot-announcer.css');
+@import url('/src/shared-header.css');
+@import url('/src/pnw-theme.css');
+@import url('/src/game-shell.css');
+
+:root {
+  /* Design tokens are common to both themes; skins provide different materials. */
+  --squatch-font-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --squatch-font-display: Georgia, "Times New Roman", serif;
+  --squatch-target-min: 44px;
+  --squatch-setup-min: 48px;
+}
+/* Ensure all routes inherit the same UI type instead of the browser default.
+   Game marquees retain their explicitly styled display font. */
+html, body {font-family:var(--squatch-font-ui);}
+/* No per-game styles or CSS geometry overrides belong in this file. */

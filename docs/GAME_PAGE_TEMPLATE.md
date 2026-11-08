@@ -15,7 +15,7 @@ Shared persistent site header / deployment / statistics
   5. Details and history shot log, optional explanations
 ```
 
-`src/game-page-shell.js` produces these five sections. `src/game-shell.css` owns the **only shared visual layout**. `src/pnw-theme.css` provides the Classic foundation; `src/wild-squatch.css` is the optional Rock & Roll skin. Both appearances share **exactly the same DOM and control dimensions**. Approved rainforest, cedar, moss, water and felt art remains locally hosted.
+`src/game-page-shell.js` produces these five sections. `src/game-shell.css` owns the **only shared visual layout**. `src/site-styles.css` is the single shared CSS entry on every page: it imports Classic, controls and shared layout in one fixed order. `src/wild-squatch.css` is the optional Rock & Roll skin loaded last by the header. Both appearances share **exactly the same DOM and control dimensions**. Approved rainforest, cedar, moss, water and felt art remains locally hosted.
 
 ## Shared interface rules
 
@@ -32,6 +32,33 @@ Shared persistent site header / deployment / statistics
 | Rack controls | Consistent bottom bar inside table stage | Next rack, new rack or new match as applicable |
 
 A shared renderer may relocate elements, **never clone them**. Preserve IDs, cue/table canvas, listeners, values, shared `squatch-table-size` preference, game legality and bot behavior. But Wait now uses a **real native 7/8/9-foot select** wired directly into its controller, just like other games. Do not reintroduce hidden button adapters.
+
+## Deterministic CSS contract
+
+The head of **every** route contains one common link:
+
+```html
+<link rel="stylesheet" href="/src/site-styles.css" data-squatch-shared-styles>
+```
+
+Never link `game-shell.css`, `pnw-theme.css`, `shared-header.css`, or
+the shared utilities individually. Game-only `data-page-style` comes before
+that link; on SPA navigation, route styles are inserted before the persistent
+link rather than appended after it. `site-header.js` owns the Rock link,
+so switching modes cannot create an extra shared sheet.
+
+Game-specific CSS may target named controls such as `#cut-group` or
+`.press-scoreboard`. It must **not** introduce `:root`, `html`, `body`,
+`main`, generic `section`, `button` or `canvas` selectors: those are
+shared owners. `npm run check:ui` enforces this rule; the Chromium smoke
+checks actual computed typography and controls across all six games at the
+same width/appearance, rather than merely comparing HTML classes.
+
+The canonical visual components are: page hero/title, five slot containers,
+section marquee, setup grid and select, rulebook summary/content, table stage,
+score/turn HUD, aim-assist selector, shot row, secondary controls, bot spectator
+strip and history. Their **geometry comes from the shared shell**; Classic and
+Rock change materials, lighting, character art, and theme color tokens.
 
 ## Do not do
 

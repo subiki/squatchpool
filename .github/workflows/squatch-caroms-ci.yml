@@ -36,15 +36,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Node tests (capture diagnostic output)
+      - name: Validated build — syntax, UI contract, tests and offline edition
         shell: bash
         run: |
           set -o pipefail
-          npm test 2>&1 | tee node-test-results.log
-      - name: Syntax checks
-        run: npm run check
-      - name: Build
-        run: npm run build
+          npm run build 2>&1 | tee node-test-results.log
       - name: Browser smoke — one shared page across six routes
         env:
           SQUATCH_SCREENSHOT_DIR: ${{ runner.temp }}/squatch-game-layouts

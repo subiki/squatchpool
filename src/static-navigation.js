@@ -62,7 +62,16 @@ export function attachStaticNavigation(win=globalThis.window,{initialView,loadPr
     view?.dispose();view=null;
     oldMain.replaceWith(mounted);
     doc.querySelectorAll('[data-page-style]').forEach(style=>style.remove());
-    doc.head.append(...styles);
+    // Match direct-page CSS order on soft navigation. Page-only styles MUST
+    // precede the canonical shared skin/layout; appending them after Rock or
+    // the shared shell made the same page look different based on entry route.
+    const sharedStyles=doc.head.querySelector?.('link[data-squatch-shared-styles]');
+    if(sharedStyles){
+      for(const style of styles)doc.head.insertBefore(style,sharedStyles);
+    }else{
+      // Older shells in tests / offline cached editions can still navigate.
+      doc.head.append(...styles);
+    }
     doc.querySelector('body > footer')?.remove();
     const footer=next.querySelector('body > footer');
     if(footer)mounted.after(doc.importNode(footer,true));

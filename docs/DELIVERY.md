@@ -13,14 +13,19 @@ Prefer one component or one verified vertical slice. Do not edit `main` directly
 ## 3. Run checks
 
 ```bash
-npm test
-npm run check
+npm ci
 npm run build
 ```
 
-These are lightweight regression gates, not coverage targets. Fix failing tests rather than bypass them. If hosted GitHub checks cannot start, report the runner failure separately from actual test results.
+`npm run build` is the **one release gate**: it scans all first-party
+JavaScript syntax, verifies the shared CSS import/ownership contract, runs the
+existing gameplay regression tests, stamps the release, generates the offline
+edition and verifies its precache. For faster local iteration use `npm run
+check` (syntax and UI ownership) or `npm test` (game behavior), but CI should
+run the complete build only **once**, not install-time tests plus three repeat
+passes. These are lightweight regression gates, not coverage targets. Fix failing tests rather than bypass them. If hosted GitHub checks cannot start, report the runner failure separately from actual test results.
 
-**Game-page changes:** CI runs `node scripts/smoke-game-shell.mjs` in headless Chromium: six routes in Classic at desktop/mobile, six mobile table-focused captures and six mobile Rock & Roll captures. It verifies the shared slot order, visible shot action, setup order, rulebook consistency, hidden controls, no duplicate IDs and startup-error detection. Screenshots are uploaded as the `squatch-game-layouts` workflow artifact for visual review. This is a fast smoke check, not a substitute for completing racks.
+**Game-page changes:** CI runs `node scripts/smoke-game-shell.mjs` in headless Chromium: six routes in both Classic and Rock & Roll at desktop/mobile, table-focused captures, plus the bot preview cases. It verifies shared slot order, visible shot action, setup order, rulebook consistency, hidden controls, no duplicate IDs and startup-error detection. **It also compares real computed fonts/control metrics across the six game routes for a given appearance and viewport.** Review the `squatch-game-layouts` artifact, not just a green badge. This is a smoke check, not a substitute for finishing a rack.
 
 **Game-page changes:** validate **both Classic and Rock & Roll skins** at matching widths; neither is allowed to alter common layout or control behavior. Test one complete representative rack and smoke the setup/table/help/controls in *every* mode affected. For the shared template, the affected set is all five originals **plus Arcade**. Check direct URL and SPA navigation, controller mount/dispose, mobile and fullscreen. Avoid only checking CSS selectors in source; inspect the actual browser result.
 

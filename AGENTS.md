@@ -11,7 +11,7 @@
 
 ## Shared interface — mandatory
 
-- **Only one page composer:** `src/game-page-shell.js`. **Only one common layout stylesheet:** `src/game-shell.css`. Classic (`src/pnw-theme.css`) and Rock & Roll (`src/wild-squatch.css`) are **skins**, not alternative page templates.
+- **Only one page composer:** `src/game-page-shell.js`. **Only one shared layout stylesheet:** `src/game-shell.css`. Every route loads the same `src/site-styles.css` entry exactly once. Classic (`src/pnw-theme.css`) and Rock & Roll (`src/wild-squatch.css`) are **skins**, not alternative page templates.
 - All five original games and Arcade use identical slots in order: **Introduction → Set up your game → How to play → At the table → Details and history**.
 - Player and table-size inputs use the shared setup grid and the same labels, padding, dimensions and responsive layout. **But Wait uses its actual native 7/8/9-foot select, not simulated clicks on hidden buttons.** Game-specific skill, target or team choices are extensions *inside* the shared slots.
 - Common shot layout: optional striker → power → Shoot/Break; reverse aim and fullscreen; expandable call/spin/game options; rack actions below.
@@ -19,17 +19,19 @@
 - **Move existing canvas and control nodes; never clone them.** Preserve controller DOM IDs, event bindings, break placement and shared size preference.
 - The site header and statistics persist across soft navigation. Mount/dispose controllers exactly once. Fullscreen must retain status, scoreboard, canvas, controls and rack actions.
 - Avoid broad `!important` override patches and new `<game>-layout.css`. Change the shared shell, then check *all* games **in both appearance modes**. Theme CSS may style colors, type and decorative materials but must never change control geometry, DOM order or gameplay.
+- **CSS cascade contract:** page-specific `data-page-style` (only named mechanics/control exceptions) → `src/site-styles.css` (shared controls/header/Classic/layout in fixed `@import` order) → optional `src/wild-squatch.css` (Rock). The header loads Rock once; game pages MUST NOT link shared CSS imports individually. During SPA navigation, insert route CSS **before** the persistent shared link, never after it.
+- Never put `:root`, `body`, `main`, `section`, universal selectors or generic button/heading styles into a game's inline stylesheet. Scope exceptional styling to a game-specific ID/class. `npm run check:ui` must pass; update the shared owner if a change is needed on more than one page.
 - Use local brand assets: Pacific Northwest temperate rainforest, cedar, moss, water, felt and footprint/8-ball. No jungle, cartoon sunglasses, flat green cards or mismatched repeating contour wallpaper.
 - No external Google Docs/manual links, separate Rules/Field Notes pages, custom install buttons or visible offline-ready banner.
 - No rule, physics or scoring modifications inside a pure layout cleanup. Keep regulation balls/pockets across 7/8/9-ft tables where supported.
 
 ## Acceptance for shared UI changes
 
-1. `npm test`, `npm run check`, `npm run build`, then `node scripts/smoke-game-shell.mjs` on CI with Chromium (Classic and Rock & Roll). Review the generated game screenshot artifact; do not bypass failing checks.
+1. Run `npm run build` (UI contract + syntax scan + all tests + PWA) once, then `node scripts/smoke-game-shell.mjs` with Chromium (Classic and Rock & Roll). Review the generated screenshot artifact; do not bypass failing checks.
 2. Verify the **same shell hierarchy and setup/shot controls** in But Wait, Caroms, Cutthroat, Press Your Luck, Tuna **and Arcade**. No duplicate IDs or missing game-specific options.
 3. Direct-load each page and navigate between games. Header must not rerender; prior controller listeners/timers must dispose.
 4. Play a rack: break → call/aim → shoot → foul/turn → win → new rack. Test bot/local arrangements as supported; check unique scoring.
-5. Inspect narrow mobile, desktop, fullscreen and safe-area controls **in Classic and Rock & Roll**. Appearance choice persists across routes, while the layout, focus/Space/keyboard behavior and accessible states remain consistent.
+5. Inspect narrow mobile, desktop, fullscreen and safe-area controls **in Classic and Rock & Roll**. Appearance choice persists across routes, while the layout, font families/sizes, focus/Space/keyboard behavior and accessible states remain consistent. Smoke compares actual computed style fingerprints across all games at the same viewport; new discrepancies fail CI.
 6. Check actual computed text/background contrast and image-loading screenshots. Static color ratios are not proof of complete WCAG compliance.
 7. Verify native PWA/offline behavior; preserve existing Cloudflare build and production SHA evidence.
 

@@ -6,9 +6,10 @@ const pages=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','a
 test('all routes load one shared PNW visual system outside SPA-managed page styles',()=>{
  for(const page of pages){
   const html=read(page+'.html');
-  const expected='<link rel="stylesheet" href="/src/pnw-theme.css">';
+  const expected='<link rel="stylesheet" href="/src/site-styles.css" data-squatch-shared-styles>';
   assert.equal(html.split(expected).length-1,1,page+' must load the common theme once');
-  assert.doesNotMatch(html,/href="\/src\/pnw-theme\.css"\s+data-page-style/);
+  assert.doesNotMatch(html,/href="\/src\/pnw-theme\.css"/);
+  assert.match(read('src/site-styles.css'),/pnw-theme\.css/);
  }
 });
 test('nature textures and light/dark contrast never sit above the playing canvas',()=>{
