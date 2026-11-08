@@ -77,6 +77,9 @@ main.squatch-game-page #table-stage{
  overflow:hidden!important;margin:0!important;
  background:linear-gradient(140deg,#102a20,#1d4230)!important;
 }
+/* Scale the drawing surface, not its physics coordinates, to the available felt. */
+main.squatch-game-page #table-stage .table-wrap{width:100%;box-sizing:border-box}
+main.squatch-game-page #table-stage canvas{display:block;width:100%;max-width:100%;height:auto}
 main.squatch-game-page .table-kit{
  width:100%!important;box-sizing:border-box!important;
  background-color:#142f25!important;background-image:
