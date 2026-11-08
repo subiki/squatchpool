@@ -103,6 +103,33 @@ const probe=`<script>
     const unique=new Set(ids).size===ids.length;
     const appearanceOK=!wantsRock || (document.documentElement.dataset.squatchTheme==='rock' &&
       !document.getElementById('squatch-rock-style')?.disabled);
+    const header=document.querySelector('squatch-header .squatch-unified-header');
+    const wordmark=header?.querySelector('.squatch-brand-row .brand-mark');
+    const themeButtons=[...header?.querySelectorAll('.squatch-theme-switch button')||[]];
+    const themeRects=themeButtons.map(b=>b.getBoundingClientRect());
+    const markRect=wordmark?.getBoundingClientRect();
+    const headerLayoutOK=!wantsRock||window.innerWidth>760||Boolean(
+      header&&markRect&&themeRects.length===2&&
+      themeRects.every(rect=>rect.width>=70&&rect.height>=40&&rect.top>markRect.bottom-1)&&
+      themeRects[0].right<=themeRects[1].left+1
+    );
+    const hero=main?.querySelector(':scope > .squatch-page-hero');
+    const gameId=main?.dataset.squatchGameShell;
+    const artNames={
+      'but-wait':'rock-but-wait-theres-more.webp',
+      caroms:'rock-caroms.webp',cutthroat:'rock-cutthroat.webp',
+      'press-your-luck':'rock-press-your-luck.webp',
+      tuna:'rock-tuna.webp',arcade:'rock-assassin.webp'
+    };
+    const heroImg=hero?getComputedStyle(hero,'::before').backgroundImage:'';
+    const title=hero?.querySelector('.squatch-page-title');
+    const hr=hero?.getBoundingClientRect(),tr=title?.getBoundingClientRect();
+    const rockPageOK=!wantsRock || Boolean(
+      hero&&title&&artNames[gameId]&&heroImg.includes(artNames[gameId])&&
+      getComputedStyle(hero).borderTopWidth!=='0px'&&
+      tr&&hr&&tr.width>0&&tr.height>0&&tr.left>=hr.left-2&&tr.right<=hr.right+2&&
+      main?.querySelectorAll(':scope > .squatch-game-setup, :scope > .squatch-game-rules, :scope > .squatch-game-play').length===3
+    );
     const wronglyVisibleHidden=[...main.querySelectorAll('[hidden]')]
       .filter(node=>getComputedStyle(node).display!=='none');
     const spectatorOK=!wantsBots||(
@@ -115,7 +142,7 @@ const probe=`<script>
       !!main?.querySelector('#table-stage .squatch-aim-assist');
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
-    const ok=appearanceOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
+    const ok=appearanceOK&&rockPageOK&&headerLayoutOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
       !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&
       main?.dataset.squatchGameShell&&errors.length===0;
@@ -135,7 +162,7 @@ const probe=`<script>
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
       setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,
-      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,
+      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,rockPageOK,headerLayoutOK,heroImg,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
    }catch(e){document.documentElement.dataset.squatchSmoke='fail';
@@ -229,7 +256,8 @@ try{
  for(const game of games)await browse(game,390,844);
  for(const game of games)await browse(game,390,844,'table');
  for(const game of games)await browse(game,390,844,'top','rock');
+ for(const game of games)await browse(game,1180,900,'top','rock');
  await browse('but-wait',390,844,'table','rock',true);
  await browse('cutthroat',390,844,'table','rock',true);
- console.log('Shared game shell: 28 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile).');
+ console.log('Shared game shell: 34 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile, six Rock desktop, two bot previews).');
 }finally{await new Promise(resolve=>server.close(resolve));}
