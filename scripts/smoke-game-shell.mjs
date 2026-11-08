@@ -103,6 +103,16 @@ const probe=`<script>
     const unique=new Set(ids).size===ids.length;
     const appearanceOK=!wantsRock || (document.documentElement.dataset.squatchTheme==='rock' &&
       !document.getElementById('squatch-rock-style')?.disabled);
+    const header=document.querySelector('squatch-header .squatch-unified-header');
+    const wordmark=header?.querySelector('.squatch-brand-row .brand-mark');
+    const themeButtons=[...header?.querySelectorAll('.squatch-theme-switch button')||[]];
+    const themeRects=themeButtons.map(b=>b.getBoundingClientRect());
+    const markRect=wordmark?.getBoundingClientRect();
+    const headerLayoutOK=!wantsRock||window.innerWidth>760||Boolean(
+      header&&markRect&&themeRects.length===2&&
+      themeRects.every(rect=>rect.width>=70&&rect.height>=40&&rect.top>markRect.bottom-1)&&
+      themeRects[0].right<=themeRects[1].left+1
+    );
     const hero=main?.querySelector(':scope > .squatch-page-hero');
     const gameId=main?.dataset.squatchGameShell;
     const artNames={
@@ -132,7 +142,7 @@ const probe=`<script>
       !!main?.querySelector('#table-stage .squatch-aim-assist');
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
-    const ok=appearanceOK&&rockPageOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
+    const ok=appearanceOK&&rockPageOK&&headerLayoutOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
       !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&
       main?.dataset.squatchGameShell&&errors.length===0;
@@ -152,7 +162,7 @@ const probe=`<script>
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
       setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,
-      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,rockPageOK,heroImg,
+      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,rockPageOK,headerLayoutOK,heroImg,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
    }catch(e){document.documentElement.dataset.squatchSmoke='fail';
