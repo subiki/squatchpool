@@ -204,6 +204,9 @@ main.squatch-game-page .squatch-rulebook .arcade-instructions{
 /* Never let shared presentation resurrect an action the game engine hides.
    This must beat .squatch-shot-actions button {display:flex!important},
    including after SPA navigation or phase transitions. */
-main.squatch-game-page [hidden]{
+main.squatch-game-page [hidden],
+main.squatch-game-page .squatch-shot-actions [hidden],
+main.squatch-game-page .squatch-shot-row [hidden],
+main.squatch-game-page .kit-primary [hidden]{
  display:none!important;
 }
