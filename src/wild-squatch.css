@@ -751,3 +751,378 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
   min-height:32px!important;font-size:.78rem!important;
  }
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────────
+   ROCK & ROLL GAME PAGES — Casino after dark in a Cascade rainforest.
+   The SAME canonical page shell serves all six games. These are presentation-
+   only selectors scoped to the optional mode, leaving Classic and game
+   physics/rules/DOM controls untouched. Distinct repo-owned Squatch portraits
+   furnish real character art on each page, not colored placeholder boxes.
+   ────────────────────────────────────────────────────────────────────────── */
+:root[data-squatch-theme="rock"] body main.squatch-game-page{
+ --rock-page-gold:#ffdc7a;
+ --rock-page-green:#b7ff57;
+ --rock-page-electric:#40f9ee;
+ --rock-page-pink:#ff68c7;
+ --rock-game-art:url('/assets/brand/rock-press-your-luck.webp');
+ --rock-game-neon:#ffbd58;
+ --rock-game-casino:#50203a;
+ max-width:1280px!important;
+ padding:clamp(12px,2.2vw,28px) clamp(10px,2vw,24px) 64px!important;
+ gap:clamp(14px,2vw,23px)!important;
+ border-inline:4px ridge #dca757!important;
+ background-image:
+  linear-gradient(180deg,#07181ae8,#081512f5),
+  url('/assets/brand/rock-hero-960.webp')!important;
+ background-position:center top!important;
+ background-size:cover!important;
+ box-shadow:0 0 24px #ef944a6b,0 20px 65px #000e!important;
+ color:#fff0d0!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page[data-squatch-game-shell="but-wait"]{
+ --rock-game-art:url('/assets/brand/rock-but-wait-theres-more.webp');
+ --rock-game-neon:#ffb965;
+ --rock-game-casino:#652043;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page[data-squatch-game-shell="caroms"]{
+ --rock-game-art:url('/assets/brand/rock-caroms.webp');
+ --rock-game-neon:#62fff1;
+ --rock-game-casino:#114f50;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page[data-squatch-game-shell="cutthroat"]{
+ --rock-game-art:url('/assets/brand/rock-cutthroat.webp');
+ --rock-game-neon:#ff6882;
+ --rock-game-casino:#6e2125;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page[data-squatch-game-shell="press-your-luck"]{
+ --rock-game-art:url('/assets/brand/rock-press-your-luck.webp');
+ --rock-game-neon:#c878ff;
+ --rock-game-casino:#4f1f73;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page[data-squatch-game-shell="tuna"]{
+ --rock-game-art:url('/assets/brand/rock-tuna.webp');
+ --rock-game-neon:#ffc36b;
+ --rock-game-casino:#8a401c;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page[data-squatch-game-shell="arcade"]{
+ --rock-game-art:url('/assets/brand/rock-assassin.webp');
+ --rock-game-neon:#96ff6e;
+ --rock-game-casino:#276136;
+}
+/* Make each section feel like a real casino set piece, not a random panel. */
+:root[data-squatch-theme="rock"] body main.squatch-game-page >
+ :is(.squatch-page-hero,.squatch-game-setup,.squatch-game-rules,
+     .squatch-game-play,.squatch-game-after){
+ position:relative!important;min-width:0!important;
+ border:5px ridge #b98750!important;
+ border-radius:14px!important;
+ background-color:#171916!important;
+ background-image:
+  linear-gradient(130deg,#2d1719f5,#10261fef 60%,#1f111ff5),
+  url('/assets/brand/texture-cedar.svg')!important;
+ background-position:center!important;background-size:auto,320px auto!important;
+ box-shadow:inset 0 1px #fff1bb6f,inset 0 0 0 2px #4a2a1c,
+  0 0 18px #ff9d3f61,0 14px 26px #000a!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page>.squatch-page-hero{
+ isolation:isolate!important;
+ min-height:clamp(255px,28vw,360px)!important;
+ display:flex!important;flex-direction:column!important;justify-content:center!important;
+ align-items:flex-start!important;gap:10px!important;
+ padding:clamp(20px,3.1vw,39px)!important;
+ padding-right:clamp(270px,42%,510px)!important;
+ overflow:hidden!important;
+ border:6px ridge var(--rock-page-gold)!important;
+ border-radius:17px!important;
+ background-image:
+  linear-gradient(90deg,#081a1af5 0%,#111d1ff0 43%,#161627c4 70%,#101b16dd 100%),
+  url('/assets/brand/rock-hero-960.webp')!important;
+ background-size:auto,cover!important;
+ background-position:center,center 46%!important;
+ box-shadow:inset 0 0 0 2px #ffe99b49,0 0 27px var(--rock-game-neon),
+  0 16px 33px #000b!important;
+}
+/* Character entrance: independent of title text, with no pointer interception. */
+:root[data-squatch-theme="rock"] body main.squatch-game-page>.squatch-page-hero::before{
+ content:""!important;
+ position:absolute!important;top:0!important;right:0!important;
+ width:49%!important;height:100%!important;
+ z-index:-1!important;pointer-events:none!important;
+ background-image:linear-gradient(90deg,#091819 0%,#09181910 28%,#0b111015 78%,#09181899 100%),
+ var(--rock-game-art)!important;
+ background-repeat:no-repeat!important;background-position:center,right center!important;
+ background-size:100% 100%,cover!important;
+ filter:saturate(1.22) contrast(1.1)!important;
+ -webkit-mask-image:linear-gradient(90deg,transparent,#000 25%,#000 93%)!important;
+ mask-image:linear-gradient(90deg,transparent,#000 25%,#000 93%)!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page>.squatch-page-hero::after{
+ content:""!important;
+ position:absolute!important;inset:0!important;
+ border-radius:10px!important;z-index:-1!important;pointer-events:none!important;
+ background:
+  radial-gradient(circle at 87% 15%,var(--rock-game-neon),transparent 29%),
+  linear-gradient(125deg,transparent 45%,#fb45ba18 70%,transparent)!important;
+ opacity:.27!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-page-eyebrow{
+ display:inline-flex!important;align-items:center!important;
+ max-width:100%!important;margin:0!important;padding:6px 12px!important;
+ border:1px solid #f5bf7a!important;border-radius:6px!important;
+ background:linear-gradient(135deg,#5a3227,#26211d)!important;
+ color:#ffe5a1!important;
+ font:900 .78rem/1.3 system-ui,sans-serif!important;
+ letter-spacing:.11em!important;
+ box-shadow:0 0 12px var(--rock-game-neon)!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-page-title{
+ position:relative!important;max-width:100%!important;margin:0!important;
+ font:italic 900 clamp(2.25rem,4.1vw,3.75rem)/1.04 Georgia,serif!important;
+ text-transform:uppercase!important;text-wrap:balance!important;
+ color:#fff4c3!important;letter-spacing:-.03em!important;
+ text-shadow:2px 3px 0 var(--rock-game-casino),4px 6px 0 #100b0e,
+  0 0 16px var(--rock-game-neon),0 0 24px #000b!important;
+ overflow-wrap:normal!important;word-break:normal!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-page-lead,
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-dynamic-intro{
+ max-width:min(100%,66ch)!important;margin:0!important;
+ padding:10px 14px!important;
+ border-left:4px solid var(--rock-game-neon)!important;border-radius:0 8px 8px 0!important;
+ background:#071b1ce0!important;
+ color:#fff3d8!important;font:650 clamp(1rem,1.35vw,1.12rem)/1.55 system-ui,sans-serif!important;
+ text-shadow:0 2px 5px #000!important;
+}
+/* One headline/sign template for Setup, House Rules, At the Table. */
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-section-title{
+ display:flex!important;align-items:center!important;
+ width:fit-content!important;max-width:100%!important;
+ min-height:48px!important;margin:0 0 16px!important;
+ padding:9px clamp(16px,2vw,30px)!important;
+ border:4px ridge #f5c36c!important;border-radius:8px!important;
+ background-image:
+  linear-gradient(120deg,#8a4c25d9,#e4a858dd 43%,#77401cd9),
+  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,220px auto!important;
+ color:#25110d!important;
+ font:900 clamp(1.22rem,2.55vw,1.8rem)/1.12 Georgia,serif!important;
+ text-transform:uppercase!important;letter-spacing:.035em!important;
+ text-shadow:1px 1px #ffedae!important;
+ box-shadow:0 3px #381c0c,0 0 12px var(--rock-game-neon)!important;
+}
+/* Setup is the betting window; readable selectors remain standard HTML. */
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setup-grid{
+ gap:clamp(10px,1.3vw,17px)!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting{
+ padding:10px!important;
+ border:2px solid #a57547!important;border-radius:10px!important;
+ background:linear-gradient(165deg,#2b211ed8,#142d2bcf)!important;
+ box-shadow:inset 0 1px #ffe7b53e,0 4px 10px #0007!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting-name{
+ color:#ffe4a1!important;
+ font:850 .85rem/1.25 system-ui,sans-serif!important;
+ text-transform:uppercase!important;letter-spacing:.04em!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting :is(select,input),
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting-static{
+ background:#fff1d1!important;color:#19221c!important;
+ border:3px ridge #d8ad66!important;border-radius:9px!important;
+ font:750 .98rem/1.25 system-ui,sans-serif!important;
+ box-shadow:inset 0 1px #ffffff!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting :is(select,input):disabled{
+ opacity:.7!important;cursor:not-allowed!important;
+}
+/* Expandable rules keep real copy, no external documents or fake buttons. */
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-rules-lead{
+ color:#fff3d3!important;font-size:1.05rem!important;line-height:1.6!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-rulebook{
+ border:3px ridge #ffcb6a!important;border-radius:10px!important;
+ background-image:linear-gradient(130deg,#321925f8,#0a2420fa),
+  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,260px auto!important;
+ box-shadow:0 0 12px var(--rock-game-neon),inset 0 1px #ffe1a24e!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-rulebook>summary{
+ min-height:51px!important;padding:12px 3px!important;
+ color:#ffe096!important;text-shadow:0 0 9px #ec853a!important;
+ font:850 1.02rem/1.45 system-ui,sans-serif!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-rule-content{
+ border-top:2px solid #da9e50!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-rule-heading{
+ color:#ffda83!important;
+ font:850 1.1rem/1.3 system-ui,sans-serif!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-rule-list li{
+ color:#fff1db!important;font:550 1rem/1.6 system-ui,sans-serif!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page
+ :is(.squatch-rule-example,.squatch-rule-controls){
+ background:#0d302aeb!important;color:#ffeac8!important;
+ border:1px solid #c78c4d!important;border-left:5px solid var(--rock-game-neon)!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-rule-controls{
+ border-left-color:#8ff16a!important;
+}
+/* Carved table frame, casino-scoreboard accents; never recolor physical felt. */
+:root[data-squatch-theme="rock"] body main.squatch-game-page #table-stage{
+ isolation:isolate!important;
+ border:5px ridge #ddae5e!important;border-radius:12px!important;
+ background-image:linear-gradient(140deg,#26151c,#0c2823)!important;
+ box-shadow:inset 0 0 0 2px #f6cf8165,0 0 23px var(--rock-game-neon)!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page #table-stage .table-wrap{
+ border:5px ridge #b87b3b!important;border-radius:7px!important;
+ background:#442619!important;box-shadow:0 8px 26px #000c!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page #table-stage canvas{
+ max-width:100%!important;height:auto!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page
+ :is(.scoreboard,.game-stats,.game-live-stats,.game-hud,.caroms-hud,.caroms-status-bar){
+ color:#fff2d7!important;
+ background-image:
+  linear-gradient(115deg,#4a241fec,#1b251fec 54%,#3b193aef),
+  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,260px auto!important;
+ border:2px ridge #bd8849!important;border-radius:8px!important;
+ box-shadow:inset 0 1px #ffecb84b,0 4px 13px #0008!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page
+ :is(.scoreboard,.game-stats,.game-live-stats,.game-hud,.caroms-hud) :is(strong,b,output){
+ color:#ffe69e!important;text-shadow:0 0 6px #ed9c4b8a!important;
+ font-variant-numeric:tabular-nums!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .scoreboard .player.active,
+:root[data-squatch-theme="rock"] body main.squatch-game-page .caroms-hud .hud-player[data-active="true"],
+:root[data-squatch-theme="rock"] body main.squatch-game-page .press-score-player[data-active="true"]{
+ border:2px solid #d5ff6a!important;
+ background:linear-gradient(140deg,#416b21,#203e25)!important;
+ box-shadow:0 0 13px #b8ff55b8!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .table-kit{
+ background-color:#1e1a1b!important;
+ background-image:
+  linear-gradient(145deg,#442720f9,#102824f9 58%,#311d27f9),
+  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,245px auto!important;
+ border-top:4px ridge #d4a15a!important;
+ box-shadow:inset 0 3px #ffe5a336!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .table-kit :is(.kit-more,.kit-options){
+ border-color:#c38b4c!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .kit-more summary{
+ color:#ffe09a!important;font-weight:850!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-shot-row
+ :is(#shoot,#caroms-shoot,#cut-shoot){
+ min-height:51px!important;
+ background:linear-gradient(#deff93,#91db36 48%,#3a8c11)!important;
+ color:#0f2508!important;
+ border:3px ridge #f0ffb8!important;
+ box-shadow:inset 0 2px #f9ffcd,0 4px #245810,0 0 12px #a9ff4d94!important;
+ text-shadow:0 1px #eafdbd!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-shot-row
+ :is(#shoot,#caroms-shoot,#cut-shoot):disabled{
+ opacity:.5!important;filter:saturate(.4)!important;
+ box-shadow:none!important;cursor:not-allowed!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page
+ :is(.squatch-aim-assist,.squatch-bot-showtime){
+ border:2px ridge #e2ac5d!important;
+ border-radius:10px!important;
+ background-image:
+  linear-gradient(115deg,#3f2335ef,#163a31f5 70%),
+  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,260px auto!important;
+ box-shadow:0 0 12px #f59b4b76!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-aim-title{
+ color:#ffdd84!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-aim-mode[aria-pressed="true"]{
+ background:linear-gradient(#e1ff95,#8ecf41)!important;
+ border-color:#fff8b6!important;color:#102908!important;
+ box-shadow:0 0 12px #a4ff64aa!important;
+}
+/* Arcade extras and shot logs are the casino side rooms. No fabricated scores. */
+:root[data-squatch-theme="rock"] body main.squatch-game-page
+ :is(.arcade-entry,.arcade-accounts,.arcade-table-meta,
+ .game-history,.shot-history-section,.surprise-panel,.quickstart,.notice,.result,.panel){
+ border:3px ridge #bb8a4c!important;border-radius:10px!important;
+ background-image:
+  linear-gradient(110deg,#371d2ff2,#112b23ed),
+  url('/assets/brand/texture-cedar.svg')!important;
+ background-size:auto,260px auto!important;
+ color:#fff1cf!important;
+ box-shadow:0 0 12px #f0a4535b,0 6px 15px #0007!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page
+ :is(.arcade-entry,.arcade-accounts,.arcade-table-meta,.game-history,
+ .shot-history-section,.surprise-panel,.quickstart,.notice,.result,.panel)
+ :is(h2,h3,h4,summary,strong,output){
+ color:#ffe4a2!important;text-shadow:0 0 7px #fa9e4a8a!important;
+}
+:root[data-squatch-theme="rock"] body main.squatch-game-page
+ :is(.game-history,.shot-history-section) :is(li,p,small){
+ color:#fff0d3!important;
+}
+/* Do not overwhelm phones: character stays visible as its own banner above
+   the live title; no overlapping copy or 500px-tall intro. */
+@media(max-width:760px){
+ :root[data-squatch-theme="rock"] body main.squatch-game-page{
+  padding:10px 9px 45px!important;gap:11px!important;
+  border-inline:0!important;
+ }
+ :root[data-squatch-theme="rock"] body main.squatch-game-page>
+  :is(.squatch-page-hero,.squatch-game-setup,.squatch-game-rules,
+      .squatch-game-play,.squatch-game-after){
+  padding:12px!important;border-width:3px!important;
+ }
+ :root[data-squatch-theme="rock"] body main.squatch-game-page>.squatch-page-hero{
+  min-height:0!important;
+  padding:clamp(155px,35vw,215px) 15px 18px!important;
+  justify-content:flex-start!important;gap:9px!important;
+  background-image:
+   linear-gradient(180deg,#0d172000,#071c1cca 58%,#081d1bf6 76%),
+   url('/assets/brand/rock-hero-960.webp')!important;
+  border-width:4px!important;
+ }
+ :root[data-squatch-theme="rock"] body main.squatch-game-page>.squatch-page-hero::before{
+  top:0!important;left:0!important;right:0!important;
+  width:100%!important;height:clamp(180px,40vw,245px)!important;
+  background-position:center,left 35%!important;
+  background-size:100% 100%,cover!important;
+  -webkit-mask-image:linear-gradient(180deg,#000 50%,transparent 100%)!important;
+  mask-image:linear-gradient(180deg,#000 50%,transparent 100%)!important;
+ }
+ :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-page-title{
+  font-size:clamp(1.8rem,6.4vw,2.5rem)!important;line-height:1.08!important;
+  max-width:100%!important;
+ }
+ :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-page-lead,
+ :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-dynamic-intro{
+  max-width:100%!important;font-size:.98rem!important;
+ }
+ :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-section-title{
+  min-height:44px!important;font-size:clamp(1.2rem,4vw,1.5rem)!important;
+  margin-bottom:12px!important;padding:7px 15px!important;
+ }
+ :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setup-grid{
+  gap:9px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ :root[data-squatch-theme="rock"] body main.squatch-game-page :is(
+  .squatch-section-title,.squatch-page-hero,.squatch-shot-row button){
+  transition:none!important;animation:none!important;
+ }
+}
