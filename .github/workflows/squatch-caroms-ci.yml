@@ -45,6 +45,37 @@ jobs:
         run: npm run check
       - name: Build
         run: npm run build
+      - name: Read-only Cloudflare production art verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="104335a2ddd65413d70438f91c4f59eb918246da"
+          site="https://squatch.subikistudios.com"
+          for attempt in $(seq 1 12); do
+            echo "Production verification attempt $attempt/12"
+            manifest="$(curl -fsSL --connect-timeout 5 --max-time 15 "$site/deployment.json?probe=$GITHUB_RUN_ID-$attempt" || true)"
+            echo "Manifest: $manifest"
+            if printf '%s' "$manifest" | jq -e --arg commit "$expected" '.commit == $commit and .branch == "main"' >/dev/null 2>&1; then
+              echo "Live deployment manifest matches $expected"
+              html="$(curl -fsSL --connect-timeout 5 --max-time 20 "$site/?probe=$GITHUB_RUN_ID")"
+              grep -Fq 'rock-hero-wordmark' <<< "$html"
+              for asset in rock-hero-1600.webp rock-wordmark.webp rock-but-wait-theres-more.webp rock-caroms.webp rock-cutthroat.webp rock-press-your-luck.webp rock-tuna.webp; do
+                code="$(curl -Ls --connect-timeout 5 --max-time 20 -o /dev/null -w '%{http_code}' "$site/assets/brand/$asset?probe=$GITHUB_RUN_ID")"
+                echo "Asset $asset: $code"
+                test "$code" = 200
+              done
+              for page in but-wait.html caroms.html cutthroat.html press-your-luck.html tuna.html; do
+                code="$(curl -Ls --connect-timeout 5 --max-time 20 -o /dev/null -w '%{http_code}' "$site/$page?probe=$GITHUB_RUN_ID")"
+                echo "Game $page: $code"
+                test "$code" = 200
+              done
+              echo "LIVE SQUATCH ROCK RELEASE VERIFIED $expected"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Production did not expose expected Cloudflare build within verification window." >&2
+          exit 1
       - name: Browser smoke — one shared page across six routes
         env:
           SQUATCH_SCREENSHOT_DIR: ${{ runner.temp }}/squatch-game-layouts
