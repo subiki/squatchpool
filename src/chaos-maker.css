@@ -19,3 +19,6 @@
 .chaos-editor-controls button{padding:12px 15px;border:2px solid #d2ac67;border-radius:10px;background:#254e3a;color:white;font-weight:700;cursor:pointer}
 #chaos-result{font-weight:800;font-size:1.2rem;color:#ffcf69}
 #chaos-events{font-size:.95rem;min-height:1.3em}
+
+.chaos-share-label{display:grid!important;gap:6px;width:100%;font-weight:700}
+#chaos-share-code{box-sizing:border-box;width:100%;max-width:100%;min-height:55px;resize:vertical;background:#f5f2e8;color:#17291e;border-radius:8px;padding:8px;font:12px/1.4 monospace}
