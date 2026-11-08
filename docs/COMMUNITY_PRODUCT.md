@@ -12,6 +12,15 @@
 - Published versions remain immutable for score comparability; remixes preserve source attribution.
 - Both Classic and Rock & Roll use the same shared shell; community features must not fork game interfaces.
 
+## Rock & Roll → Classic graduation
+
+- **Rock & Roll:** opt-in experimental playground for original community games, randomized chaos, user mods, remixes, and unproven physics.
+- **Nomination:** sufficiently rated and replayed creations become candidates; weight distinct real players, completion, repeat play, rating confidence and reports rather than raw stars or views. Publish thresholds only after observing real usage. Exclude self-play/self-ratings where possible and mitigate vote brigading.
+- **Review:** creator consent and moderator/owner approval; verify reproducible gameplay, comprehensible on-site rules, safety, accessibility, and compatibility with the Classic shell. Nomination is not an automatic merge.
+- **Classic:** pin an immutable reviewed version, preserve creator credit and source/remix lineage, use clean Classic presentation and stable isolated mechanics. Experimental mode continues to host newer drafts.
+- **Maintenance:** track ratings and reports by immutable version, support delisting/rollback without erasing provenance, never silently mutate a published Classic ruleset.
+- **Release boundary:** until identity, publishing, community ratings, moderation and completion signals are implemented, show no fake scores or claims of promotion.
+
 ## Outcome-first sequence
 
 | Order | Player-visible outcome | Work item / release gate |
