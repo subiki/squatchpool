@@ -358,7 +358,8 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
  min-height:clamp(380px,42vw,580px)!important;
  display:flex!important;flex-direction:column!important;align-items:center!important;
  justify-content:center!important;text-align:center!important;
- padding:clamp(26px,3vw,50px)!important;overflow:hidden!important;
+ row-gap:clamp(10px,1.5vw,18px)!important;
+ padding:clamp(24px,3vw,48px)!important;overflow:hidden!important;
  background-color:#071714!important;
  background-image:linear-gradient(90deg,#05131912,#06151a3c 39%,#05131971 60%,#0613191e),url('/assets/brand/rock-hero-1600.webp')!important;
  background-size:cover!important;background-position:center 47%!important;
@@ -369,21 +370,24 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 :root[data-squatch-theme="rock"] body .hub-intro::after{content:none!important}
 :root[data-squatch-theme="rock"] body .rock-hero-wordmark{
  display:block!important;position:relative!important;z-index:2!important;
- width:min(620px,62%)!important;height:auto!important;
- margin:0 auto clamp(7px,1.6vw,15px)!important;
+ width:min(680px,78%)!important;max-width:100%!important;height:auto!important;
+ display:block!important;flex:0 0 auto!important;object-fit:contain!important;
+ margin:0 auto!important;
  filter:drop-shadow(0 3px 9px #000b) drop-shadow(0 0 12px #ff9d3899);
 }
 :root[data-squatch-theme="rock"] body .hub-intro h2{
- max-width:800px!important;margin:0 auto 9px!important;
+ width:min(100%,720px)!important;max-width:100%!important;
+ margin:0 auto!important;
  color:#fff3d0!important;
- font:italic 900 clamp(2rem,4.2vw,3.55rem)/1.07 Georgia,serif!important;
+ font:italic 900 clamp(1.85rem,3.8vw,3.15rem)/1.12 Georgia,serif!important;
+ text-wrap:balance!important;overflow-wrap:normal!important;
  text-shadow:3px 3px 0 #6e174c,5px 5px #141014,0 0 21px #ff3cba!important;
 }
 :root[data-squatch-theme="rock"] body .hub-intro .hub-eyebrow{
  display:none!important;
 }
 :root[data-squatch-theme="rock"] body .hub-intro p{
- max-width:620px!important;margin:4px auto 15px!important;
+ max-width:620px!important;margin:0 auto!important;
  padding:8px 12px!important;
  background:#06131994!important;
  border-radius:9px!important;
@@ -414,7 +418,10 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 :root[data-squatch-theme="rock"] body #ranking-note{
  color:#d4d8ce!important;font-size:.83rem!important;text-align:center!important;margin:0 0 16px!important;
 }
-:root[data-squatch-theme="rock"] body .hub-games{gap:clamp(14px,2vw,24px)!important}
+:root[data-squatch-theme="rock"] body .hub-games{
+  gap:clamp(14px,2vw,24px)!important;
+  align-items:stretch!important;
+ }
 :root[data-squatch-theme="rock"] body .hub-game{
  position:relative!important;isolation:isolate!important;
  min-width:0!important;min-height:370px!important;
@@ -447,12 +454,21 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 :root[data-squatch-theme="rock"] body .hub-game[data-game="tuna"]::before{background-image:linear-gradient(90deg,transparent,#1412140c 37%,#141214df 76%,#141214),url('/assets/brand/rock-tuna.webp')!important}
 :root[data-squatch-theme="rock"] body .hub-game>*{position:relative;z-index:1}
 :root[data-squatch-theme="rock"] body .hub-game h3{
- position:absolute!important;z-index:2!important;top:26px!important;
- left:46%!important;right:10px!important;margin:0!important;
- font:italic 900 clamp(1.25rem,2.2vw,1.8rem)/1.03 Georgia,serif!important;
- color:#fff0a4!important;text-transform:uppercase!important;
+ /* A full-width marquee follows the artwork, never overlaps the portrait.
+    All titles share the same vertical position, independent of their length. */
+ position:relative!important;z-index:2!important;
+ top:auto!important;left:auto!important;right:auto!important;
+ order:-1!important;flex:0 0 auto!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ width:calc(100% + 30px)!important;min-height:72px!important;
+ margin:0 -15px 1px!important;padding:9px 13px!important;
+ border-top:2px ridge #dba454!important;border-bottom:2px ridge #a87542!important;
+ background:linear-gradient(180deg,#402222f8,#1b161cf9)!important;
+ font:italic 900 clamp(1.14rem,2.1vw,1.55rem)/1.15 Georgia,serif!important;
+ color:#fff0a4!important;text-align:center!important;text-transform:uppercase!important;
  text-shadow:2px 3px #5a122e,4px 4px #080b0a,0 0 9px #ffbf55!important;
- overflow-wrap:break-word!important;
+ text-wrap:balance!important;overflow-wrap:normal!important;word-break:normal!important;
+ hyphens:none!important;
 }
 :root[data-squatch-theme="rock"] body .hub-game .hub-meta{
  font-size:.74rem!important;letter-spacing:.04em!important;
@@ -534,15 +550,27 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 @media(max-width:760px){
  :root[data-squatch-theme="rock"] body{background-attachment:scroll!important}
  :root[data-squatch-theme="rock"] body .hub-intro{
-  min-height:440px!important;padding:20px 14px!important;
+  min-height:440px!important;padding:22px 16px!important;
+  row-gap:13px!important;
   background-image:linear-gradient(180deg,#04191b67,#0713179e 100%),url('/assets/brand/rock-hero-960.webp')!important;
   background-position:39% center!important;
  }
- :root[data-squatch-theme="rock"] body .rock-hero-wordmark{width:min(95%,480px)!important;margin-top:12px!important}
- :root[data-squatch-theme="rock"] body .hub-intro h2{font-size:clamp(1.8rem,6vw,2.6rem)!important}
+ :root[data-squatch-theme="rock"] body .rock-hero-wordmark{
+  width:min(100%,500px)!important;max-width:100%!important;
+  margin:0 auto!important;
+ }
+ :root[data-squatch-theme="rock"] body .hub-intro h2{
+  width:min(100%,500px)!important;
+  font-size:clamp(1.75rem,5.2vw,2.4rem)!important;
+  line-height:1.14!important;
+ }
  :root[data-squatch-theme="rock"] body .hub-intro p{font-size:.95rem!important}
  :root[data-squatch-theme="rock"] body .hub-game{padding:160px 13px 14px!important}
- :root[data-squatch-theme="rock"] body .hub-game h3{font-size:clamp(1.16rem,4.7vw,1.55rem)!important}
+ :root[data-squatch-theme="rock"] body .hub-game h3{
+  width:calc(100% + 26px)!important;margin:0 -13px 1px!important;
+  min-height:76px!important;padding:9px 12px!important;
+  font-size:clamp(1.16rem,4.4vw,1.4rem)!important;
+ }
  :root[data-squatch-theme="rock"] body .hub-game::before{height:154px!important;background-size:100% 100%,auto 154px!important}
  :root[data-squatch-theme="rock"] body .rock-upcoming-games{grid-template-columns:1fr!important}
  :root[data-squatch-theme="rock"] squatch-header .squatch-brand-row .brand-mark{
