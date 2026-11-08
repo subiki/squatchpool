@@ -40,14 +40,13 @@ export async function onRequestPost(c){
  const parent=l.parentVersionId||null;
  if(parent!==null&&!isId(parent))return error('Invalid parent');
  if(parent===null&&l.generation!==0)return error('Missing parent');
- if(parent!==null&&l.generation===0)return error('Unexpected parent');
  try{
   await schema(db);
   let root=l.gameId;
   if(parent){
    const p=await db.prepare('SELECT game_id,root_game_id,generation FROM chaos_game_versions WHERE version_id=?').bind(parent).first();
    if(!p)return error('Publish the parent version first',409);
-   if(l.generation!==p.generation+1&&l.gameId!==p.game_id)return error('Invalid fork generation',409);
+   if(l.gameId===p.game_id ? l.generation!==p.generation : l.generation!==p.generation+1)return error('Invalid fork generation',409);
    root=p.root_game_id;
   }
   // Immutable: first published version wins. Repeated publish is idempotent.
