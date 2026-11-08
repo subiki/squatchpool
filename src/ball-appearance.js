@@ -54,12 +54,14 @@ export function drawPoolBall(ctx,ball,radius,palette='realistic'){
   ctx.fillStyle='#faf8ef';
   ctx.fillRect(-r,-r*.45,r*2,r*.9);
  }
- const shade=ctx.createRadialGradient(-r*.35,-r*.48,r*.05,-r*.08,-r*.1,r*1.37);
- shade.addColorStop(0,'#ffffffa4');
- shade.addColorStop(.34,'#ffffff15');
- shade.addColorStop(.7,'#00000004');
- shade.addColorStop(1,'#00000080');
- ctx.fillStyle=shade;ctx.fillRect(-r,-r,r*2,r*2);
+ const shade=ctx.createRadialGradient?.(-r*.35,-r*.48,r*.05,-r*.08,-r*.1,r*1.37);
+ if(shade?.addColorStop){
+  shade.addColorStop(0,'#ffffffa4');
+  shade.addColorStop(.34,'#ffffff15');
+  shade.addColorStop(.7,'#00000004');
+  shade.addColorStop(1,'#00000080');
+  ctx.fillStyle=shade;ctx.fillRect(-r,-r,r*2,r*2);
+ }
  ctx.restore();
  if(id!==0){
   const disk=r*.41;
