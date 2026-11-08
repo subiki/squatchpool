@@ -1,6 +1,6 @@
 # Squatch Pool — outcome-based roadmap
 
-**Business direction:** [2027–2028 creator platform strategy](CREATOR_PLATFORM_STRATEGY.md) (proposed). This page remains the engineering release-gate roadmap; the strategy defines creator, social, retention and profitability outcomes.\n\n**North star:** all five original Squatch games feel like the same well-made pool app, have their own clear rules, finish reliably and remain fun on phones and desktops. Ship quickly and fix quickly. Dates are not release gates.
+**Creative direction:** [Fast, free social creator arcade roadmap](CREATOR_PLATFORM_STRATEGY.md). This page remains the engineering release-gate roadmap; the strategy defines creator, social and fun-first outcomes without profitability gates.\n\n**North star:** all five original Squatch games feel like the same well-made pool app, have their own clear rules, finish reliably and remain fun on phones and desktops. Ship quickly and fix quickly. Dates are not release gates.
 
 | Gate | What the player gains | Acceptance |
 | --- | --- | --- |
