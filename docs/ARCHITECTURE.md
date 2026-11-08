@@ -4,8 +4,9 @@ Squatch Pool is a static, offline-capable pool app, not five independently maint
 
 ```text
 Home / But Wait / Caroms / Cutthroat / Press / Tuna / Arcade
-  ├─ site-header.js + pnw-theme.css       persistent header, Classic base
-  ├─ wild-squatch.css                    optional Rock & Roll appearance
+  ├─ site-styles.css                     ONE ordered CSS entry (every route)
+  │    game-page-layout + shared-header + pnw-theme + game-shell
+  ├─ site-header.js + wild-squatch.css    persistent header + optional Rock
   ├─ game-page-shell.js + game-shell.css   ONE page layout
   │    Introduction → Setup → Rules → Table → Details/history
   └─ game controller                     rule-specific behavior
@@ -32,6 +33,25 @@ Home / But Wait / Caroms / Cutthroat / Press / Tuna / Arcade
 ## Appearance versus layout
 
 The header offers **Classic** and **Rock & Roll** skins. The appearance preference persists as the player navigates. Both skins use the **same** shared page composition and control geometry: they may change color, typography and artwork, never reorder sections or restyle individual game interfaces. Diagnose layout bugs in `game-page-shell.js` or `game-shell.css` before touching a skin. Compare both modes during visual acceptance.
+
+### CSS loading is an architectural interface
+
+Every public HTML route links **once** to `/src/site-styles.css`, which imports
+`game-page-layout.css` → `aim-preference.css` → `shot-announcer.css` →
+`shared-header.css` → `pnw-theme.css` → `game-shell.css`. Game-only CSS
+is loaded **before** that link, and the optional `wild-squatch.css` is
+attached **after** it by `site-header.js`. The same order is required on
+direct navigation and via `static-navigation.js`; its injected route
+styles belong **before** the persistent shared link.
+
+This rule is enforced by `scripts/verify-ui-contract.mjs` during `npm run
+build`. The checker also rejects page-level CSS resets in game-specific inline
+styles. It addresses an actual defect: route-specific `:root`, `body`,
+`main` and generic button rules previously applied differently depending
+on navigation path. Avoid growing the historical `!important` override
+stockpile; simplify an existing owner as components are migrated. The older
+Rock CSS still needs incremental reduction, but new features must not add a
+third layout layer.
 
 ## How one template works
 
