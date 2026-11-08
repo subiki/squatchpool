@@ -41,7 +41,8 @@ export function createBotShowtime(root){
   });
   const copy=doc.createElement('button');copy.type='button';copy.textContent='Copy notes';
   copy.addEventListener('click',async()=>{
-   try{await globalThis.navigator?.clipboard?.writeText?.(note.value);
+   try{if(!globalThis.navigator?.clipboard?.writeText)throw new Error('clipboard unavailable');
+    await globalThis.navigator.clipboard.writeText(note.value);
     copy.textContent='Copied';}
    catch{copy.textContent='Select the text to copy';note.select?.();}
   });
