@@ -20,7 +20,7 @@ npm run build
 
 These are lightweight regression gates, not coverage targets. Fix failing tests rather than bypass them. If hosted GitHub checks cannot start, report the runner failure separately from actual test results.
 
-**Game-page changes:** The existing CI runs `node scripts/smoke-game-shell.mjs` in headless Chromium: six direct route loads at desktop and mobile widths, plus seven fixed navigation shell expectations, visible shot action, setup order, rulebook consistency, no duplicate IDs and startup-error detection. Screenshots are uploaded as the `squatch-game-layouts` workflow artifact for visual review. This is a fast smoke check, not a substitute for completing racks.
+**Game-page changes:** CI runs `node scripts/smoke-game-shell.mjs` in headless Chromium: six routes in Classic at desktop/mobile, six mobile table-focused captures and six mobile Rock & Roll captures. It verifies the shared slot order, visible shot action, setup order, rulebook consistency, hidden controls, no duplicate IDs and startup-error detection. Screenshots are uploaded as the `squatch-game-layouts` workflow artifact for visual review. This is a fast smoke check, not a substitute for completing racks.
 
 **Game-page changes:** validate **both Classic and Rock & Roll skins** at matching widths; neither is allowed to alter common layout or control behavior. Test one complete representative rack and smoke the setup/table/help/controls in *every* mode affected. For the shared template, the affected set is all five originals **plus Arcade**. Check direct URL and SPA navigation, controller mount/dispose, mobile and fullscreen. Avoid only checking CSS selectors in source; inspect the actual browser result.
 

@@ -23,6 +23,8 @@ const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css',
 const games=['but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
 const probe=`<script>
 (()=>{
+ const wantsRock=new URLSearchParams(location.search).has('smokeRock');
+ if(wantsRock)try{localStorage.setItem('squatchpool-visual-mode','rock');}catch{}
  const errors=[];
  const fail=e=>{errors.push(String(e?.message||e?.reason||e||'unknown'));};
  window.addEventListener('error',fail);
@@ -50,11 +52,13 @@ const probe=`<script>
     const dimensions=navRects.every(r=>Math.abs(r.height-navRects[0].height)<2);
     const ids=[...document.querySelectorAll('[id]')].map(x=>x.id);
     const unique=new Set(ids).size===ids.length;
+    const appearanceOK=!wantsRock || (document.documentElement.dataset.squatchTheme==='rock' &&
+      !document.getElementById('squatch-rock-style')?.disabled);
     const wronglyVisibleHidden=[...main.querySelectorAll('[hidden]')]
       .filter(node=>getComputedStyle(node).display!=='none');
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
-    const ok=JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
+    const ok=appearanceOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
       !!setupOrder&&rulesUniform&&
       main?.dataset.squatchGameShell&&errors.length===0;
@@ -74,7 +78,7 @@ const probe=`<script>
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
       setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,
-      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),
+      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
    }catch(e){document.documentElement.dataset.squatchSmoke='fail';
@@ -106,9 +110,12 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const port=server.address().port;
 const outputDir=process.env.SQUATCH_SCREENSHOT_DIR||join(tmpdir(),'squatch-shell-smoke');
 mkdirSync(outputDir,{recursive:true});
-async function browse(game,width,height,focus='top'){
- const url='http://127.0.0.1:'+port+'/'+game+'.html'+(focus==='table'?'?smokeScroll=table':'');
- const image=join(outputDir,game+'-'+width+(focus==='table'?'-table':'')+'.png');
+async function browse(game,width,height,focus='top',theme='classic'){
+ const params=new URLSearchParams();
+ if(focus==='table')params.set('smokeScroll','table');
+ if(theme==='rock')params.set('smokeRock','1');
+ const url='http://127.0.0.1:'+port+'/'+game+'.html'+(params.size?'?'+params:'');
+ const image=join(outputDir,game+'-'+width+(focus==='table'?'-table':'')+(theme==='rock'?'-rock':'')+'.png');
  const argv=['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
   '--no-first-run','--disable-extensions','--disable-background-networking',
   '--disable-features=TranslateUI','--window-size='+width+','+height,
@@ -127,11 +134,12 @@ async function browse(game,width,height,focus='top'){
   throw new Error(game+' '+width+'px: '+JSON.stringify(result)+
    ' smoke='+match?.[1]+' details='+details?.[1]+' stderr='+stderr.slice(-500));
  }
- console.log('PASS',game,width+'x'+height,focus,'shared page / controls / unique IDs / startup');
+ console.log('PASS',game,width+'x'+height,focus,theme,'shared page / controls / unique IDs / startup');
 }
 try{
  for(const game of games)await browse(game,1180,900);
  for(const game of games)await browse(game,390,844);
  for(const game of games)await browse(game,390,844,'table');
- console.log('Shared game shell: 18 Chromium page loads passed (six desktop, six mobile, six mobile table-focused).');
+ for(const game of games)await browse(game,390,844,'top','rock');
+ console.log('Shared game shell: 24 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile).');
 }finally{await new Promise(resolve=>server.close(resolve));}

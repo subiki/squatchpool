@@ -25,7 +25,7 @@
 
 ## Acceptance for shared UI changes
 
-1. `npm test`, `npm run check`, `npm run build`, then `node scripts/smoke-game-shell.mjs` on CI with Chromium. Review the generated game screenshot artifact; do not bypass failing checks.
+1. `npm test`, `npm run check`, `npm run build`, then `node scripts/smoke-game-shell.mjs` on CI with Chromium (Classic and Rock & Roll). Review the generated game screenshot artifact; do not bypass failing checks.
 2. Verify the **same shell hierarchy and setup/shot controls** in But Wait, Caroms, Cutthroat, Press Your Luck, Tuna **and Arcade**. No duplicate IDs or missing game-specific options.
 3. Direct-load each page and navigate between games. Header must not rerender; prior controller listeners/timers must dispose.
 4. Play a rack: break → call/aim → shoot → foul/turn → win → new rack. Test bot/local arrangements as supported; check unique scoring.
