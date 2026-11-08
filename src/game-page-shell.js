@@ -1,3 +1,4 @@
+import {GAME_GUIDES} from './game-guides.js';
 /**
  * Canonical Squatch Pool game-page composition.
  *
@@ -113,8 +114,46 @@ function moveSetup(main,doc,config,setup,gameId){
   const extra=byId(main,id);
   if(extra)addSetting(doc,grid,label,extra);
  }
- setup.prepend(grid);
+ setup.append(grid);
 }
+const RULE_IDS={
+ 'but-wait':'but-wait-full-rules',caroms:'caroms-rules-panel',
+ cutthroat:'cut-rules','press-your-luck':'press-full-rules',
+ tuna:'tuna-full-rules',arcade:'arcade-full-rules'
+};
+/** One in-page rulebook presentation; only copy/content differs by game. */
+function renderGameRules(main,doc,rules,gameId,config){
+ const guide=GAME_GUIDES[gameId==='but-wait'?'but-wait-theres-more':gameId];
+ const lead=make(doc,'p','squatch-rules-lead',guide?.intro||config.intro);
+ rules.append(lead);
+ const details=make(doc,'details','squatch-rulebook');
+ details.id=RULE_IDS[gameId];
+ details.append(make(doc,'summary','squatch-rule-summary','Explore full house rules, examples & controls'));
+ if(guide){
+  const content=make(doc,'div','squatch-rule-content');
+  for(const section of guide.sections){
+   const group=make(doc,'section','squatch-rule-section');
+   group.append(make(doc,'h4','squatch-rule-heading',section.title));
+   const list=make(doc,'ol','squatch-rule-list');
+   for(const item of section.items)list.append(make(doc,'li','',item));
+   group.append(list);content.append(group);
+  }
+  const example=make(doc,'p','squatch-rule-example','Example: '+guide.example);
+  const controls=make(doc,'p','squatch-rule-controls','Playing on this site: '+guide.controls);
+  content.append(example,controls);details.append(content);
+ }else{
+  // Arcade challenge keeps its controller-owned instructions but uses the
+  // exact same collapsed container and visible heading.
+  const info=main.querySelector('.arcade-instructions');
+  if(info)details.append(info);
+ }
+ rules.append(details);
+ // These are legacy display-only copies, retained in static source for
+ // non-JavaScript fallback. Runtime uses the same canonical rulebook for all.
+ main.querySelector('.game-rules-layout')?.remove();
+ main.querySelector('.quickstart')?.remove();
+}
+
 function normalizeKit(main,doc){
  const kit=main.querySelector('#table-stage .table-kit');
  const primary=kit?.querySelector('.kit-primary');
@@ -192,10 +231,7 @@ export function prepareGamePage(root=globalThis.document,gameId){
  const rules=make(doc,'section','squatch-game-rules');
  rules.setAttribute('aria-label','How to play');
  rules.append(make(doc,'h3','squatch-section-title','How to play'));
- const ruleContent=main.querySelector('.game-rules-layout');
- if(ruleContent)rules.append(ruleContent);
- const quickstart=main.querySelector('.quickstart');
- if(quickstart)rules.append(quickstart);
+ renderGameRules(main,doc,rules,gameId,config);
  const play=make(doc,'section','squatch-game-play');
  play.setAttribute('aria-label','Play pool');
  play.append(make(doc,'h3','squatch-section-title','At the table'));
@@ -221,8 +257,7 @@ export function prepareGamePage(root=globalThis.document,gameId){
   const status=main.querySelector(':scope > #status');
   if(status)play.append(status);
   play.append(stage);
-  const arcadeInfo=main.querySelector('.arcade-instructions');
-  if(arcadeInfo)rules.append(arcadeInfo);
+  // Arcade instruction card was already placed in the shared rulebook.
  }else{
   const anchor=main.querySelector('#caroms-play-anchor');
   if(anchor)play.append(anchor);
