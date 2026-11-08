@@ -100,6 +100,13 @@ function moveSetup(main,doc,config,setup,gameId){
    });
   }
  }
+ if(size&&gameId!=='but-wait'){
+  for(const opt of size.options||[]){
+   const labels={'7':'7 ft · Bar · 78 × 39 in','8':'8 ft · Home · 88 × 44 in',
+                 '9':'9 ft · Pro · 100 × 50 in'};
+   if(labels[opt.value])opt.textContent=labels[opt.value];
+  }
+ }
  if(size)addSetting(doc,grid,config.sizeLabel,size);
  else addReadonlySetting(doc,grid,config.sizeLabel,'7 ft · Fixed challenge');
  for(const [id,label] of config.extras){
@@ -171,6 +178,8 @@ export function prepareGamePage(root=globalThis.document,gameId){
  const stage=main.querySelector('#table-stage');
  if(!stage||!main.ownerDocument)return false; // fast no-op for unit DOM mocks
  const doc=main.ownerDocument;
+ // Rebuild the shot-controls layout while the stage is still in the source tree.
+ normalizeKit(main,doc);
  const hero=buildHero(doc,config);
  const setup=make(doc,'section','squatch-game-setup');
  setup.setAttribute('aria-label','Match setup');
@@ -216,7 +225,6 @@ export function prepareGamePage(root=globalThis.document,gameId){
   if(anchor)play.append(anchor);
   play.append(stage);
  }
- normalizeKit(main,doc);
  clearOriginalIntro(main,gameId,hero);
  if(gameId==='caroms')main.querySelector(':scope > #caroms-setup-panel')?.remove();
  // Remove the old layout-only setup wrapper, after moving all controls.
