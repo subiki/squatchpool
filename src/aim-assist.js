@@ -119,7 +119,7 @@ function ring(ctx,point,radius,color,width=2,fill=null){
 /** Draw onto an existing game canvas, after colored balls for visibility. */
 export function drawAimAssistance(ctx,{
  table,striker,angle,balls,pockets=[],calledBallId=null,calledPocketId=null,
- targetBallId=null,mode=readAimAssistMode()
+ targetBallId=null,suggestUncalled=false,mode=readAimAssistMode()
 }={}){
  if(mode==='minimal'||!valid.has(mode)||!finitePoint(striker)||striker.pocketed||
     !Number.isFinite(angle)||!table?.radius||!Array.isArray(balls))return;
@@ -144,8 +144,12 @@ export function drawAimAssistance(ctx,{
  }
  if(mode==='coach'){
   const chosen=balls.find(b=>!b.pocketed&&b.id===(
-   targetBallId===null?Number(calledBallId):Number(targetBallId))&&b.id!==striker.id);
-  const pocket=pockets.find(p=>p.id===calledPocketId);
+   targetBallId===null?Number(calledBallId):Number(targetBallId))&&b.id!==striker.id)
+   ||(suggestUncalled?first?.ball:null);
+  const pocket=pockets.find(p=>p.id===calledPocketId)||
+   (suggestUncalled&&chosen?pockets.reduce((best,p)=>
+     !best||Math.hypot(chosen.x-p.x,chosen.y-p.y)<
+      Math.hypot(chosen.x-best.x,chosen.y-best.y)?p:best,null):null);
   if(chosen&&pocket){
    const ghost=ghostBallForPocket(chosen,pocket,r);
    if(ghost){
