@@ -1,3 +1,4 @@
+import {planBotShot as planSharedBotShot} from './bot-shot-planner.js';
 import {prepareGamePage} from './game-page-shell.js';
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,kitchenPoint,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
@@ -339,6 +340,15 @@ function planBotShot(){
  botTimer=setTimeout(()=>{
   if(token!==state.generation||state.turn!==1||state.phase!=='aim')return;
   const b=cue(),group=state.groups[1];
+  if(readyForEight(state.balls,group,state.deployed[group])&&
+     state.balls.filter(o=>o.id>0&&!o.pocketed).length===1){
+   const finish=planSharedBotShot({balls:state.balls,targets:[8],pockets,radius:TABLE.radius,table:TABLE});
+   if(finish){
+    state.callBall=8;state.callPocket=finish.pocketId;
+    hit(finish.angle,finish.power);return;
+   }
+  }
+
   const ids=group?(readyForEight(state.balls,group,state.deployed[group])?[8]:state.balls.filter(o=>!o.pocketed&&groupOf(o.id)===group).map(o=>o.id)):state.balls.filter(o=>!o.pocketed&&groupOf(o.id)).map(o=>o.id);
   const targets=state.balls.filter(o=>ids.includes(o.id));let best=null;
   for(const target of targets)for(const pocket of pockets){

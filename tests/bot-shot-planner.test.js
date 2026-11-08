@@ -53,11 +53,11 @@ test('bot rejects backwards cuts and physically pots the called 10 on 7/8/9ft',(
 
 test('last-ball bot finish avoids the repeated Tuna spot-and-scratch layout',()=>{
  try{
-  for(const size of [7,8,9]){
+  for(const size of [7,8,9])for(const target of [8,10]){
    setTableSize(size);
-   const balls=[ball(0,TABLE.width/4,TABLE.height/2),ball(10,TABLE.width*.7,TABLE.height/2)];
+   const balls=[ball(0,TABLE.width/4,TABLE.height/2),ball(target,TABLE.width*.7,TABLE.height/2)];
    const snapshot=structuredClone(balls);
-   const plan=planBotShot({balls,targets:[10],pockets:regulationPockets,radius:TABLE.radius,table:TABLE});
+   const plan=planBotShot({balls,targets:[target],pockets:regulationPockets,radius:TABLE.radius,table:TABLE});
    assert.deepEqual(balls,snapshot,'trial strokes must never mutate the live layout');
    const cue=balls[0],speed=shotSpeed(plan.power),events=[];
    cue.vx=Math.cos(plan.angle)*speed;cue.vy=Math.sin(plan.angle)*speed;
@@ -65,7 +65,7 @@ test('last-ball bot finish avoids the repeated Tuna spot-and-scratch layout',()=
     events.push(...step(balls,1/120).shotEvents);
     if(i>100&&stationary(balls))break;
    }
-   assert.ok(events.some(e=>e.type==='pocket'&&e.ballId===10&&e.pocketId===plan.pocketId),
+   assert.ok(events.some(e=>e.type==='pocket'&&e.ballId===target&&e.pocketId===plan.pocketId),
     'finishing power must still reach the called pocket on '+size+'ft');
    assert.equal(cue.pocketed,false,'avoid scratching and recreating the same respotted layout on '+size+'ft');
   }
