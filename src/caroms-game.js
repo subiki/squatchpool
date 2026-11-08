@@ -15,6 +15,8 @@ import {caromsBreaker} from './caroms-match.js';
 import {planCaromsPot} from './caroms-bot-plan.js';
 import {createGameTelemetry,newGameStatsId as newCaromsStatsId} from './game-telemetry.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
+import {readAimAssistMode} from './aim-assist.js';
+import {createBotShowtime} from './bot-showtime.js';
 
 import {mountTableKit} from './table-kit-controls.js';
 const mountedGames=new WeakMap();
@@ -33,6 +35,7 @@ export function mountCaromsGame(root=globalThis.document){
  }
  const $=id=>root.getElementById?.(id)||root.querySelector('#'+id);
  cleanups.push(mountTableKit(root));
+ const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
  const telemetry=createGameTelemetry('caroms',{root});
  cleanups.push(()=>telemetry.dispose());
  const reportCaromsRack=id=>telemetry.rack(id);
@@ -44,11 +47,11 @@ const invertAim=bindInvertAim($('invert-aim'));
 cleanups.push(()=>invertAim.dispose());
 const level=i=>$('caroms-level-'+i).value;
 let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0],historyNumber=0;
-const solo=()=>$('caroms-mode').value==='bot';
-const isBot=()=>solo()&&state.turn===1;
+const solo=()=>$('caroms-mode').value!=='local';
+const isBot=()=> $('caroms-mode').value==='bots'||(solo()&&state.turn===1);
 const humanTurn=()=>!isBot();
 // Invalidate callbacks even when clearTimeout races an already-queued callback.
-function cancelBot(){botActionId++;if(botTimer!==null)clearTimeout(botTimer);botTimer=null;}
+function cancelBot(){botActionId++;if(botTimer!==null)clearTimeout(botTimer);botTimer=null;showtime.cancel();}
 function scheduleBot(){
  cancelBot();if(!isBot()||!['aim','option'].includes(state.phase))return;
  const generation=state.generation,actionId=botActionId;
@@ -64,7 +67,11 @@ function scheduleBot(){
   if(pot){
    state.shooterBall=pot.ballId;state.angle=pot.angle;state.power=pot.power;
    state.spinTop=0;state.spinSide=0;state.calledBall=pot.ballId;state.calledPocket=pot.pocketId;
-   update();hit(true);return;
+   update();showtime.show({label:player(state.turn)+' · striking '+pot.ballId+
+     ' into the white ball · full collision and pocket lineup.',
+    valid:()=>state.generation===generation&&state.phase==='aim'&&isBot(),
+    shoot:()=>hit(true)});
+   return;
   }
   // No clear scoring tangent: retain the bounded contact-first fallback.
   // All strokes use the real physics engine.
@@ -89,10 +96,12 @@ function scheduleBot(){
    state.calledPocket=p?.id??null;
   }
   // The scheduled bot action is the only authorized shooter on bot turns.
-  update();hit(true);
+  update();showtime.show({label:player(state.turn)+' · 1st contact white ball · inspect the full angle.',
+   valid:()=>state.generation===generation&&state.phase==='aim'&&isBot(),
+   shoot:()=>hit(true)});
  },650);
 }
-const player=i=>i===1&&solo()?'Squatch Bot':'Player '+(i+1);
+const player=i=>$('caroms-mode').value==='bots'?'Squatch Bot '+(i+1):i===1&&solo()?'Squatch Bot':'Player '+(i+1);
 const matchWinner=()=>matchWins.findIndex(wins=>wins>=2);
 const cue=()=>state.balls.find(b=>b.id===0);
 const striker=()=>state.balls.find(b=>b.id===state.shooterBall);
@@ -153,7 +162,8 @@ function update(){
   $('caroms-hud-group-'+i).textContent=g?g+' · '+remaining+' left':'Open table';
   $('caroms-hud-p'+i).setAttribute('data-active',String(state.phase!=='done'&&state.turn===i));
  }
- $('caroms-hud-name-1').textContent=solo()?'SQUATCH BOT':'PLAYER 2';
+ if($('caroms-hud-name-0'))$('caroms-hud-name-0').textContent=$('caroms-mode').value==='bots'?'SQUATCH BOT 1':'PLAYER 1';
+ $('caroms-hud-name-1').textContent=$('caroms-mode').value==='bots'?'SQUATCH BOT 2':solo()?'SQUATCH BOT':'PLAYER 2';
  $('caroms-hud-possession').textContent=state.phase==='done'?player(state.winner)+' wins':player(state.turn)+(state.phase==='option'?' choosing foul option':' shooting');
  $('caroms-rack-actions').hidden=state.phase!=='done';
  $('caroms-score').textContent='Best of 3 · Racks: '+player(0)+' '+matchWins[0]+' – '+player(1)+' '+matchWins[1]+' · '+
@@ -209,7 +219,8 @@ function newGame(){
  accumulator=0;
  $('caroms-power').value='85';$('caroms-top').value='0';$('caroms-side').value='0';
  $('caroms-log').replaceChildren();historyNumber=0;
- log('Fresh Caroms rack. '+player(state.turn)+' breaks. '+(solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
+ showtime.setSpectator($('caroms-mode').value==='bots');
+ log('Fresh Caroms rack. '+player(state.turn)+' breaks. '+($('caroms-mode').value==='bots'?'Bots-only spectator match.':solo()?'Solo vs Squatch Bot.':'Two-player local play.'));
  scheduleBot();
  update();
 }
@@ -294,7 +305,7 @@ function draw(){
   // The shared renderer receives the selected OBJECT ball, never the white cue ball.
   renderer.drawAim(ctx,b,state.angle,{
    balls:state.balls,targetBallId:0,calledPocketId:state.calledPocket,
-   suggestUncalled:true
+   suggestUncalled:true,mode:isBot()?'coach':readAimAssistMode()
   });
   ctx.strokeStyle='#ffde7b';ctx.lineWidth=3;ctx.beginPath();
   ctx.arc(b.x,b.y,r+5,0,Math.PI*2);ctx.stroke();
