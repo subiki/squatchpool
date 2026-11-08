@@ -2,6 +2,12 @@
 
 **Owner decision · 2026-11-07:** Community first; experimental, fun gameplay is sufficient for expansion; creator tools begin **early, alongside identity**. AI implements creator intent; creators invent games and players decide popularity. [Community product contract](COMMUNITY_PRODUCT.md).
 
+## Two-mode community lifecycle (owner decision · 2026-11-07)
+
+**Rock & Roll is the experimental creator laboratory; Classic is the curated official catalog.** A creation originates as a versioned Rock & Roll experiment. Community ratings, unique completed plays, repeat plays and creator-independent engagement nominate promising games. Nomination is not automatic promotion: review playability, understandable rules, deterministic/reproducible behavior, accessibility, security and compatibility with Classic's clean interface. Owner/editor approval publishes a pinned immutable **Classic edition** with original creator attribution, source version and a link back to the experimental lineage. Experimental physics or mods must never silently bleed into existing Classic games. A promoted edition may retain unusual rules, but they must be intentional, documented, and stable. Keep the Rock original and remixes available. A bad rating alone does not erase a creator's work.
+
+**Trust:** prevent self-rating/brigading, require meaningful completed plays, show sample sizes, and allow rollback/demotion without deleting published history. Until identity, ratings, moderation and measured completions exist, **no automatic promotions**.
+
 ## Five ordered milestones
 
 | Priority | Milestone / outcome | Exit gate | Work |
