@@ -329,7 +329,10 @@ listen($('cut-reposition'),'click',()=>{
 });
 listen($('cut-new'),'click',newGame);
 listen($('cut-size'),'change',newGame);
-listen($('cut-players'),'change',newGame);
+listen($('cut-players'),'change',()=>{
+ try{localStorage.setItem('squatch-cutthroat-player-count',$('cut-players').value);}catch{}
+ newGame();
+});
 listen($('cut-group-confirm'),'click',()=>chooseGroup(Number($('cut-group-select').value)));
 listen($('cut-claim-confirm'),'click',()=>{
  const id=$('cut-claim-select').value;
@@ -346,6 +349,12 @@ listen(window,'keydown',e=>{
  if(e.code==='Space'){shoot();e.preventDefault();}
 });
 try{const saved=localStorage.getItem('squatch-table-size');if(['7','8','9'].includes(saved))$('cut-size').value=saved;}catch{}
+// A returning spectator can reopen the three-Squatch match without
+// selecting the bots again. First visitors still default to local players.
+try{
+ const seats=localStorage.getItem('squatch-cutthroat-player-count');
+ if(['0','1','2','3'].includes(seats))$('cut-players').value=seats;
+}catch{}
 // A telemetry exception must never prevent the table from starting.
 try {
  newGame();
