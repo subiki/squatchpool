@@ -8,7 +8,7 @@ test('internal SPA navigation preserves the header, updates games, and guards un
  const events=new Map(),requests=[],redirects=[],history=[],navLinks=[];
  let href='https://squatch.example/',state={},y=100,busy=false,allowLeave=false;
  let pressMounts=0,pressDisposals=0,tunaMounts=0;
- const link=path=>({href:'https://squatch.example'+path,attributes:{},target:'',
+ const link=path=>({href:path.startsWith('https://')?path:'https://squatch.example'+path,attributes:{},target:'',
   hasAttribute(){return false;},setAttribute(k,v){this.attributes[k]=v;},
   removeAttribute(k){delete this.attributes[k];}});
  for(const path of ['/','/but-wait.html','/caroms.html','/cutthroat.html',

@@ -581,3 +581,10 @@ body .hub-game .hub-rules{
 }
 body .hub-game .hub-rules :is(li,p){color:#e1eddf!important}
 body .hub-game .hub-rules summary{color:#f0c478!important}
+
+@media(prefers-reduced-motion:reduce){
+ squatch-header .squatch-header-nav a,
+ body :is(button,.hub-play,.world-nav a,.links a.primary){
+  transition:none!important;transform:none!important;
+ }
+}
