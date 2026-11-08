@@ -26,6 +26,28 @@
       document.head.append(touch);
     }
   }
+  // Classic is the preserved baseline; Rock & Roll is a removable overlay.
+  const THEME_KEY = 'squatchpool-visual-mode';
+  const rockStyle = document.createElement('link');
+  rockStyle.rel = 'stylesheet';
+  rockStyle.href = '/src/wild-squatch.css';
+  rockStyle.id = 'squatch-rock-style';
+  rockStyle.disabled = true;
+  document.head.append(rockStyle);
+  const readMode = () => {
+    try { return localStorage.getItem(THEME_KEY) === 'rock' ? 'rock' : 'classic'; }
+    catch { return 'classic'; }
+  };
+  const setMode = (mode, persist = false) => {
+    const rock = mode === 'rock';
+    rockStyle.disabled = !rock;
+    document.documentElement.dataset.squatchTheme = rock ? 'rock' : 'classic';
+    if (persist) try { localStorage.setItem(THEME_KEY, rock ? 'rock' : 'classic'); } catch {}
+    document.querySelectorAll('[data-squatch-theme-choice]').forEach(button => {
+      button.setAttribute('aria-pressed', String(button.dataset.squatchThemeChoice === (rock ? 'rock' : 'classic')));
+    });
+  };
+  setMode(readMode());
   class SquatchHeader extends HTMLElement {
     connectedCallback() {
       if (this.dataset.rendered) return;
@@ -46,6 +68,11 @@
           <span>LAST DEPLOYED <time id="deployment-time">Unavailable</time></span>
           <span id="deployment-note" aria-live="polite">Deployment metadata not loaded</span>
         </div>
+        <div class="squatch-theme-switch" role="group" aria-label="Site appearance">
+          <span>Appearance</span>
+          <button type="button" data-squatch-theme-choice="classic" aria-pressed="true">🌲 Classic</button>
+          <button type="button" data-squatch-theme-choice="rock" aria-pressed="false">🤘 Rock &amp; Roll</button>
+        </div>
         <nav class="squatch-header-nav" aria-label="Explore Squatch Pool"></nav>
         <details class="squatch-header-stats">
           <summary>Across Squatch Pool · Live statistics</summary>
@@ -65,7 +92,11 @@
         if (current === href) link.setAttribute('aria-current', 'page');
         nav.append(link);
       }
+      header.querySelectorAll('[data-squatch-theme-choice]').forEach(button => {
+        button.addEventListener('click', () => setMode(button.dataset.squatchThemeChoice, true));
+      });
       this.append(header);
+      setMode(readMode());
     }
   }
   if (!customElements.get('squatch-header')) customElements.define('squatch-header', SquatchHeader);
