@@ -23,7 +23,7 @@ function randomize(){
 }
 function state(){return{version:1,name:$('chaos-name').value.slice(0,72),balls:clone(balls.map(({x,y,c,eight,fragment})=>({x,y,c,eight:!!eight,fragment:!!fragment}))),bumpers:clone(bumpers),mods:mods(),goal:$('chaos-goal').value,shotLimit:Number($('chaos-limit').value)};}
 function load(s){
- if(!s||s.version!==1||!Array.isArray(s.balls)||!Array.isArray(s.bumpers)||s.balls.length>70||s.bumpers.length>40)return false;
+ if(!s||s.version!==1||!Array.isArray(s.balls)||!Array.isArray(s.bumpers)||s.balls.length<1||s.balls.length>70||s.bumpers.length>40)return false;
  if(!s.balls.every(b=>Number.isFinite(b.x)&&Number.isFinite(b.y)&&typeof b.c==='string'&&/^#[0-9a-f]{6}$/i.test(b.c))||!s.bumpers.every(b=>Number.isFinite(b.x)&&Number.isFinite(b.y)&&Number.isFinite(b.r)&&b.r>=10&&b.r<=45))return false;
  balls=s.balls.map(b=>{const p=bounded(b.x,b.y);return {...ball(p.x,p.y,b.c),eight:!!b.eight,fragment:!!b.fragment};});
  bumpers=s.bumpers.map(b=>({...bounded(b.x,b.y),r:b.r}));
