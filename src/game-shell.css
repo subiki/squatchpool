@@ -59,8 +59,6 @@ main.squatch-game-page .squatch-setting :is(select,input){
 main.squatch-game-page .squatch-setting-static{display:flex;align-items:center;
  min-height:48px;padding:9px 12px;border-radius:9px;border:1px solid var(--sg-edge);
  background:linear-gradient(160deg,#234b3a,#102c22);color:var(--sg-cream)}
-main.squatch-game-page .squatch-legacy-size,
-main.squatch-game-page .squatch-legacy-size[hidden]{display:none!important}
 main.squatch-game-page .squatch-game-rules .game-rules-layout{
  display:block!important;width:100%!important;margin:0!important}
 main.squatch-game-page .squatch-game-rules .rules-card,

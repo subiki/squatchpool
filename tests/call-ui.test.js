@@ -17,12 +17,6 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   setAttribute(name,value){this.attributes[name]=String(value);},
   addEventListener(event,fn){events.set('pocket-'+id+':'+event,fn);}
  }));
- const sizeButtons=['7','8','9'].map(size=>({
-  dataset:{size},pressed:false,attributes:{},
-  classList:{toggle(){}},
-  setAttribute(name,value){this.attributes[name]=value;},
-  addEventListener(event,fn){events.set('size-'+size+':'+event,fn);}
- }));
  const grad={addColorStop(){}};
  let cueDraws=0,nextFrame=()=>{},time=0,lastTranslate={x:0,y:0};
  const objectBallPositions=new Map();
@@ -35,7 +29,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  },{get(o,key){return key in o?o[key]:()=>{};},set(o,key,v){o[key]=v;return true;}});
  function element(id){
   if(!elements.has(id))elements.set(id,{
-   id,value:id==='#mode'?'local':id==='#power'?'68':'',
+   id,value:id==='#mode'?'local':id==='#power'?'68':id==='#size'?'7':'',
    hidden:false,disabled:false,textContent:'',children:[],
    classList:{toggle(){}},
    attributes:{},
@@ -57,7 +51,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
  });
  globalThis.document={
   querySelector:element,
-  querySelectorAll(selector){return selector==='.pocket-pick'?markers:selector==='.table-size-pick'?sizeButtons:[];},
+  querySelectorAll(selector){return selector==='.pocket-pick'?markers:[];},
   createElement:makeElement,
  };
  const root={querySelector:element,querySelectorAll:document.querySelectorAll,ownerDocument:document,setAttribute(){},focus(){}};
@@ -91,6 +85,13 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('window:pagehide')();cancelled=0;
   const {mountButWaitGame}=await import('../src/game.js');
   controller=mountButWaitGame(document);
+  assert.equal(element('#size').value,'7','native table select shows the active size');
+  element('#size').value='8';
+  events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'8','native selection persists after rack reset');
+  element('#size').value='7';
+  events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'7','size control can return to the bar table');
   events.get('#table:pointerdown')({clientX:90,clientY:120,pointerId:31});
   events.get('#table:pointerdown')({clientX:130,clientY:150,pointerId:32});
   events.get('#table:pointermove')({clientX:140,clientY:160,pointerId:32});

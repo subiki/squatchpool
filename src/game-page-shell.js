@@ -14,7 +14,7 @@ export const GAME_PAGE_CONFIG=Object.freeze({
  'but-wait':{
   title:"But Wait, There's More",eyebrow:"THE FIRST GAME · THE 4T'S",
   intro:"Classic called-pocket 8-ball with a surprise: two hidden balls let your opponent change the table just before your 8.",
-  players:'mode',size:null,extras:[],selectLabel:'Players',sizeLabel:'Table size'
+  players:'mode',size:'size',extras:[],selectLabel:'Players',sizeLabel:'Table size'
  },
  caroms:{
   title:'Caroms · Whacky Pool',eyebrow:"THE ORIGINAL GAMES · THE 4T'S",
@@ -71,37 +71,13 @@ function addReadonlySetting(doc,grid,label,value){
  wrap.append(title,text);grid.append(wrap);
 }
 function byId(main,id){return id?main.querySelector('#'+id):null;}
-function moveSetup(main,doc,config,setup,gameId){
+function moveSetup(main,doc,config,setup){
  const grid=make(doc,'div','squatch-setup-grid');
  const player=byId(main,config.players);
  if(player)addSetting(doc,grid,config.selectLabel,player);
  else addReadonlySetting(doc,grid,config.selectLabel,'Solo challenge');
  let size=byId(main,config.size);
- if(gameId==='but-wait'){
-  // The original buttons are a private adapter until the gameplay engine
-  // itself uses a select. Only the standard select is visible to players.
-  size=make(doc,'select','squatch-size-select');
-  size.id='squatch-size';
-  size.setAttribute('aria-label','Table size');
-  for(const [value,label] of [['7','7 ft · Bar · 78 × 39 in'],
-                             ['8','8 ft · Home · 88 × 44 in'],
-                             ['9','9 ft · Pro · 100 × 50 in']]){
-   const opt=make(doc,'option','',label);opt.value=value;size.append(opt);
-  }
-  const buttons=main.querySelector('.table-size-buttons');
-  const chosen=buttons?.querySelector('.table-size-pick.selected')?.dataset.size;
-  try{size.value=globalThis.localStorage?.getItem('squatch-table-size')||chosen||'7';}
-  catch{size.value=chosen||'7';}
-  if(buttons){
-   buttons.classList.add('squatch-legacy-size');
-   buttons.hidden=true;buttons.setAttribute('aria-hidden','true');
-   setup.append(buttons);
-   size.addEventListener('change',()=>{
-    buttons.querySelector('[data-size="'+size.value+'"]')?.click();
-   });
-  }
- }
- if(size&&gameId!=='but-wait'){
+ if(size){
   for(const opt of size.options||[]){
    const labels={'7':'7 ft · Bar · 78 × 39 in','8':'8 ft · Home · 88 × 44 in',
                  '9':'9 ft · Pro · 100 × 50 in'};
@@ -223,7 +199,7 @@ export function prepareGamePage(root=globalThis.document,gameId){
  setup.setAttribute('aria-label','Match setup');
  setup.append(make(doc,'h3','squatch-section-title','Set up your game'));
  // All selects/inputs move into the same setup renderer with stable IDs.
- moveSetup(main,doc,config,setup,gameId);
+ moveSetup(main,doc,config,setup);
  const rules=make(doc,'section','squatch-game-rules');
  rules.setAttribute('aria-label','How to play');
  rules.append(make(doc,'h3','squatch-section-title','How to play'));
