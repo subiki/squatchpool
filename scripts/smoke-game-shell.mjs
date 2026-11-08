@@ -103,6 +103,23 @@ const probe=`<script>
     const unique=new Set(ids).size===ids.length;
     const appearanceOK=!wantsRock || (document.documentElement.dataset.squatchTheme==='rock' &&
       !document.getElementById('squatch-rock-style')?.disabled);
+    const hero=main?.querySelector(':scope > .squatch-page-hero');
+    const gameId=main?.dataset.squatchGameShell;
+    const artNames={
+      'but-wait':'rock-but-wait-theres-more.webp',
+      caroms:'rock-caroms.webp',cutthroat:'rock-cutthroat.webp',
+      'press-your-luck':'rock-press-your-luck.webp',
+      tuna:'rock-tuna.webp',arcade:'rock-assassin.webp'
+    };
+    const heroImg=hero?getComputedStyle(hero,'::before').backgroundImage:'';
+    const title=hero?.querySelector('.squatch-page-title');
+    const hr=hero?.getBoundingClientRect(),tr=title?.getBoundingClientRect();
+    const rockPageOK=!wantsRock || Boolean(
+      hero&&title&&artNames[gameId]&&heroImg.includes(artNames[gameId])&&
+      getComputedStyle(hero).borderTopWidth!=='0px'&&
+      tr&&hr&&tr.width>0&&tr.height>0&&tr.left>=hr.left-2&&tr.right<=hr.right+2&&
+      main?.querySelectorAll(':scope > .squatch-game-setup, :scope > .squatch-game-rules, :scope > .squatch-game-play').length===3
+    );
     const wronglyVisibleHidden=[...main.querySelectorAll('[hidden]')]
       .filter(node=>getComputedStyle(node).display!=='none');
     const spectatorOK=!wantsBots||(
@@ -115,7 +132,7 @@ const probe=`<script>
       !!main?.querySelector('#table-stage .squatch-aim-assist');
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
-    const ok=appearanceOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
+    const ok=appearanceOK&&rockPageOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
       !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&
       main?.dataset.squatchGameShell&&errors.length===0;
@@ -135,7 +152,7 @@ const probe=`<script>
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
       setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,
-      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,
+      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,rockPageOK,heroImg,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
    }catch(e){document.documentElement.dataset.squatchSmoke='fail';
