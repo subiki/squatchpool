@@ -41,3 +41,24 @@
 .hub-game .hub-rules summary:focus-visible{outline:3px solid #f9c466;outline-offset:2px}
 .hub-game .hub-play{margin-top:auto}
 @media(max-width:640px){.hub-game{padding:16px}.hub-game .hub-rules ol{padding-left:24px}}
+
+
+/* Long-form rulebook is deliberately collapsed by default: the game pitch
+   remains compact, while opening a card gives room for complete instructions. */
+.hub-games{align-items:start}
+.hub-game:has(.hub-rules[open]){grid-column:1/-1}
+.hub-game .hub-rule-lead{color:#f4eeda!important;line-height:1.55;padding:0 0 10px}
+.hub-game .hub-rule-section{border-top:1px solid #85ad9566;padding:14px 0 4px}
+.hub-game .hub-rule-section h4{margin:0 0 8px;color:#f0c478!important;font-size:1.05rem;line-height:1.35}
+.hub-game .hub-rule-section ol{margin:0;padding:0 4px 4px 25px;border:0}
+.hub-game .hub-rule-section li{padding-left:2px;margin-bottom:10px}
+.hub-game .hub-rule-example,.hub-game .hub-rule-controls{
+ color:#e1eddf!important;line-height:1.55;padding:12px!important;
+ margin:10px 0 0!important;border-radius:9px;
+ background:linear-gradient(140deg,#214333ed,#102923ee);
+ border:1px solid #85ad9566;
+}
+.hub-game .hub-rule-example{border-left:3px solid #f0c478}
+.hub-game .hub-rule-controls{border-left:3px solid #a4cc99}
+.hub-game .hub-strategy{margin:10px 0 14px!important}
+@media(max-width:639px){.hub-game .hub-rule-section li{font-size:.98rem}}
