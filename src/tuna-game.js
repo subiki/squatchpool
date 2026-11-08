@@ -282,7 +282,7 @@ function fire(bot=false){
  b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;
  applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);
  $('power').value='68';$('spin-top').value='0';$('spin-side').value='0';
- $('shoot').disabled=true;
+ $('shoot').disabled=true;message('Balls rolling…');
 }
 cleanups.push(attachShotKeyboard(globalThis.window,{
  getPhase:()=>shot.phase,isHumanTurn:()=>!isBotTurn(),

@@ -98,6 +98,7 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    queuedFrame(time+1000/120);
    node('shoot').onclick();
    assert.equal(node('shoot').disabled,true,'complete call permits the next physical shot');
+   assert.equal(node('status').textContent,'Balls rolling…','moving shot replaces stale aiming guidance');
    queuedFrame(time+2000/120);
 
 
