@@ -3,35 +3,18 @@
 <title>Coin-Op Cutthroat · Squatch Pool</title>
 <meta name="description" content="Play the original three-player Coin-Op Cutthroat with scratch claims and re-entry.">
 <style data-page-style>
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#12251e;color:#f4edda}
-*{box-sizing:border-box}*[hidden]{display:none!important}body{margin:0;line-height:1.5}
-header,main{max-width:1120px;margin:auto;padding:14px 20px}header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-bottom:1px solid #617765}
-a{color:#ffe0a0}h1{font-size:clamp(1.7rem,4vw,2.8rem);margin:10px 0}p{max-width:78ch}
+/* Cutthroat-only turn/group controls; shared shell owns global CSS. */
+#table-stage canvas{touch-action:none}
 .notice{border-left:4px solid #f3c676;background:#263c30;padding:12px 18px;border-radius:6px}
-.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:14px 0}
-.controls label{display:grid;gap:5px;font-weight:650;min-width:135px}
-select,button,input{font:inherit}select,button{padding:12px;border-radius:9px;border:1px solid #b8b78d;background:#2b4638;color:#fff5da;min-height:48px}
-button{cursor:pointer;font-weight:750}button:disabled{opacity:.55;cursor:not-allowed}
-button.primary{background:#efc77c;color:#1a2b22;border-color:#fbe2a7}
-input[type=range]{width:155px;accent-color:#eec67b}
-.table-wrap{background:#553b29;padding:10px;border:7px solid #806344;border-radius:18px;overflow:hidden}
-canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
 #cut-turn{font-size:1.35rem;font-weight:850}#cut-scores,#cut-status{font-size:1.06rem}
 .choice{border:2px solid #eec67b;padding:12px 16px;border-radius:10px;margin:14px 0}
-details{border:1px solid #728b72;border-radius:10px;background:#223b2f;margin:12px 0}
-summary{cursor:pointer;font-weight:800;padding:13px 16px;min-height:48px}
-details>div{padding:12px 16px}li{margin:6px 0}
-:focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
-@media(max-width:650px){main,header{padding:12px}main{padding-bottom:20px}.table-wrap{padding:4px;border-width:5px}
-.controls label{flex:1;min-width:130px}select,button{width:100%}
-}
 .kit-primary #cut-shoot{background:#efc77c;color:#1a2b22;font-size:1.1rem}
 .kit-primary .aim-toggle{flex:0 1 auto;font-size:.88rem}
 .table-kit .choice{margin:8px 0;padding:10px}
 .table-stage #cut-group{margin:0;border-radius:10px 10px 0 0;border-width:2px;border-color:#f4ca7c;background:#34523b;box-shadow:inset 0 0 0 2px #1b3829;color:#fff8e3}
 .table-stage #cut-group strong{display:block;font-size:1.25rem;color:#ffe6a8}
 .table-stage #cut-group p{margin:5px 0 8px}
-.table-stage #cut-group .controls{margin:4px 0;align-items:end}
+.table-stage #cut-group .controls{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0;align-items:end}
 .table-stage #cut-group select{font-weight:850;background:#102b22}
 .table-stage #cut-group button{min-width:155px}
 .table-stage:fullscreen{overflow:auto}
