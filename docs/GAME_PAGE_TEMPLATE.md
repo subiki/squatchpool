@@ -1,0 +1,62 @@
+# One game page: contract and migration
+
+**Architecture decision:** All games are the *same page* with a different game controller. Never rebuild a hero, setup panel, card grid, shot toolbar or fullscreen layout separately for another game.
+
+## Required order
+
+```text
+Shared persistent site header / deployment / statistics
+  1. Introduction        title, one-line pitch, PNW scenery
+  2. Set up your game     Players | Table size | game-specific options
+  3. How to play         short help + expandable house rules
+  4. At the table        turn, score, lifetime counts, canvas,
+                         power + Shoot/Break, reverse aim, fullscreen,
+                         More: call/spin/unique options, rack actions
+  5. Details and history shot log, optional explanations
+```
+
+`src/game-page-shell.js` produces these five sections. `src/game-shell.css` owns the **only shared visual layout**. `src/pnw-theme.css` supplies the same forest, cedar, moss, water and felt identity.
+
+## Shared interface rules
+
+| Control | Common behavior | Allowed difference |
+| --- | --- | --- |
+| Players | First labeled setting, same sizing and position | Bot/local modes; Cutthroat has 1–3 humans |
+| Table size | Second labeled setting: 7 ft Bar, 8 ft Home, 9 ft Pro | Arcade fixed 7 ft, read-only |
+| Extra setup | Same responsive setup grid | Caroms skill levels, Press target points |
+| How to play | Same collapsed long-form format | The five unique rules in `src/game-guides.js` |
+| Score and status | Visible with the table, even in fullscreen | Per-game score logic or team assignment |
+| Primary shot row | Power + prominent Shoot/Break | Caroms also needs a striker |
+| Secondary controls | Reverse aim and fullscreen beside the table | Game-specific placement confirmation |
+| More | Expandable optional inputs beneath main action | Calls, spin, bank/kick and scratch claims |
+| Rack controls | Consistent bottom bar inside table stage | Next rack, new rack or new match as applicable |
+
+A shared renderer may relocate elements, **never clone them**. Preserve IDs, cue/table canvas, listeners, values, shared `squatch-table-size` preference, game legality and bot behavior. But Wait's old size buttons remain a *hidden compatibility adapter* behind the visible common select until its controller natively accepts a select.
+
+## Do not do
+
+- Introduce another game-specific page layout or theme file.
+- Fix a shared alignment defect by adding route-specific `!important` CSS.
+- Move controls out of `#table-stage` if they are needed fullscreen.
+- Drop an unusual game-specific selector or change the meaning of an option.
+- Alter cue physics, rack scoring or legal shots as a side effect of moving DOM.
+- Add a custom install button, a visible offline-ready line, external documents or a repeated nonseamless contour pattern.
+
+## Acceptance checklist
+
+- [ ] Same five sections in the same order in all five games and Arcade.
+- [ ] One visible player and table-size control, with no duplicate IDs; options remain functional.
+- [ ] 7/8/9 ft preference survives moving among games; rack reset behavior is understood.
+- [ ] Exact same shot row, button dimensions, focus behavior, More and rack action placement.
+- [ ] Every game starts a rack, aims/shoots, resolves a foul and finishes/restarts.
+- [ ] Bot/local player modes and unique actions (team claim, bank/kick, carom striker, etc.) work.
+- [ ] Direct load, SPA next/back and returning to a game mount the controller only once.
+- [ ] Desktop/narrow mobile/fullscreen screenshots show same layout and accessible color contrast.
+- [ ] Offline/browser-native install still works without in-page banners.
+- [ ] Node tests, syntax/build, Cloudflare preview and the exact merged production SHA are verified.
+
+A build-only claim does **not** close visual or gameplay acceptance. Record what was actually exercised, what wasn't, and any remaining blocker.
+
+## New games later
+
+Add a `GAME_PAGE_CONFIG` entry, the game rules, a controller and only its **unique inputs inside an existing slot**. The shell and shared CSS remain untouched unless an improvement benefits every game.
