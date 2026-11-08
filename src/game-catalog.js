@@ -12,7 +12,7 @@ export const GAMES=[
    'The other held ball can come back when the other player reaches the 8.'
   ],strategy:'The best defensive placement might be your own ball. Think ahead before anyone reaches the 8.'},
  {id:'caroms',name:'Caroms · Whacky Pool',icon:'🌲',url:'/caroms.html',
-  players:'Solo vs Squatch Bot · or local two-player',
+  players:'Solo vs Squatch Bot or 2 local players',
   highlight:'Hit the white with an object ball. Yes, really.',
   description:'Turn pool inside out: shoot your object ball into the white cue ball and carom toward a pocket. Choose how strictly you call your shots.',
   rules:[

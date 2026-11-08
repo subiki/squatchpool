@@ -88,7 +88,7 @@ test('Tuna calls a ball then pocket on the felt on 7/8/9-foot tables',async()=>{
    assert.equal(node('shoot').disabled,true,'called BREAK begins shot');
    assert.equal(node('power').value,'68');
    const beforeLeave=node('shoot').onclick;
-   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
    listeners.get('document:click')(navigation);
    assert.equal(navigation.prevented,true);
    assert.equal(node('shoot').onclick,beforeLeave,'cancelled leave preserves live Tuna controller');

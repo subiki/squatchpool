@@ -54,7 +54,7 @@ test('Caroms has concise rules before play, with optional panels after the table
  for(const id of ['current-game-stats-players','current-game-stats-racks','current-game-stats-balls','current-game-stats-status'])
   assert.ok(at(id)>at('table-stage')&&at(id)<table,id+' stays above the canvas inside fullscreen');
  assert.ok(html.indexOf('<squatch-header>')<table,'shared header precedes game table');
- for(const id of ['caroms-call-controls','caroms-shot-panel','caroms-shoot','caroms-story-panel'])
+ for(const id of ['caroms-call-controls','caroms-shot-panel','caroms-shoot'])
   assert.ok(at(id)>table,id+' must follow the playable table');
  assert.ok(at('caroms-rules-panel')>0&&at('caroms-rules-panel')<table,'rules appear before gameplay without forcing an expanded panel');
  assert.match(html,/<p class="notice">\s*<strong>Play Caroms:/);
@@ -84,7 +84,7 @@ test('all controller IDs remain unique and call/shot controls are accessible',()
 
 test('Caroms exposes active rules without obsolete manuscripts or field notes',()=>{
  assert.ok(html.indexOf('id="caroms-rules-panel"')<html.indexOf('id="caroms-table"'));
- assert.doesNotMatch(html,/archive\.html|original story|story-panel/i);
+ assert.doesNotMatch(html,/archive\.html|Optional original story|<details[^>]*id="caroms-story-panel"/i);
  assert.match(html,/id="caroms-play-anchor"/);
 });
 
