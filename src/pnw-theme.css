@@ -1,3 +1,4 @@
+@import url('/src/wild-squatch.css');
 /* Squatch Pool · PNW visual system 3.2
  * One coherent dark-evergreen brand for all 9 pages, independent of OS theme.
  * Readability contract: ivory/brass on opaque deep forest; deep ink on moss,
@@ -588,6 +589,3 @@ body .hub-game .hub-rules summary{color:#f0c478!important}
   transition:none!important;transform:none!important;
  }
 }
-
-/* Wild PNW skin is shared by every page loading this persistent theme. */
-@import url('/src/wild-squatch.css');
