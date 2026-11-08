@@ -26,4 +26,7 @@
   --squatch-target-min: 44px;
   --squatch-setup-min: 48px;
 }
+/* Ensure all routes inherit the same UI type instead of the browser default.
+   Game marquees retain their explicitly styled display font. */
+html, body {font-family:var(--squatch-font-ui);}
 /* No per-game styles or CSS geometry overrides belong in this file. */
