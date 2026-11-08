@@ -32,8 +32,8 @@ body > main{
 }
 body > main :is(h1,h2,h3,h4){color:var(--pnw-brass)}
 body > main :is(p,li,dd){color:var(--pnw-copy)}
-body main a:not(.hub-play){color:var(--pnw-brass);text-underline-offset:3px}
-body main a:not(.hub-play):hover{color:#ffe8b7}
+body main a:not(.hub-play):not(.hub-hero-cta){color:var(--pnw-brass);text-underline-offset:3px}
+body main a:not(.hub-play):not(.hub-hero-cta):hover{color:#ffe8b7}
 /* Original identity: serif headline, forest illustration, textured border.
    Do not convert every title and panel into a generic app dashboard. */
 body .intro,body .hub-intro,body .world-hero{
