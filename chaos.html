@@ -8,7 +8,7 @@
 <body><script>try { localStorage.setItem("squatchpool-visual-mode","rock"); document.documentElement.dataset.squatchTheme="rock"; } catch { document.documentElement.dataset.squatchTheme="rock"; }</script><squatch-header></squatch-header><main class="chaos-maker" id="chaos-maker">
 <header class="chaos-intro"><p class="eyebrow">SQUATCH MAKER · EXPERIMENTAL SANDBOX</p><h2>CHAOS POOL</h2><p>Anything goes. Roll a ridiculous table, drag things around, shoot, and save your monster. No account needed.</p></header>
 <section class="chaos-toolbar" aria-label="Maker controls">
-<button id="chaos-random" type="button">🎲 Random chaos</button>
+<button id="chaos-nightmare" type="button">🦍 Squatch's Nightmare</button><button id="chaos-random" type="button">🎲 Random chaos</button>
 <button id="chaos-play" type="button">▶ Play</button>
 <button id="chaos-reset" type="button">↺ Reset shot</button>
 <button id="chaos-clear" type="button">Clear table</button>
@@ -21,9 +21,17 @@
 <label><input id="mod-gravity" type="checkbox"> Sideways gravity</label>
 <label><input id="mod-magnet" type="checkbox"> Magnetic center</label>
 <label><input id="mod-pinball" type="checkbox" checked> Bumper madness</label>
+<label><input id="mod-blackHole" type="checkbox"> Black Hole Eight Ball</label>
+<label><input id="mod-portals" type="checkbox"> Portal Pockets</label>
+<label><input id="mod-roulette" type="checkbox"> Chaos Roulette</label>
+<label><input id="mod-multiball" type="checkbox"> Multiball Madness</label>
+<label><input id="mod-infection" type="checkbox"> Color Infection</label>
+<label><input id="mod-split" type="checkbox"> Split Shot</label>
+<label><input id="mod-sabotage" type="checkbox"> Sabotage Pool</label>
+<label><input id="mod-gauntlet" type="checkbox"> Squatch Gauntlet</label>
 <label for="chaos-power">Cue power <input id="chaos-power" type="range" min="10" max="100" value="55"></label>
 </section>
 <div class="chaos-layout">
-<section class="chaos-table-wrap"><canvas id="chaos-table" width="960" height="520" aria-label="Interactive chaos pool sandbox: drag balls and bumpers in Build mode, then drag away from the white ball to aim in Play mode"></canvas><p id="chaos-status" role="status" aria-live="polite">Build mode: drag balls or bumpers. Tap empty felt to add a ball.</p><div class="chaos-shoot"><button id="chaos-shoot" type="button">🎱 SHOOT</button><span id="chaos-counter">0 shots · 0 balls pocketed</span></div></section>
-<aside class="chaos-help"><h3>Make a mess</h3><p><strong>Build:</strong> drag balls and bumpers. Tap empty felt to drop a new ball. Turn mods on or off whenever you like.</p><p><strong>Play:</strong> drag from the white ball in the direction you want to shoot. Press SHOOT. Hit Reset shot to restore your starting layout.</p><p><strong>Random chaos:</strong> rolls fresh balls, bumpers and modifiers. Save stores the entire setup and mods in this browser.</p><p>This is an experimental toy physics sandbox, not regulation billiards. No accounts, publishing, or competitive scoring yet.</p></aside>
+<section class="chaos-table-wrap"><canvas id="chaos-table" width="960" height="520" aria-label="Interactive chaos pool sandbox: drag balls and bumpers in Build mode, then drag away from the white ball to aim in Play mode"></canvas><p id="chaos-events" role="log" aria-live="polite">Chaos event log</p><p id="chaos-status" role="status" aria-live="polite">Build mode: drag balls or bumpers. Tap empty felt to add a ball.</p><div class="chaos-shoot"><button id="chaos-shoot" type="button">🎱 SHOOT</button><span id="chaos-counter">0 shots · 0 balls pocketed</span></div></section>
+<aside class="chaos-help"><h3>Make a mess</h3><p><strong>Build:</strong> drag balls and bumpers. Tap empty felt to drop a new ball. Turn mods on or off whenever you like.</p><p><strong>Play:</strong> drag from the white ball in the direction you want to shoot. Press SHOOT. Hit Reset shot to restore your starting layout.</p><p><strong>Random chaos:</strong> rolls fresh balls, bumpers and modifiers. Save stores the entire setup and mods in this browser.</p><p>Squatch's Nightmare enables eight combinable mechanics: a gravitational 8-ball, teleporting pockets, roulette after shots, spawning balls, collision color changes, ball splitting, sabotage bumpers, and escalating stages. This is an experimental toy physics sandbox, not regulation billiards. No accounts, publishing, or competitive scoring yet.</p></aside>
 </div></main><script type="module" src="/src/chaos-maker.js"></script><script type="module" src="/src/static-navigation.js"></script><script type="module" src="/src/site-header-data.js"></script></body></html>
