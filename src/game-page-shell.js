@@ -1,4 +1,5 @@
 import {GAME_GUIDES} from './game-guides.js';
+import {mountAimAssist} from './aim-assist.js';
 /**
  * Canonical Squatch Pool game-page composition.
  *
@@ -128,6 +129,8 @@ export function renderGameRules(main,doc,rules,gameId,config){
 
 function normalizeKit(main,doc){
  const kit=main.querySelector('#table-stage .table-kit');
+ // One visible aim-assistance selector below every pool table, including Arcade.
+ mountAimAssist(main.querySelector('#table-stage'));
  const primary=kit?.querySelector('.kit-primary');
  if(!primary||primary.dataset.squatchNormalized)return;
  primary.dataset.squatchNormalized='true';
