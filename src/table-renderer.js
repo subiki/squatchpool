@@ -61,10 +61,10 @@ export function createTableRenderer({table,pockets,cushions,renderPocket}){
   }
   ctx.restore();
  }
- function drawTable(ctx,balls,{breakSetup=false,breakLabel}={}){
+ function drawTable(ctx,balls,{breakSetup=false,breakLabel,customDrawBall}={}){
   drawSurface(ctx);
   if(breakSetup)drawHeadString(ctx,{active:true,label:breakLabel});
-  drawBalls(ctx,balls);
+  drawBalls(ctx,balls,customDrawBall);
  }
  // Explicit striker supports Caroms object-ball shots (not always ball 0).
  function drawAim(ctx,striker,angle,assist={}){

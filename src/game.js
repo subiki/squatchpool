@@ -7,6 +7,7 @@ import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForS
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
 import {createTableRenderer} from './table-renderer.js';
+import {drawPoolBall} from './ball-appearance.js';
 import {drawAimAssistance,readAimAssistMode} from './aim-assist.js';
 import {createBotShowtime} from './bot-showtime.js';
 import {createGameSession} from './game-session.js';
@@ -43,7 +44,6 @@ export function mountButWaitGame(root=globalThis.document){
  const clearTimeout=id=>{globalThis.clearTimeout(id);timers.delete(id);};
 
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
-const colors=['#fffdf3','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39','#161819','#e6be36','#2f67c5','#d34440','#663f96','#e59538','#267b50','#762f39'];
 let state,lastTime=0,accumulator=0,botTimer=null,selectedTableSize=7;
 const invertAim=bindInvertAim($('#invert-aim'));
 cleanups.push(()=>invertAim.dispose());
@@ -387,18 +387,9 @@ function planBotShot(){
  },900);
 }
 function drawBall(b){
- const {x,y,id}=b,r=TABLE.radius;
- ctx.fillStyle='#04191599';ctx.beginPath();ctx.ellipse(x+2,y+3.6,r+1.4,r*.78,0,0,Math.PI*2);ctx.fill();
- ctx.save();ctx.translate(x,y);ctx.fillStyle=colors[id];ctx.beginPath();ctx.arc(0,0,r,0,2*Math.PI);ctx.fill();
- if(id>=9){ctx.fillStyle='#faf8eb';ctx.fillRect(-r*.86,-r*.42,r*1.72,r*.84);
-  ctx.save();ctx.beginPath();ctx.arc(0,0,r,0,2*Math.PI);ctx.clip();
-  ctx.fillStyle=colors[id];ctx.fillRect(-r,-r,r*2,r*.42);ctx.fillRect(-r,r*.42,r*2,r);ctx.restore();
- }
- const gleam=ctx.createRadialGradient(-r*.4,-r*.5,0,-r*.1,-r*.2,r*1.5);
- gleam.addColorStop(0,'#ffffff99');gleam.addColorStop(.35,'#ffffff00');gleam.addColorStop(1,'#00000066');
- ctx.fillStyle=gleam;ctx.beginPath();ctx.arc(0,0,r,0,2*Math.PI);ctx.fill();
- if(id!==0){ctx.fillStyle='#f9f7e9';ctx.beginPath();ctx.arc(0,0,5.4,0,2*Math.PI);ctx.fill();ctx.fillStyle='#1c2020';ctx.font='bold '+(id>9?7.5:9)+'px Arial';ctx.textBaseline='middle';ctx.textAlign='center';ctx.fillText(String(id),0,.6)}
- ctx.restore();
+ // Solids are one gold team, stripes one blue team. Keep 8 black and cue white.
+ // This is visual only: shot calls and all rules still use numbered ball IDs.
+ drawPoolBall(ctx,b,TABLE.radius,'teams');
 }
 function render(){
  const w=TABLE.width,h=TABLE.height,r=TABLE.radius,gr=ctx.createRadialGradient(w*.44,h*.42,100,w*.5,h*.5,710);

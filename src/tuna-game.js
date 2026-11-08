@@ -6,6 +6,7 @@ import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
 import {createTableRenderer} from './table-renderer.js';
+import {drawPoolBall} from './ball-appearance.js';
 import {tunaTargets,tunaRackOrder,tunaCanWin} from './tuna-rules.js';
 import {createGameSession} from './game-session.js';
 import {attachMatchExitGuard} from './match-navigation.js';
@@ -110,7 +111,9 @@ function update(){
 }
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 function draw(){
- renderer.drawTable(ctx,balls,{breakSetup:shot.breakShot&&shot.phase==='aim'});
+ renderer.drawTable(ctx,balls,{breakSetup:shot.breakShot&&shot.phase==='aim',
+  customDrawBall:ball=>drawPoolBall(ctx,ball,TABLE.radius,'realistic')
+ });
  drawCallTargets();
  if(shot.phase==='aim'&&(shot.breakShot||callReady()))renderer.drawAim(ctx,cue(),angle,{
   balls,calledBallId:$('call-ball').value||null,calledPocketId:$('call-pocket').value||null,
