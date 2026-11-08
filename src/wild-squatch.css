@@ -20,3 +20,15 @@ body .hub-arcade{border:4px ridge #9c703d!important;background:linear-gradient(1
 body .table-stage .table-wrap{box-shadow:0 8px 24px #0009!important}
 @media(max-width:650px){body>main{border-inline:0!important}body .hub-intro{min-height:220px;padding:20px!important}body .hub-game{border-width:3px!important}body .hub-section>h2{width:100%;padding:9px 12px}}
 @media(prefers-reduced-motion:reduce){body .hub-game,body .hub-play{transition:none!important}}
+
+/* Original scalable Rock & Roll hero artwork, authored for this theme. */
+body .hub-intro{
+ background-image:linear-gradient(90deg,#07150bc9 0%,#07150b65 50%,#07150bc9 100%),url('/assets/brand/rock-pnw-hero.svg')!important;
+ background-size:cover!important;background-position:center!important;
+}
+body .hub-game:nth-child(6n+1){border-color:#b47b43!important}
+body .hub-game:nth-child(6n+2){border-color:#d9ac55!important}
+body .hub-game:nth-child(6n+3){border-color:#8b493b!important}
+body .hub-game:nth-child(6n+4){border-color:#3d9a91!important}
+body .hub-game:nth-child(6n+5){border-color:#6d9458!important}
+body .hub-game:nth-child(6n+6){border-color:#c39b58!important}
