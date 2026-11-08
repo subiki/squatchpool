@@ -19,7 +19,7 @@ const exe=process.env.CHROME_BIN||
 if(!exe){console.error('Headless browser unavailable: install Chrome/Chromium on the CI runner.');process.exit(1);}
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css',
  '.json':'application/json','.svg':'image/svg+xml','.png':'image/png',
- '.jpg':'image/jpeg','.jpeg':'image/jpeg','.webmanifest':'application/manifest+json'};
+ '.jpg':'image/jpeg','.jpeg':'image/jpeg','.webp':'image/webp','.webmanifest':'application/manifest+json'};
 const games=['but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
 const probe=`<script>
 (()=>{
@@ -136,10 +136,35 @@ async function browse(game,width,height,focus='top',theme='classic'){
  }
  console.log('PASS',game,width+'x'+height,focus,theme,'shared page / controls / unique IDs / startup');
 }
+
+async function browseRockHome(width,height){
+ const url='http://127.0.0.1:'+port+'/?smokeRock=1';
+ const image=join(outputDir,'home-'+width+'-rock.png');
+ const argv=['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+  '--no-first-run','--disable-extensions','--disable-background-networking',
+  '--window-size='+width+','+height,'--virtual-time-budget=3200',
+  '--screenshot='+image,'--dump-dom',url];
+ const browser=spawn(exe,argv,{stdio:['ignore','pipe','pipe']});
+ let html='',stderr='';
+ browser.stdout.on('data',chunk=>{html+=chunk;});
+ browser.stderr.on('data',chunk=>{stderr+=chunk;});
+ const result=await Promise.race([
+  new Promise(resolve=>browser.on('exit',code=>resolve({code}))),
+  new Promise(resolve=>setTimeout(()=>{browser.kill('SIGKILL');resolve({timeout:true});},25000))
+ ]);
+ const loaded=html.includes('data-squatch-theme="rock"')&&
+  html.includes('class="rock-hero-wordmark"')&&html.includes('class="hub-game"');
+ if(result.timeout||result.code!==0||!loaded)
+  throw new Error('Rock homepage '+width+'px: '+JSON.stringify(result)+
+   ' hero/cards ready='+loaded+' stderr='+stderr.slice(-500));
+ console.log('PASS Rock homepage',width+'x'+height,'artwork, live cards and mode');
+}
 try{
+ await browseRockHome(1180,1200);
+ await browseRockHome(390,900);
  for(const game of games)await browse(game,1180,900);
  for(const game of games)await browse(game,390,844);
  for(const game of games)await browse(game,390,844,'table');
  for(const game of games)await browse(game,390,844,'top','rock');
- console.log('Shared game shell: 24 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile).');
+ console.log('Shared game shell: 26 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile).');
 }finally{await new Promise(resolve=>server.close(resolve));}
