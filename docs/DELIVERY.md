@@ -1,15 +1,47 @@
-# Fast delivery loop
+# Delivery — from issue to production
 
-1. Read `AGENTS.md`, relevant issue, open PRs, and current `main`. Claim an independent task in its issue before editing.
-2. Create a small branch and PR linked to the issue. Avoid overlapping changes with other agents.
-3. Run `npm test` and `npm run check` locally before merging. Hosted GitHub Actions is **temporarily deferred**: initial runs failed before any runner started (zero steps, no runner assigned), not because tests failed. Re-enable PR checks only after runner availability is verified. Never bypass an actual failing test.
-4. Use the existing Cloudflare Pages GitHub integration for preview deployments when available; verify the actual preview URL and critical interactions. Do not add a duplicate deployment pipeline.
-5. For display of the deployed version, the banner uses `deployment.json` generated during Cloudflare's install/build step. A manifest marks build time, **not** the precise completion time; Cloudflare's successful GitHub check run records the exact completion timestamp. If the metadata doesn't update because the build skips install scripts, use the existing Pages Build command `npm run build`, output dir `.`; do not add a parallel deployment pipeline. Never show the visitor's current time as a deployment time.
-6. Merge after checks pass and applicable real-browser smoke tests are recorded. Cloudflare production deploy should follow `main`; verify the live URL after deployment rather than assuming success.
-6. Record PR, commit, test results, preview/live URLs, browser/device evidence, and remaining gaps on the issue. Close only when acceptance is verified.
+Small changes, observable outcomes, no duplicate deployment pipeline. These steps apply to humans and coding agents.
 
-**Fast paths:** docs-only changes need CI but not a gameplay playthrough; gameplay, controls and physics changes need targeted desktop/touch browser testing. Urgent fixes use small checked PRs. Never force-push over concurrent work or auto-merge failing checks. Branch protection, hosted CI runner availability, and Cloudflare preview integration must be verified/configured in GitHub/Cloudflare settings; this document alone does not enforce them.
+## 1. Scope the change
 
-**World canon:** Sasquatches inhabit a Pacific Northwest **temperate rainforest**, not a jungle. Use cedar, hemlock, moss, ferns, rain and mist; no tropical jungle plants or fauna. This applies to character intros, backgrounds, lore, art prompts, website copy and issues. Preserve historical source material verbatim in archives.
+Read `AGENTS.md`, the [work queue](BACKLOG.md), [architecture](ARCHITECTURE.md), relevant live issues/PRs and current `main`. For ANY UI work, read the [game template](GAME_PAGE_TEMPLATE.md) first. Name the player-facing failure and one acceptance criterion; avoid overlapping another agent's branch.
 
-**Separate migration lane:** Google Sites/DreamHost content, DNS and registrar transfer follow issue #28; do not block gameplay delivery or perform domain cutovers automatically.
+## 2. Build on a short-lived branch
+
+Prefer one component or one verified vertical slice. Do not edit `main` directly. Preserve original game rule engines, DOM IDs, canvases and physics for a layout change. Document intentional behavior changes and recovery steps.
+
+## 3. Run checks
+
+```bash
+npm test
+npm run check
+npm run build
+```
+
+These are lightweight regression gates, not coverage targets. Fix failing tests rather than bypass them. If hosted GitHub checks cannot start, report the runner failure separately from actual test results.
+
+**Game-page changes:** CI runs `node scripts/smoke-game-shell.mjs` in headless Chromium: six routes in Classic at desktop/mobile, six mobile table-focused captures and six mobile Rock & Roll captures. It verifies the shared slot order, visible shot action, setup order, rulebook consistency, hidden controls, no duplicate IDs and startup-error detection. Screenshots are uploaded as the `squatch-game-layouts` workflow artifact for visual review. This is a fast smoke check, not a substitute for completing racks.
+
+**Game-page changes:** validate **both Classic and Rock & Roll skins** at matching widths; neither is allowed to alter common layout or control behavior. Test one complete representative rack and smoke the setup/table/help/controls in *every* mode affected. For the shared template, the affected set is all five originals **plus Arcade**. Check direct URL and SPA navigation, controller mount/dispose, mobile and fullscreen. Avoid only checking CSS selectors in source; inspect the actual browser result.
+
+**Gameplay changes:** break → placement → legal shot → miss/foul → turn → rack win → restart. Try keyboard/Space, touch and player/bot arrangements. Compare scores to the documented house rules.
+
+**Docs-only changes:** validate internal links, terminology, code references and examples. No gameplay rack required.
+
+## 4. Preview
+
+Use the existing Cloudflare Pages GitHub integration. Confirm the preview succeeded for the **PR head SHA**. When a browser is available, use the preview to check relevant routes and responsive layouts. Mark unavailable device/browser checks as **not verified**; don't invent screenshots or QA.
+
+## 5. Merge and verify the deployment
+
+Merge safe reviewed changes after checks. Cloudflare's integration deploys `main`; confirm the production Pages check for the **merged SHA**, not just a successful PR preview. The public header's Pacific timestamp is build metadata, which can differ from upload-complete time. Never set it from the visitor's clock.
+
+If the production build fails or regression appears, rollback/revert the offending PR or redeploy the last verified commit according to existing project controls. Do not work around the failure by deploying a second pipeline.
+
+## 6. Close the loop
+
+Post a short release note on the PR/issue: player-visible change, merged SHA, tests, preview/production check, manual browser evidence, remaining risks and rollback action. Close issues only against their acceptance criteria, not because a commit landed.
+
+## Safety and brand
+
+Use the approved Pacific Northwest **temperate rainforest** visual vocabulary. Do not link players to external manuscripts or third-party sites. Keep native browser PWA installation (no custom button or offline-ready banner). Preserve GPL-3.0 notices. Keep `STATS_DB` preview and production databases separate; never publish credentials, private IDs or user data.

@@ -1,15 +1,15 @@
-# Original Squatch Pool source inventory
+# Source inventory — historical preservation only
 
-Recovered from the 2024 Google Drive manuscripts on 2026-10-26. Original Google Sites pages could not be fetched; **this is a partial migration, not a complete website backup**. Preserve archived text verbatim, including unfinished content.
+**Status:** recovered portions of the original Squatch Pool manuscripts. This is **not** the public rules page or the source of truth for today's adjudication. Keep archival text byte-for-byte intact in `archive/source/`.
 
-- But Wait, There's More: https://docs.google.com/document/d/1YoHo0EFKuQniggAen1z3dOuYsmVMq-TtYQCV312PHj8/edit — archived in `archive/source/episode-1.txt`
-- Press Your Luck: https://docs.google.com/document/d/1p_oian1t6xYScnD3yo0MY-wDscHyGca1xMEGpLnnkl0/edit — empty source; recovery needed
-- Caroms (Whacky Pool): https://docs.google.com/document/d/1yivIIzpXavC91_t1ELPXuLUzVeCAn2ZV_vy36zEaOe0/edit — archived in `archive/source/episode-3.txt`
-- Coin-Op Cutthroat: https://docs.google.com/document/d/1fQbxrAB8fvo6pvEVY9ZgCeD1kDUlgq786P6AX2NME_w/edit — archived in `archive/source/episode-4.txt`
-- Behind the Scenes: https://docs.google.com/document/d/1dALoUoDtTgSzYSBjQ1J2B0pF52rWsdvio7bjJ0oMYV8/edit — archived in `archive/source/behind-scenes.txt`
+| Original material | Local preserved copy | State |
+| --- | --- | --- |
+| But Wait, There's More | `archive/source/episode-1.txt` | Text preserved |
+| Press Your Luck | `archive/source/episode-2.txt` (when available) | Original source was incomplete; use current rules and owner decisions |
+| Caroms | `archive/source/episode-3.txt` | Text preserved |
+| Cutthroat | `archive/source/episode-4.txt` | Text preserved |
+| Behind the Scenes | `archive/source/behind-scenes.txt` | Text preserved |
 
-Media pending local preservation:
-- https://drive.google.com/drive/folders/1PdkXfkV38_GUSGASWKh5Ujyydy7BkZfF — original images, audio, video
-- https://drive.google.com/drive/folders/10yUwTbD09EdEI5_MGY4vPWqBlLrr0bIR — image samples
+Some original media has not been verified as byte-for-byte preserved. Do not assert a complete migration. Source URLs and migration provenance, if ever needed, belong in restricted project history, **never on the public website**.
 
-Before retiring Google Sites, inventory all published pages, links and media, verify byte-preserving copies, and add redirects. Do not change registrar/DNS as part of this work.
+Player-visible instructions are maintained in `src/game-guides.js`; executable legality and scoring live in the adjudicators. Resolve disagreements deliberately and document rule decisions in PRs. Do not automatically port all archived text into a playable page.

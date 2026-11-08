@@ -1,3 +1,4 @@
+import {prepareGamePage} from './game-page-shell.js';
 import {TABLE,pockets,cushions,ball,rack,step,stationary,canPlace,findPlacement,clearShot,clamp,distance,applyCueSpin,headStringX,canPlaceBreakCue,kitchenPoint,shotSpeed} from './physics.js';
 import {renderPocket,facings,setTableSize} from './table-geometry.js';
 import {initStats,newStatsId} from './stats.js';
@@ -12,6 +13,7 @@ import {adjudicateButWaitShot} from './but-wait-shot-adapter.js';
 import {mountTableKit} from './table-kit-controls.js';
 const mountedGames=new WeakMap();
 export function mountButWaitGame(root=globalThis.document){
+ prepareGamePage(root,'but-wait');
  mountedGames.get(root)?.dispose();
  const document=root.ownerDocument||root,cleanups=[];
  let disposed=false,frameId=null;

@@ -8,13 +8,13 @@ This folder contains the approved **five-toe** footprint + prominent eight-ball 
 - `mark-dark.svg`, `mark-light.svg`, `mark-mono.svg`: standalone clean vector variations.
 - `badge.svg`, `textured-badge.svg`: print and decorative applications.
 - `wordmark-dark.svg`, `wordmark-light.svg`: accessible horizontal lockups.
-- `texture-felt.svg`, `texture-cedar.svg`, `texture-topography.svg`: small procedural patterns loaded by `src/pnw-theme.css`.
-- `forest-banner.svg`: illustration behind the homepage hero; non-essential to game rendering.
+- `texture-felt.svg` and `texture-cedar.svg`: subtle decorative overlays. `texture-topography.svg` is archived only; its edges do **not** tile and it must never be applied as repeating page wallpaper.
+- `forest-banner.svg`: preserved illustrative banner. The active shared game template uses optimized `pnw-forest.jpg` for scenic surfaces.
 - `palette.json`, `contrast-matrix.json`: colors and measured token contrast.
 - The self-contained `brand-artboard.svg` now shows the v3 mark at fixed aspect ratios (not stretched). The separately generated, approved v3 high-resolution illustration package remains available as a downloadable ZIP.
 
 ## Visual rules
-Pacific Northwest temperate rainforest, subdued. No playing-card spades, sunglasses characters, neon/glossy arcade elements, stretched marks, or UI overlays on playing canvases. Use wood grain on buttons/surrounds, felt on card panels, topographic pattern on background. Keep copy on sufficiently opaque surfaces.
+Pacific Northwest temperate rainforest, subdued. No playing-card spades, sunglasses characters, neon/glossy arcade elements, stretched marks, or UI overlays on playing canvases. Use cedar grain on button surrounds, felt on HUD panels, moss/forest on cards and water subtly on site statistics. No repeating topographic wallpaper or oversized lines behind text. All copy must sit over an opaque enough dark-green surface.
 
 ## Accessibility
 Normal body text requires ≥4.5:1 contrast; nontext UI boundaries ≥3:1. Light and dark sample color-pair checks live in `tests/brand-identity.test.js`; route-specific UI still needs browser-based contrast review, including pressed/disabled/focus states.
@@ -44,7 +44,7 @@ hide those seams with yet more repeated overlays. The original SVG remains in
 the brand archive but the shared site no longer renders it.
 
 All files are bundled into the offline PWA by the existing build scanner.
-CSS falls back to opaque forest gradients if imagery is delayed or unavailable.
+The shared visual presentation is owned by `src/pnw-theme.css` (Classic), `src/wild-squatch.css` (Rock & Roll) and `src/game-shell.css` (common geometry). Changing appearance must never alter control placement; individual games must never restyle the common layout. CSS falls back to opaque forest gradients if imagery is delayed or unavailable.
 Keep default text at least 4.5:1 and important UI boundaries at least 3:1
 against their *actual composited* backgrounds. Source-level palette tests
 alone are not a complete browser WCAG audit.

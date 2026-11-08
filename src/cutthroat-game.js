@@ -1,3 +1,4 @@
+import {prepareGamePage} from './game-page-shell.js';
 /** Three-seat Coin-Op Cutthroat: original Episode 4 rules, shared 120 Hz table physics. */
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,canPlace,canPlaceBreakCue,kitchenPoint,headStringX,findPlacement} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
@@ -16,6 +17,7 @@ import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {mountTableKit} from './table-kit-controls.js';
 const mountedGames=new WeakMap();
 export function mountCutthroatGame(root=globalThis.document){
+ prepareGamePage(root,'cutthroat');
  mountedGames.get(root)?.dispose();
  const document=root.ownerDocument||root,cleanups=[];
  let disposed=false,frameId=null;

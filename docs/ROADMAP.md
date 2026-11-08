@@ -1,27 +1,28 @@
-# Squatch Pool — outcome-based release roadmap
+# Squatch Pool — outcome-based roadmap
 
-**Rebaselined 2026-10-31.** Historic dates and version promises in issue [#33](https://github.com/subiki/squatchpool/issues/33) are no longer an accurate execution schedule: five modes now exist in code but their complete live gameplay is not yet accepted. **Do not declare a release merely because pages or merged PRs exist.** For agent-level NEXT work, use [BACKLOG.md](BACKLOG.md); for current release acceptance, use [#159](https://github.com/subiki/squatchpool/issues/159).
+**North star:** all five original Squatch games feel like the same well-made pool app, have their own clear rules, finish reliably and remain fun on phones and desktops. Ship quickly and fix quickly. Dates are not release gates.
 
-## North star
-**Five original Squatch games that are easy, funny and satisfying to finish on a phone or desktop.** Table-first play, credible physics, real original house rules, consistent controls. Preserve the Pacific Northwest temperate rainforest universe without making stories, accounts or monetization a blocker. Fun first, no coverage quotas or heavyweight TDD during proof of concept.
+| Gate | What the player gains | Acceptance |
+| --- | --- | --- |
+| **A · One recognizable site** · current | Shared PNW brand, page composition, setup controls, shot kit and mobile/fullscreen layout on five games and Arcade | Every route uses the same [template](GAME_PAGE_TEMPLATE.md); no cloned game-specific page layout |
+| **B · Complete playable matches** | Break, aim, called pocket, legal/foul adjudication, winner, next rack and stable bot/local mode on all five | A full human-played match in a real browser on desktop and phone, beyond tests or mere page load |
+| **C · Credible pool feel** | Regulation 7/8/9-foot choices, consistent rack geometry, believable rails, pocketing, rolling and spin | Targeted physics benchmarks plus real player shot comparisons |
+| **D · Trustworthy experience** | Fast site transitions, readable announcements/scoreboard, persistent preferences, offline play and honest statistics | Browser navigation/fullscreen/reconnect tests, correct Cloudflare/D1 deployment SHA, no misleading counters |
+| **E · New reasons to return** | Optional achievements, profiles, Squatch Points, additional games and storytelling | Only plan after core games are accepted and the user selects the next outcome |
 
-## Milestones (outcomes, not calendar theater)
+## Release decision
 
-| Gate | Success means | Primary GitHub work |
-|---|---|---|
-| **A — Shared session** · IN PROGRESS | Press Your Luck and Tuna break with no confirmation gate and finish/restart through shared placement/lifecycle; rules and physics preserved | [#206](https://github.com/subiki/squatchpool/issues/206), urgent #204/#205 PR triage |
-| **B — One table and shot contract** · NEXT | All five use shared drawing/input and a single event-driven shot resolution; game-specific house rules remain separate | [#207](https://github.com/subiki/squatchpool/issues/207) → [#209](https://github.com/subiki/squatchpool/issues/209) |
-| **C — One game interface, less code** · NEXT | Shared compact controls, announcer, history and HUD; no redundant per-game implementations | [#208](https://github.com/subiki/squatchpool/issues/208) → [#210](https://github.com/subiki/squatchpool/issues/210), [#63](https://github.com/subiki/squatchpool/issues/63) |
-| **D — Solo bot parity and seamless navigation** · NOT YET ACCEPTED | All five offer solo vs bot and correct local seating, including Cutthroat multi-bot; persistent header survives route changes without restarting gameplay controllers or stats | [#77](https://github.com/subiki/squatchpool/issues/77), [#212](https://github.com/subiki/squatchpool/issues/212), merged header [PR #213](https://github.com/subiki/squatchpool/pull/213) |
-| **E — Five-game playable release (v0.2 candidate)** · NOT YET ACCEPTED | Five full matches and restarts on desktop and mobile touch; prod SHA verified; real/unavailable stats truthful; offline install/play proven | [#159](https://github.com/subiki/squatchpool/issues/159), [#15](https://github.com/subiki/squatchpool/issues/15), [#128](https://github.com/subiki/squatchpool/issues/128), [#45](https://github.com/subiki/squatchpool/issues/45), [#131](https://github.com/subiki/squatchpool/issues/131) |
-| **F — Delight and expansion** · PARKED | Player feedback supports pursuing character identity, retention, optional accounts or Maker **after** playable release | Owner re-prioritizes [#65](https://github.com/subiki/squatchpool/issues/65), [#151](https://github.com/subiki/squatchpool/issues/151), [#163](https://github.com/subiki/squatchpool/issues/163), [#168](https://github.com/subiki/squatchpool/issues/168) |
+A merged PR, green unit tests or successful Cloudflare Pages build **is not a full-match acceptance**. A gate advances only when its player-facing behavior is demonstrated; record the browser/device, the tested route and any limitation.
 
-Treat dates as **forecasts only when grounded in actual throughput**. Older Oct/Nov 2026 and January 2027 targets remain historical, not automatic escalations or a justification for incomplete acceptance. Set the next release date after seeing gates A–C ship. Review the next milestone after each production-backed playable increment.
+For a small hotfix: run targeted checks, preview and production verification. For a shared-layout change: check *all* five games plus Arcade at identical viewport widths, direct load and SPA, phone and desktop, with a real shot. The existing production release inspector and issue #159 can record independent evidence.
 
-## Always-on release safety
+## Design principles
 
-Keep production playable while refactoring. Only an outage or a genuinely unplayable mode interrupts the architecture queue. Use the existing Cloudflare Pages GitHub integration and deployment banner; never add a second deployment stack. Separate **code merged**, **production SHA verified**, and **real player workflow accepted**. Run lightweight targeted checks, use real browser play, and record failures precisely.
+- Shared template and architecture **before** repeated presentation patches.
+- Game rules live in adjudicators, not in a second UI rules engine.
+- Good PNW nature materials and accessible contrast, not overwhelming contour wallpaper.
+- Existing five games, fast, lean and fun, before speculative monetization or accounts.
+- Preserve license/source obligations and historical originals in Git.
+- Owner approval for genuinely irreversible infrastructure or domain changes.
 
-## Change control
-
-One active architecture implementation PR, plus one independent production-verification/hotfix lane. Each milestone is complete only when its issue-specific checklist has evidence. New ideas go into existing parked issues unless genuinely distinct. No new game or speculative infrastructure is auto-promoted by a scheduled agent. Escalate only an actual unresolved owner tradeoff, precise missing rule or credential.
+[Work queue](BACKLOG.md) | [Delivery procedure](DELIVERY.md) | [Architecture](ARCHITECTURE.md).

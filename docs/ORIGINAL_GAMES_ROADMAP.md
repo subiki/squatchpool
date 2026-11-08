@@ -1,4 +1,7 @@
-# Squatch Pool — five-game finish line
+# Squatch Pool — five-game finish line (historical October snapshot)
+
+> **Historical reference only.** The current work order is in [BACKLOG.md](BACKLOG.md), the current release gates are in [ROADMAP.md](ROADMAP.md), and all game pages use the [one shared template](GAME_PAGE_TEMPLATE.md). Do not execute the issue order below without checking live GitHub state.
+
 
 ## Immediate product direction (2026-10-30)
 **Finish current games; do not add more yet.** The five existing playable pages are **But Wait, There's More**, **Caroms (Whacky Pool)**, **Coin-Op Cutthroat**, **Press Your Luck** and **Big Tuna Casserole**. A page/controller being present is not evidence of a complete match or production deployment. Preserve source-backed mechanics and treat unknown rule cases as provisional.

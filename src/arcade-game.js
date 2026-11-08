@@ -1,8 +1,10 @@
+import {prepareGamePage} from './game-page-shell.js';
 import {TABLE,pockets,cushions,step,stationary,shotSpeed} from './physics.js';
 import {renderPocket} from './table-geometry.js';
 import {angleFromPointer,readInvertAim,INVERT_AIM_KEY} from './aim-preference.js';
 import {ARCADE_CHALLENGE,setupArcadeChallenge,judgeArcadeShot,arcadeAimAngle} from './arcade-challenge.js';
 import {ARCADE_COST,ARCADE_STORAGE_KEY,loadArcadeState,saveArcadeState,enterArcade,conquerArcade,awardPractice,PRACTICE_DAILY_CAP} from './arcade-points.js';
+prepareGamePage(document,'arcade');
 const $=id=>document.getElementById(id);
 const canvas=$('table'),ctx=canvas.getContext('2d');
 let storage=null;
