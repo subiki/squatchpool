@@ -86,7 +86,8 @@ test('all seven routes preserve PNW artwork and dark, readable content surfaces'
  const css=read('src/pnw-theme.css');
  for(const page of ['index','but-wait','caroms','cutthroat','press-your-luck',
                     'tuna','arcade']){
-  assert.match(read(page+'.html'),/\/src\/pnw-theme\.css/,page+' must load the common brand');
+  assert.match(read(page+'.html'),/\/src\/site-styles\.css/,page+' must load the common brand');
+  assert.match(read('src/site-styles.css'),/pnw-theme\.css/,page+' imports Classic material');
  }
  for(const selector of ['body .intro','body .game-stats','body .scoreboard .player.active',
    'body .table-stage:fullscreen',
