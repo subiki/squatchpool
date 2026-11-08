@@ -181,7 +181,9 @@ function draw(){
  renderer.drawHeadString(ctx,{active:session.breakShot&&['placeBreak','aim'].includes(game.phase),
   label:'BREAK · KITCHEN'});
  renderer.drawBalls(ctx,game.balls,drawCutthroatBall);
- if(game.phase==='aim')renderer.drawAim(ctx,cue(),game.angle);
+ if(game.phase==='aim')renderer.drawAim(ctx,cue(),game.angle,{
+  balls:game.balls,suggestUncalled:true
+ });
 }
 function frame(t){
  const elapsed=lastTime?Math.min(.25,Math.max(0,(t-lastTime)/1000)):0;lastTime=t;
