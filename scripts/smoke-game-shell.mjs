@@ -55,8 +55,17 @@ const probe=`<script>
     const ok=JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&!!setupOrder&&rulesUniform&&
       main?.dataset.squatchGameShell&&errors.length===0;
-    if(location.search.includes('smokeScroll=table')&&stage)
-      stage.scrollIntoView({block:'start',behavior:'instant'});
+    if(location.search.includes('smokeScroll=table')&&stage){
+      // Headless Chrome's --screenshot after scrollIntoView can capture a
+      // blank compositor frame. Keep real game/table nodes and computed CSS,
+      // but hide the header/preceding panels in this SCREENSHOT-ONLY probe.
+      document.querySelector('squatch-header')?.style.setProperty('display','none','important');
+      for(const panel of [...main.children]){
+        if(!panel.classList.contains('squatch-game-play'))
+          panel.style.setProperty('display','none','important');
+      }
+      window.scrollTo(0,0);
+    }
     document.documentElement.dataset.squatchSmoke=ok?'pass':'fail';
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
