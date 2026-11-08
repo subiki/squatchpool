@@ -552,3 +552,49 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 @media(prefers-reduced-motion:reduce){
  :root[data-squatch-theme="rock"] body :is(.hub-section>h2,.hub-hero-cta,.hub-game){animation:none!important;transition:none!important}
 }
+
+
+/* Character entrances on every playable game, using the same shared shell. */
+:root[data-squatch-theme="rock"] body main.app .intro{
+ position:relative!important;isolation:isolate!important;overflow:hidden!important;
+ background:linear-gradient(100deg,#0b211cf0,#17332acc 70%,#1b1921ed),
+ url('/assets/brand/rock-hero-960.webp') center/cover no-repeat!important;
+}
+:root[data-squatch-theme="rock"] body main.app .intro::before{
+ content:""!important;position:absolute!important;top:0!important;right:0!important;
+ width:min(38%,300px)!important;height:190px!important;z-index:0!important;
+ background:url('/assets/brand/rock-press-your-luck.webp') right center / cover no-repeat!important;
+ -webkit-mask-image:linear-gradient(90deg,transparent,#000 45%)!important;
+ mask-image:linear-gradient(90deg,transparent,#000 45%)!important;
+ opacity:.87!important;pointer-events:none!important;
+}
+:root[data-squatch-theme="rock"] body:has(.squatch-header-nav a[href="/but-wait.html"][aria-current="page"]) main.app .intro::before{background-image:url('/assets/brand/rock-but-wait-theres-more.webp')!important}
+:root[data-squatch-theme="rock"] body:has(.squatch-header-nav a[href="/caroms.html"][aria-current="page"]) main.app .intro::before{background-image:url('/assets/brand/rock-caroms.webp')!important}
+:root[data-squatch-theme="rock"] body:has(.squatch-header-nav a[href="/cutthroat.html"][aria-current="page"]) main.app .intro::before{background-image:url('/assets/brand/rock-cutthroat.webp')!important}
+:root[data-squatch-theme="rock"] body:has(.squatch-header-nav a[href="/press-your-luck.html"][aria-current="page"]) main.app .intro::before{background-image:url('/assets/brand/rock-press-your-luck.webp')!important}
+:root[data-squatch-theme="rock"] body:has(.squatch-header-nav a[href="/tuna.html"][aria-current="page"]) main.app .intro::before{background-image:url('/assets/brand/rock-tuna.webp')!important}
+:root[data-squatch-theme="rock"] body:has(.squatch-header-nav a[href="/arcade.html"][aria-current="page"]) main.app .intro::before{background-image:url('/assets/brand/rock-assassin.webp')!important}
+:root[data-squatch-theme="rock"] body main.app .intro>div{
+ position:relative!important;z-index:1!important;
+}
+:root[data-squatch-theme="rock"] body main.app .intro h2{
+ color:#fff0b5!important;text-shadow:2px 3px #511638,0 0 12px #ffab4f!important;
+}
+:root[data-squatch-theme="rock"] body .game-stats{
+ border:3px ridge #d59f50!important;
+ background:linear-gradient(90deg,#3a2018,#25171e 55%,#123128)!important;
+ box-shadow:inset 0 1px #ffe3a95c,0 0 14px #de894b7a!important;
+}
+:root[data-squatch-theme="rock"] body .scoreboard{
+ border-bottom:2px solid #d69a51!important;
+ background:linear-gradient(90deg,#2b1c15,#17231b 50%,#2b1c15)!important;
+}
+:root[data-squatch-theme="rock"] body .table-stage .table-kit{
+ border-top:3px ridge #f2b755!important;
+ box-shadow:0 -2px 15px #ec994d6b!important;
+}
+@media(max-width:650px){
+ :root[data-squatch-theme="rock"] body main.app .intro::before{
+  width:44%!important;height:155px!important;opacity:.55!important;
+ }
+}
