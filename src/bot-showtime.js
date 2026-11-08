@@ -25,7 +25,28 @@ export function createBotShowtime(root){
   stepButton=doc.createElement('button');
   stepButton.type='button';stepButton.className='squatch-bot-step';
   stepButton.textContent='▶ Take shot';stepButton.disabled=true;
-  panel.append(status,pauseButton,stepButton);
+  const notes=doc.createElement('details');
+  notes.className='squatch-observer-notes';
+  const summary=doc.createElement('summary');summary.textContent='✎ My rule and aiming notes';
+  const note=doc.createElement('textarea');
+  note.setAttribute('aria-label','Private spectator notes for this game');
+  note.setAttribute('rows','4');
+  note.setAttribute('placeholder','Write down rules questions, the bot’s planned shot, or a strange ruling…');
+  const gameId=root?.querySelector?.('main')?.dataset?.squatchGameShell||
+    root?.dataset?.squatchGameShell||doc.location?.pathname||'pool';
+  const notesKey='squatch-bot-notes-'+gameId;
+  try{note.value=globalThis.localStorage?.getItem(notesKey)||'';}catch{}
+  note.addEventListener('input',()=>{
+   try{globalThis.localStorage?.setItem(notesKey,note.value);}catch{}
+  });
+  const copy=doc.createElement('button');copy.type='button';copy.textContent='Copy notes';
+  copy.addEventListener('click',async()=>{
+   try{await globalThis.navigator?.clipboard?.writeText?.(note.value);
+    copy.textContent='Copied';}
+   catch{copy.textContent='Select the text to copy';note.select?.();}
+  });
+  notes.append(summary,note,copy);
+  panel.append(status,pauseButton,stepButton,notes);
   kit.prepend(panel);
   pauseButton.addEventListener('click',()=>setPaused(!paused));
   stepButton.addEventListener('click',()=>fire());
