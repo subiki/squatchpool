@@ -28,6 +28,10 @@ self.addEventListener('fetch', event => {
   // on a broken release after the first visit; cache remains the offline fallback.
   if (request.mode === 'navigate' && PRECACHE_SET.has(path)) {
     event.respondWith(fetch(request).then(async response => {
+      if (response.status >= 500 && response.status <= 599) {
+        const cached = await (await caches.open(CACHE_NAME)).match(path);
+        if (cached) return cached;
+      }
       if (response.ok && response.type !== 'opaque') {
         try { await (await caches.open(CACHE_NAME)).put(path, response.clone()); } catch {}
       }

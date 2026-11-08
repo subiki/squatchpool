@@ -112,6 +112,23 @@ test('API requests, cross-origin and writes are never intercepted or cached',asy
   assert.equal(h.fetches,0);
 });
 
+test('temporary navigation outages retain playable cached pages without masking missing routes',async () => {
+  const h=workerHarness();
+  await h.lifecycle('install');
+  const cached=h.stored.get('/cutthroat.html');
+  for(const status of [500,502,503,504]){
+    h.setResponse({ok:false,status,type:'basic',body:'server unavailable'});
+    assert.equal(await h.request('/cutthroat.html'),cached);
+    assert.equal(await h.request('/cutthroat'),cached,'extensionless route uses the same fallback');
+    assert.equal(h.stored.get('/cutthroat.html'),cached,'never cache the outage response');
+  }
+  h.stored.delete('/cutthroat.html');
+  assert.equal((await h.request('/cutthroat.html')).status,504,'cache miss retains server response');
+  h.stored.set('/cutthroat.html',cached);
+  h.setResponse({ok:false,status:404,type:'basic',body:'not found'});
+  assert.equal((await h.request('/cutthroat.html')).status,404,'do not resurrect a removed route');
+});
+
 test('failed responses and offline misses never pollute the cache',async () => {
   const h=workerHarness();
   h.setResponse({ok:false,type:'basic',clone(){return {...this};}});
