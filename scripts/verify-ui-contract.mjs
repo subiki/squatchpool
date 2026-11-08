@@ -23,7 +23,7 @@ for(const file of imports)assert.ok(existsSync(join(root,'src',file)),'missing s
 
 const routes=readdirSync(root).filter(name=>name.endsWith('.html')).sort();
 assert.deepEqual(routes,[
- 'arcade.html','but-wait.html','caroms.html','cutthroat.html',
+ 'arcade.html','but-wait.html','caroms.html','chaos.html','cutthroat.html',
  'index.html','press-your-luck.html','tuna.html'
 ],'All playable HTML routes must use the common styling contract.');
 
