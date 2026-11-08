@@ -32,10 +32,13 @@ const probe=`<script>
  window.addEventListener('unhandledrejection',fail);
  window.addEventListener('DOMContentLoaded',()=>{
   if(wantsBots){
-   const selected=document.querySelector('main')?.dataset.squatchGameShell;
-   const seat=document.getElementById(selected==='cutthroat'?'cut-players':'mode');
-   if(seat){seat.value=selected==='cutthroat'?'0':'bots';
-    seat.dispatchEvent(new Event('change',{bubbles:true}));}
+   // Let each route's module register its controller and change handler first.
+   setTimeout(()=>{
+    const selected=document.querySelector('main')?.dataset.squatchGameShell;
+    const seat=document.getElementById(selected==='cutthroat'?'cut-players':'mode');
+    if(seat){seat.value=selected==='cutthroat'?'0':'bots';
+     seat.dispatchEvent(new Event('change',{bubbles:true}));}
+   },100);
    setTimeout(()=>{
     const stage=document.querySelector('#table-stage');
     document.documentElement.dataset.squatchBotPreview=
