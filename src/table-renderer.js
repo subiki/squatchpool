@@ -4,7 +4,7 @@
  * Pass the mutable TABLE/pockets/cushions references so 7/8/9-ft resizing
  * remains authoritative in table-geometry.js.
  */
-import {drawAimAssistance} from './aim-assist.js';
+import {drawAimAssistance,readAimAssistMode} from './aim-assist.js';
 export function createTableRenderer({table,pockets,cushions,renderPocket}){
  // Shared surface accepts mode-specific paint without duplicating regulation geometry.
  // The afterPockets hook keeps But Wait's detailed pocket facings below the cushions.
@@ -72,7 +72,8 @@ export function createTableRenderer({table,pockets,cushions,renderPocket}){
   const r=table.radius,dx=Math.cos(angle),dy=Math.sin(angle);
   ctx.strokeStyle='#f4e1a3';ctx.lineWidth=3;ctx.beginPath();
   ctx.moveTo(striker.x+dx*r,striker.y+dy*r);
-  ctx.lineTo(striker.x+dx*240,striker.y+dy*240);ctx.stroke();
+  ctx.lineTo(striker.x+dx*(readAimAssistMode()==='minimal'?r+22:240),
+   striker.y+dy*(readAimAssistMode()==='minimal'?r+22:240));ctx.stroke();
   ctx.strokeStyle='#d6aa70';ctx.lineWidth=5;ctx.beginPath();
   ctx.moveTo(striker.x-dx*(r+15),striker.y-dy*(r+15));
   ctx.lineTo(striker.x-dx*(r+140),striker.y-dy*(r+140));ctx.stroke();
