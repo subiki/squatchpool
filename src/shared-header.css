@@ -135,3 +135,11 @@ squatch-header{
 .squatch-unified-header .squatch-offline-tools button{background:var(--brand-action);color:var(--brand-action-ink)}
 .squatch-unified-header :is(a,button,summary):focus-visible{outline:3px solid var(--brand-focus);outline-offset:3px}
 @media(max-width:650px){.squatch-unified-header .squatch-brand-row .brand-mark{width:46px;height:46px}}
+
+/* Two sitewide skins: classic remains intact; rock is a separately disabled stylesheet. */
+squatch-header .squatch-theme-switch{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:7px;color:#f4eeda;font:700 .83rem system-ui,sans-serif}
+squatch-header .squatch-theme-switch>span{margin-right:5px}
+squatch-header .squatch-theme-switch button{min-height:44px;padding:8px 13px;border:2px solid #85ad95;border-radius:9px;background:#173a2d;color:#f4eeda;font:800 .86rem system-ui,sans-serif;cursor:pointer}
+squatch-header .squatch-theme-switch button[aria-pressed="true"]{background:#f0c478;color:#102923;border-color:#ffe3a6}
+squatch-header .squatch-theme-switch button:focus-visible{outline:3px solid #f9c466;outline-offset:3px}
+@media(max-width:520px){squatch-header .squatch-theme-switch{justify-content:flex-start;width:100%}squatch-header .squatch-theme-switch button{flex:1}}

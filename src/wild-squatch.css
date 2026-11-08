@@ -1,0 +1,173 @@
+/* Wild Squatch: illustrated PNW pool hall. Shared by every route via pnw-theme.css. */
+:root{--wild-gold:#f9cf77;--wild-cedar:#59341c;--wild-bark:#21160f;--wild-moss:#80b843;--wild-cream:#fff4d8}
+body{background-image:linear-gradient(180deg,#07150bb0,#06170dd9 72%),url('/assets/brand/rock-pnw-hero.svg')!important;background-position:center top!important;background-size:cover!important}
+body>main{max-width:1220px!important;background:linear-gradient(180deg,#081b14a8,#10291cd9 55%,#07170fef)!important;border-inline:4px solid #684626!important;box-shadow:0 18px 70px #000b,inset 0 0 0 2px #ba995b55!important}
+squatch-header .squatch-unified-header{max-width:1220px!important;border:3px solid #75502b!important;border-radius:0 0 17px 17px!important;background-image:linear-gradient(95deg,#15120dcf,#143020dd),url('/assets/brand/texture-cedar.svg')!important;box-shadow:0 8px 22px #000a,inset 0 0 0 2px #d2a96550!important}
+squatch-header .squatch-brand-row h1{font-family:Georgia,serif!important;font-weight:900!important;text-transform:uppercase!important;color:var(--wild-cream)!important;text-shadow:2px 3px #26180c,0 0 18px #e9a84977!important}
+squatch-header .squatch-header-nav a{border:2px solid #a97a42!important;background-image:linear-gradient(#53341be0,#281b12f2),url('/assets/brand/texture-cedar.svg')!important;color:#ffe0a3!important;box-shadow:inset 0 1px #e6bd7566,0 3px 0 #100c08!important}
+squatch-header .squatch-header-nav a[aria-current="page"]{background:linear-gradient(#a9e350,#528b20)!important;color:#15210b!important;border-color:#d6f48e!important}
+body .hub-intro{min-height:285px;display:flex;flex-direction:column;justify-content:center;text-align:center;align-items:center;background-image:linear-gradient(90deg,#07150bb8,#06150b55,#07150bc9),url('/assets/brand/rock-pnw-hero.svg')!important;background-size:cover!important;background-position:center!important;border:5px ridge #936335!important;box-shadow:0 16px 36px #0009!important}
+body .hub-intro h2{font-family:Georgia,serif!important;font-style:italic;font-size:clamp(2.3rem,6vw,4.4rem)!important;line-height:1.1;color:#fff6e1!important;text-shadow:0 4px 9px #000!important}
+body .hub-intro p{max-width:750px;font-weight:650;text-shadow:0 2px 5px #000}
+body .hub-section>h2{width:max-content;max-width:100%;margin:0 auto 18px!important;padding:9px 30px;background:linear-gradient(#b88949,#6e431f)!important;border:4px ridge #d8b16e!important;color:#21160c!important;font:900 clamp(1.6rem,4vw,2.3rem) Georgia,serif!important;text-align:center;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 7px 15px #0009}
+body .hub-games{gap:18px}
+body .hub-game{border:5px ridge #926536!important;border-radius:14px!important;background-image:linear-gradient(180deg,#1b291b9c,#0d1610 65%),url('/assets/brand/texture-cedar.svg')!important;background-size:cover!important;box-shadow:0 10px 24px #000a,inset 0 0 0 2px #d2a76650!important}
+body .hub-game h3{font-family:Georgia,serif!important;font-size:clamp(1.45rem,2.5vw,2rem)!important;text-transform:uppercase;color:#ffe4a0!important;text-shadow:2px 3px #0a0b08}
+body .hub-game .hub-play,body .hub-arcade .hub-play{background:linear-gradient(#a8e84c,#4b8b17)!important;border:2px solid #c9f77a!important;color:#12230a!important;box-shadow:inset 0 1px #f1ffca,0 4px #27470c,0 7px 12px #0009!important;text-transform:uppercase;letter-spacing:.04em}
+body .hub-game .hub-rules{border:2px solid #ae8349!important;background:linear-gradient(#2a2017,#13180f)!important}
+body .hub-game .hub-rules summary{color:#ffe2a5!important}
+body .hub-arcade{border:4px ridge #9c703d!important;background:linear-gradient(115deg,#3e2a18,#132c1c)!important}
+body .table-stage .table-wrap{box-shadow:0 8px 24px #0009!important}
+@media(max-width:650px){body>main{border-inline:0!important}body .hub-intro{min-height:220px;padding:20px!important}body .hub-game{border-width:3px!important}body .hub-section>h2{width:100%;padding:9px 12px}}
+@media(prefers-reduced-motion:reduce){body .hub-game,body .hub-play{transition:none!important}}
+
+/* Original scalable Rock & Roll hero artwork, authored for this theme. */
+body .hub-intro{
+ background-image:linear-gradient(90deg,#07150bc9 0%,#07150b65 50%,#07150bc9 100%),url('/assets/brand/rock-pnw-hero.svg')!important;
+ background-size:cover!important;background-position:center!important;
+}
+body .hub-game:nth-child(6n+1){border-color:#b47b43!important}
+body .hub-game:nth-child(6n+2){border-color:#d9ac55!important}
+body .hub-game:nth-child(6n+3){border-color:#8b493b!important}
+body .hub-game:nth-child(6n+4){border-color:#3d9a91!important}
+body .hub-game:nth-child(6n+5){border-color:#6d9458!important}
+body .hub-game:nth-child(6n+6){border-color:#c39b58!important}
+
+/* Game-specific visual identity uses the same original PNW artwork; no
+   duplicated page templates or unavailable raster image dependencies. */
+body .hub-game{padding-top:clamp(95px,11vw,140px)!important}
+body .hub-game::after{
+ content:"";position:absolute;top:0;left:0;right:0;height:clamp(82px,10vw,125px);
+ background:linear-gradient(0deg,#101a12 0%,transparent 65%),
+ url('/assets/brand/rock-pnw-hero.svg') center 42%/cover no-repeat;
+ z-index:-1;pointer-events:none;opacity:.9
+}
+body .hub-game:nth-child(6n+2)::after{background-position:center 58%;filter:hue-rotate(32deg) saturate(1.3)}
+body .hub-game:nth-child(6n+3)::after{background-position:right 40%;filter:hue-rotate(-35deg)}
+body .hub-game:nth-child(6n+4)::after{background-position:center 25%;filter:hue-rotate(110deg)}
+body .hub-game:nth-child(6n+5)::after{background-position:left 55%;filter:hue-rotate(65deg)}
+body .hub-game:nth-child(6n+6)::after{background-position:right 65%;filter:hue-rotate(175deg)}
+body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!important}
+@media(max-width:650px){body .hub-game{padding-top:98px!important}}
+
+/* Illustrated Squatch art: separate from live text and interactive controls. */
+:root[data-squatch-theme="rock"] body .hub-intro{
+ position:relative;isolation:isolate;overflow:hidden;
+ padding-inline:clamp(22px,21vw,255px)!important;
+ min-height:clamp(310px,38vw,440px);
+}
+:root[data-squatch-theme="rock"] body .hub-intro::before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;
+ left:-4%;bottom:-5%;width:clamp(190px,34%,390px);height:105%;
+ background:url('/assets/brand/rock-squatch-player.svg') center/cover no-repeat;
+ filter:drop-shadow(10px 6px 10px #0009);
+ -webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);
+ mask-image:linear-gradient(90deg,#000 80%,transparent);
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+1)::after,
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+4)::after{
+ background-image:linear-gradient(0deg,#101a12,transparent 80%),url('/assets/brand/rock-squatch-player.svg');
+ background-position:center 56%;background-size:cover;
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+4)::after{filter:hue-rotate(85deg)}
+@media(max-width:700px){
+ :root[data-squatch-theme="rock"] body .hub-intro{padding:22px 18px 22px 32%!important;min-height:260px}
+ :root[data-squatch-theme="rock"] body .hub-intro::before{left:-12%;width:48%;height:100%}
+ :root[data-squatch-theme="rock"] body .hub-intro h2{font-size:clamp(1.75rem,6vw,2.8rem)!important}
+ :root[data-squatch-theme="rock"] body .hub-intro p{font-size:.95rem!important}
+}
+
+
+/* ROCK & ROLL: casino marquee meets 1990s wrestling entrance.
+   The spectacle is optional; gameplay and Classic are untouched. */
+:root[data-squatch-theme="rock"]{
+ --rock-neon:#ffec58;--rock-hot:#ff3d8c;--rock-electric:#3df8ed;
+ --rock-lime:#b6ff43;--rock-velvet:#2b092a;
+}
+@keyframes rock-marquee{0%,100%{filter:drop-shadow(0 0 5px #ffd35c) drop-shadow(0 0 10px #ff7a27)}50%{filter:drop-shadow(0 0 10px #ffe968) drop-shadow(0 0 18px #ff386b)}}
+@keyframes rock-shimmer{0%{background-position:0 50%}100%{background-position:200% 50%}}
+:root[data-squatch-theme="rock"] body{
+ background-color:#080c12!important;
+ background-image:radial-gradient(ellipse at 50% 8%,#7a1a5a77,transparent 48%),linear-gradient(180deg,#07150b99,#06100edb 65%),url('/assets/brand/rock-pnw-hero.svg')!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header{
+ border:5px ridge #ffd66a!important;
+ background-image:linear-gradient(115deg,#2b0b31ec,#102c28ee 48%,#35132aef),url('/assets/brand/texture-cedar.svg')!important;
+ box-shadow:0 0 0 3px #271019,0 0 23px #ff9c42a8,0 12px 30px #000b!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-brand-row h1{
+ color:#fff5c3!important;
+ text-shadow:2px 3px 0 #5c1b29,4px 5px 0 #120a13,0 0 14px #ffd54b,0 0 28px #ff4e9a!important;
+ letter-spacing:.04em!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-nav a{
+ border:2px ridge #ffd46b!important;
+ background:linear-gradient(#68304e,#2a1528 45%,#111c1a)!important;
+ color:#fff1be!important;
+ text-shadow:0 1px 3px #000;
+ box-shadow:inset 0 1px #fff6a866,0 3px #0e080d,0 0 8px #ff9a3c55!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-nav a[aria-current="page"]{
+ background:linear-gradient(#e5ff7a,#69bb13)!important;
+ color:#12210a!important;text-shadow:none;
+}
+:root[data-squatch-theme="rock"] body .hub-intro{
+ border:7px ridge #f8c75e!important;
+ box-shadow:0 0 0 3px #4d1d29,0 0 32px #f98e43aa,0 15px 45px #000c!important;
+}
+:root[data-squatch-theme="rock"] body .hub-intro h2{
+ color:#fff5c9!important;
+ text-shadow:3px 4px #420c2f,6px 7px #080b0b,0 0 22px #ffbe4b!important;
+}
+:root[data-squatch-theme="rock"] body .hub-section>h2{
+ background:linear-gradient(100deg,#663018,#e8a743 25%,#fff0a0 50%,#bd712e 75%,#4c2819)!important;
+ border:6px ridge #ffde83!important;
+ color:#28110e!important;
+ text-shadow:1px 2px #ffe5a8!important;
+ box-shadow:0 5px #2b0e13,0 0 24px #ffb94b99!important;
+ transform:rotate(-1deg);
+}
+:root[data-squatch-theme="rock"] body .hub-game{
+ position:relative;isolation:isolate;overflow:hidden;
+ border:5px ridge #f3b84f!important;
+ background-image:linear-gradient(180deg,#451b3b88,#121a16 70%),url('/assets/brand/texture-cedar.svg')!important;
+ box-shadow:0 0 0 2px #371425,0 0 18px #e9873e66,0 12px 26px #000d!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(3n+2){
+ border-color:#fb4d8d!important;
+ box-shadow:0 0 0 2px #36152b,0 0 19px #f34a8c99,0 12px 26px #000d!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(3n+3){
+ border-color:#40dfd2!important;
+ box-shadow:0 0 0 2px #113e40,0 0 19px #38dfdf88,0 12px 26px #000d!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game h3{
+ color:#fff0a0!important;
+ text-shadow:2px 3px 0 #52142c,4px 5px 0 #090d0d,0 0 12px #ff9d40!important;
+ letter-spacing:.015em!important;
+}
+:root[data-squatch-theme="rock"] body :is(.hub-play,.hub-arcade .hub-play){
+ background:linear-gradient(#dbff68,#6dbe18 52%,#326e08)!important;
+ color:#0d2307!important;
+ border:3px ridge #eaffb0!important;
+ text-shadow:0 1px #eaffb0!important;
+ box-shadow:inset 0 2px #f8ffd2,0 4px #1e4a09,0 0 13px #b3ff3c99!important;
+}
+:root[data-squatch-theme="rock"] body :is(.hub-rules,.hub-arcade){
+ border-color:#edb456!important;
+ box-shadow:inset 0 0 14px #ffb44622!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game::after{z-index:0;opacity:.5}
+:root[data-squatch-theme="rock"] body .hub-game>*{position:relative;z-index:1}
+:root[data-squatch-theme="rock"] squatch-header .squatch-theme-switch button[aria-pressed="true"]{
+ border-color:#fff0a5!important;
+ box-shadow:0 0 12px #ffc94b99!important;
+}
+@media(prefers-reduced-motion:no-preference){
+ :root[data-squatch-theme="rock"] body .hub-section>h2{animation:rock-marquee 3s ease-in-out infinite}
+ :root[data-squatch-theme="rock"] body .hub-game:hover{transform:translateY(-3px)}
+}
+@media(max-width:650px){
+ :root[data-squatch-theme="rock"] body .hub-game{border-width:3px!important}
+ :root[data-squatch-theme="rock"] body .hub-section>h2{transform:none}
+}
