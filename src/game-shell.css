@@ -136,6 +136,9 @@ main.squatch-game-page #table-stage:fullscreen{
 main.squatch-game-page #table-stage:fullscreen .table-kit{
  flex:0 0 auto!important;margin-top:0!important
 }
+/* Extra options may exceed the viewport; scroll instead of crushing the felt. */
+main.squatch-game-page #table-stage:fullscreen .table-wrap{flex:0 0 auto}
+main.squatch-game-page #table-stage:fullscreen canvas{flex:0 0 auto;max-height:none}
 @media(max-width:660px){
  main.squatch-game-page{padding:10px 10px 40px!important;gap:10px!important}
  main.squatch-game-page> :is(.squatch-page-hero,.squatch-game-setup,
