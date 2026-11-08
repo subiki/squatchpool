@@ -169,7 +169,7 @@ test('Caroms browser: break, reset, advanced call, and regulation table rerack',
   change('caroms-side',50,'input');
   click('caroms-shoot');
   const shootBeforeLeave=listeners.get('caroms-shoot:click');
-  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
   listeners.get('document:click')(navigation);assert.equal(navigation.prevented,true);
   assert.equal(listeners.get('caroms-shoot:click'),shootBeforeLeave,'cancelled leave preserves controller');
 

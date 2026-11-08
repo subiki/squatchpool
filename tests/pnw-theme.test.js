@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const pages=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade','rules','archive'];
+const pages=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
 test('all routes load one shared PNW visual system outside SPA-managed page styles',()=>{
  for(const page of pages){
   const html=read(page+'.html');

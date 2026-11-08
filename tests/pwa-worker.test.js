@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
 const template = readFileSync(new URL('../scripts/sw-template.js', import.meta.url), 'utf8');
-const assets = ['/index.html','/but-wait.html','/caroms.html','/cutthroat.html','/press-your-luck.html','/tuna.html','/rules.html','/archive.html','/src/game.js'];
+const assets = ['/index.html','/but-wait.html','/caroms.html','/cutthroat.html','/press-your-luck.html','/tuna.html','/src/game.js'];
 function workerHarness() {
   const events = new Map();
   const stored = new Map();
@@ -78,15 +78,15 @@ test('install preloads playable pages and activation retains only new offline ed
   assert.deepEqual(h.deleted,['squatch-offline-old']);
 });
 
-test('cached homepage, rules and games load offline after network fallback',async () => {
+test('cached homepage and games load offline after network fallback',async () => {
   const h=workerHarness();
   await h.lifecycle('install');
   h.setOffline(true);
-  for (const path of ['/','/caroms.html','/cutthroat.html','/press-your-luck.html','/tuna.html','/rules.html','/archive.html']) {
+  for (const path of ['/','/caroms.html','/cutthroat.html','/press-your-luck.html','/tuna.html']) {
     const response=await h.request(path);
     assert.ok(response?.ok,path);
   }
-  assert.equal(h.fetches,7); // Network-first navigation tries online, then uses cached HTML.
+  assert.equal(h.fetches,5); // Network-first navigation tries online, then uses cached HTML.
 });
 
 test('evicted allowlisted assets are repaired online, then served offline',async () => {
@@ -138,12 +138,12 @@ test('repair handshake restores every evicted asset before reporting ready',asyn
   const h=workerHarness();
   await h.lifecycle('install');
   h.stored.delete('/caroms.html');
-  h.stored.delete('/archive.html');
+  h.stored.delete('/tuna.html');
   assert.equal((await h.offlineStatus()).ready,false);
   const repaired=await h.offlineStatus('SQUATCH_OFFLINE_REPAIR');
   assert.equal(repaired.ready,true);
   assert.ok(h.stored.has('/caroms.html'));
-  assert.ok(h.stored.has('/archive.html'));
+  assert.ok(h.stored.has('/tuna.html'));
   assert.equal(h.fetches,0);
   h.setOffline(true);
   assert.equal((await h.request('/caroms.html')).ok,true);
@@ -153,20 +153,20 @@ test('repair handshake restores every evicted asset before reporting ready',asyn
 test('offline or failed repair never falsely reports readiness',async () => {
   const h=workerHarness();
   await h.lifecycle('install');
-  h.stored.delete('/rules.html');
+  h.stored.delete('/but-wait.html');
   h.setOffline(true);
   assert.equal((await h.offlineStatus('SQUATCH_OFFLINE_REPAIR')).ready,false);
-  assert.equal(h.stored.has('/rules.html'),false);
+  assert.equal(h.stored.has('/but-wait.html'),false);
   h.setOffline(false);
   h.setResponse({ok:false,type:'basic',clone(){return {...this};}});
   assert.equal((await h.offlineStatus('SQUATCH_OFFLINE_REPAIR')).ready,false);
-  assert.equal(h.stored.has('/rules.html'),false);
+  assert.equal(h.stored.has('/but-wait.html'),false);
 });
 
 
 test('offline extensionless and trailing-slash routes return the requested page, not Home',async()=>{
  const h=workerHarness();await h.lifecycle('install');h.setOffline(true);
- for(const page of ['but-wait','caroms','cutthroat','press-your-luck','tuna','rules','archive','index']){
+ for(const page of ['but-wait','caroms','cutthroat','press-your-luck','tuna','index']){
   for(const path of ['/'+page,'/'+page+'/' ,'/'+page+'?source=installed']){
    const response=await h.request(path);
    assert.equal(response.body,'preloaded /'+page+'.html',path+' must retain its page offline');

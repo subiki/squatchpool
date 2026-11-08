@@ -3,89 +3,88 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const routes=['index','but-wait','caroms','cutthroat','press-your-luck',
-              'tuna','arcade','rules','archive'];
+const routes=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
+const css=read('src/pnw-theme.css');
+const v4=css.slice(css.indexOf('PNW surface system v4'));
+const assets=['pnw-forest.jpg','pnw-cedar.jpg','pnw-moss.jpg','pnw-water.jpg'];
 
-test('every route uses the same persistent shared header and PNW surface sheet',()=>{
- for(const route of routes){
-  const html=read(route+'.html');
-  assert.equal((html.match(/<squatch-header\b/g)||[]).length,1,route+' header');
-  assert.equal(html.split('href="/src/pnw-theme.css"').length-1,1,
-    route+' must use the shared surface rules exactly once');
-  assert.match(html,/shared-header\.css/,route+' must include shared header base');
+test('all routes retain one canonical header and persistent textured theme',()=>{
+ for(const page of routes){
+  const html=read(page+'.html');
+  assert.equal((html.match(/<squatch-header\b/g)||[]).length,1,page);
+  assert.equal(html.split('href="/src/pnw-theme.css"').length-1,1,page);
+  assert.match(html,/shared-header\.css/,page);
  }
- // SPA switches [data-page-style] sheets; the brand layer persists between pages.
- const navigation=read('src/static-navigation.js');
- assert.match(navigation,/querySelectorAll\('\[data-page-style\]'\)/);
- assert.match(read('src/pnw-theme.css'),/page-specific style tags load AFTER this persistent stylesheet/);
+ const nav=read('src/static-navigation.js');
+ assert.match(nav,/querySelectorAll\('\[data-page-style\]'\)/);
+ assert.ok(v4.startsWith('PNW surface system v4'));
 });
-
-test('header nav uses fixed-size grid tracks independent of route or selected state',()=>{
- const css=read('src/pnw-theme.css');
- const shared=read('src/site-header.js');
- assert.equal((shared.match(/\['\/[^']*',\s*'/g)||[]).length,9,
-  'nine fixed shared nav entries including homepage');
- for(const fragment of [
-  'squatch-header .squatch-header-nav{',
-  'display:grid!important;',
-  'grid-template-columns:repeat(6,minmax(0,1fr))!important;',
-  'grid-template-columns:repeat(5,minmax(0,1fr))!important;',
-  'grid-template-columns:repeat(4,minmax(0,1fr))!important;',
-  'grid-template-columns:repeat(3,minmax(0,1fr))!important;',
-  'height:56px!important;min-height:56px!important;',
-  'grid-auto-columns:156px!important;',
-  'width:156px!important;height:54px!important;',
-  'squatch-header .squatch-header-nav a[aria-current="page"]',
-  'transform:none!important;'
- ])assert.ok(css.includes(fragment),'Missing nav invariant: '+fragment);
- // Never scale a button when selecting another page.
- assert.doesNotMatch(css,/squatch-header\s+\.squatch-header-nav\s+a\[aria-current="page"\][^{]*\{[^}]*\b(?:scale|width|height|padding|font-size)\s*:/,
-  'Active route must change its paint only, not sizing');
-});
-
-test('topographic line art is the visible first layer on every shared surface',()=>{
- const css=read('src/pnw-theme.css');
- const v3=css.slice(css.indexOf('PNW surface system v3.3'));
- assert.ok(v3,'The unified surface section must be present');
- for(const selector of ['body{','body > main{','squatch-header .squatch-unified-header{',
-                      'squatch-header .squatch-header-stats{']){
-  const start=v3.indexOf(selector);
-  assert.ok(start>=0,selector);
-  const block=v3.slice(start,v3.indexOf('}',start)+1);
-  assert.match(block,/background-image:\s*var\(--squatch-topo\)/,
-    selector+' should place topo above its gradients instead of underneath them');
+test('real material images are locally committed JPEGs, not remote texture URLs',()=>{
+ for(const file of assets){
+  const bytes=readFileSync(new URL('../assets/brand/'+file,import.meta.url));
+  assert.ok(bytes.length>500,file+' must contain actual picture data');
+  assert.equal(bytes.subarray(0,3).toString('hex'),'ffd8ff',file+' is a JPEG');
+  assert.equal(bytes.subarray(-2).toString('hex'),'ffd9',file+' closes properly');
+  assert.match(v4,new RegExp('pnw-'+file.split('-')[1].replace('.jpg','')+'\\.jpg'));
  }
- for(const token of ['--squatch-panel-surface','--squatch-panel-shadow',
-                     '--squatch-topo','--squatch-cedar','--squatch-felt'])
-  assert.ok(css.includes(token),token);
- for(const surface of ['.hub-game','.hub-notes','.world-card','.rules-card',
-                       '.arcade-stat','.arcade-entry','.game-history',
-                       '.game-hud','.game-live-stats','.table-kit',
-                       '.press-score-player','.press-score-metrics>div'])
-  assert.ok(v3.includes(surface),surface+' must use textured/shaded treatment');
- assert.match(v3,/box-shadow:var\(--squatch-panel-shadow\)!important/);
- assert.match(v3,/\.squatch-header-stats\[open\] summary::before\{content:"▼"\}/);
- assert.doesNotMatch(v3,/canvas\s*\{\s*(?:background|transform|width|height)/,
-  'The surface treatment must not redraw or resize the billiards canvas');
+ const build=read('scripts/build-pwa.mjs');
+ assert.match(build,/scan\('assets\/brand'\)/,
+  'offline PWA should bundle its locally committed branded textures');
 });
-
+test('no repeatable topographic wallpaper remains in the final effective theme',()=>{
+ // Old source selectors may still exist for backward compatibility; the new
+ // later !important rules MUST replace them without references to topo.
+ assert.ok(v4.length>1000,'unified final v4 theme must be present');
+ assert.doesNotMatch(v4,/texture-topography|--squatch-topo|repeat\([^)]*topo/,
+  'Do not reintroduce giant repeated contour paths');
+ for(const selector of ['body{','body > main{','squatch-header .squatch-unified-header{']){
+  const i=v4.indexOf(selector);assert.ok(i>=0,selector);
+  const block=v4.slice(i,v4.indexOf('}',i)+1);
+  assert.match(block,/background-image:/,selector+' defines atmospheric imagery');
+  assert.match(block,/background-repeat:/,selector+' has explicit no-repeat layers');
+ }
+ assert.match(v4,/background-repeat:no-repeat,no-repeat,repeat!important/);
+ assert.match(v4,/--pnw-photo-forest/);
+ assert.match(v4,/--pnw-photo-wood/);
+ assert.match(v4,/--pnw-photo-moss/);
+ assert.match(v4,/--pnw-photo-water/);
+});
+test('shared header nav has stable dimensions and equal tracks on all pages',()=>{
+ const header=read('src/site-header.js');
+ assert.equal((header.match(/\['\/[^']*',\s*'/g)||[]).length,7);
+ for(const invariant of [
+  'grid-template-columns:repeat(6,minmax(0,1fr))!important',
+  'grid-template-columns:repeat(5,minmax(0,1fr))!important',
+  'grid-template-columns:repeat(4,minmax(0,1fr))!important',
+  'grid-template-columns:repeat(3,minmax(0,1fr))!important',
+  'height:56px!important;min-height:56px!important',
+  'grid-auto-columns:156px!important',
+  'width:156px!important;height:54px!important',
+  'squatch-header .squatch-header-nav a[aria-current="page"]'
+ ])assert.ok(v4.includes(invariant),invariant);
+ assert.doesNotMatch(v4,/squatch-header \.squatch-header-nav a\[aria-current="page"\][^{]*\{[^}]*\b(?:width|height|font-size|padding|transform):/,
+   'Selecting a route changes colors, not geometry');
+});
 function luminance(hex){
  const [r,g,b]=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255)
-  .map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4);
+ .map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4);
  return .2126*r+.7152*g+.0722*b;
 }
 const contrast=(a,b)=>(Math.max(luminance(a),luminance(b))+.05)/
-                       (Math.min(luminance(a),luminance(b))+.05);
-test('opaque dark panels and light moss/brass controls meet WCAG AA text thresholds',()=>{
+ (Math.min(luminance(a),luminance(b))+.05);
+test('representative opaque endpoints keep accessible text while using imagery',()=>{
  const pairs=[
-  ['#F4EEDA','#274B3B'], // brightest opaque card region
-  ['#E1EDDF','#274B3B'], // normal text in same card
-  ['#F0C478','#244B3A'], // inactive nav text
-  ['#102923','#91B98C'], // darkest active nav gradient stop
-  ['#102923','#92B787'], // darkest main button gradient stop
-  ['#102923','#D8AA58'], // darkest selected button gradient stop
-  ['#F4EEDA','#214333'], // game HUD
+  ['#F4EEDA','#244A39'],['#E1EDDF','#244A39'],
+  ['#F0C478','#315D46'],['#102923','#92B787'],
+  ['#102923','#8CB786'],['#102923','#D8AA58'],
+  ['#F4EEDA','#214333'],['#F4EEDA','#0C2119']
  ];
  for(const [text,bg] of pairs)
-  assert.ok(contrast(text,bg)>=4.5,text+' on '+bg+' contrast '+contrast(text,bg).toFixed(2));
+  assert.ok(contrast(text,bg)>=4.5,text+' on '+bg+' ratio '+contrast(text,bg).toFixed(2));
+});
+test('table canvases, native install, and reduced-motion behavior are preserved',()=>{
+ assert.doesNotMatch(v4,/canvas\s*\{[^}]*\b(?:background|transform|width|height)\s*:/,
+   'No gameplay canvas geometry changes');
+ assert.match(v4,/prefers-reduced-motion:reduce/);
+ assert.doesNotMatch(read('src/pwa.js'),/beforeinstallprompt|Install game/);
 });

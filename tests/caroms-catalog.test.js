@@ -19,12 +19,12 @@ test('Caroms remains offered as bot or local two-player beta',()=>{
  assert.match(caroms,/Solo bot or two local players/);
  assert.match(caroms,/First to two racks wins this playtest match/);
  assert.match(caroms,/content="Play original Caroms.*solo against Squatch Bot/);
- assert.match(read('rules.html'),/href="\.\/caroms\.html">Play now/);
+ assert.ok(game.rules.length>=3,'Caroms rules now appear in the expandable homepage card');
 });
 
 test('Home remounts five ranked game cards without stale renders or repeated ranking requests',async()=>{
  const previous={document:globalThis.document,fetch:globalThis.fetch};
- const node=tag=>({tag,children:[],append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;},setAttribute(){}});
+ const node=tag=>({tag,children:[],dataset:{},append(...items){this.children.push(...items);},replaceChildren(...items){this.children=items;},setAttribute(){},querySelectorAll(){return [];}});
  const view=()=>{const list=node('div'),note=node('p');return {list,note,querySelector:selector=>selector==='#game-list'?list:note};};
  let resolve,requests=0;
  try{

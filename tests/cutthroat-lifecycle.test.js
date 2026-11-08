@@ -40,7 +40,7 @@ test('Cutthroat disposes real input, physics and pending bot work before fresh r
   listeners.get('cut-table:pointerdown')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});
   listeners.get('cut-table:pointerup')({clientX:headStringX()*.5,clientY:TABLE.height/2,pointerId:1});click('cut-shoot');
   const beforeLeave=listeners.get('cut-shoot:click');
-  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
   listeners.get('document:click')(navigation);assert.equal(navigation.prevented,true);
   assert.equal(listeners.get('cut-shoot:click'),beforeLeave,'cancelled shell leave preserves live controller');
   const atExit=frames,oldFrame=frame;listeners.get('window:pagehide')();

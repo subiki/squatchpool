@@ -11,8 +11,6 @@
     ['/press-your-luck.html', '🎲 Press Your Luck'],
     ['/tuna.html', '🐟 Tuna'],
     ['/arcade.html', '🏆 Arcade Lab'],
-    ['/rules.html', '📜 Rules'],
-    ['/archive.html', '📖 Field Notes'],
   ];
   // Favicons remain identical across standalone game pages.
   if (document.head) {

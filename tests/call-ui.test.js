@@ -82,7 +82,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   await import('../src/but-wait-entry.js');
   events.get('#table:pointerdown')({clientX:110,clientY:140,pointerId:10});events.get('#table:pointerup')({pointerId:lastPointer});click('#shoot');
   const beforeLeave=events.get('#shoot:click');
-  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
+  const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/',target:'',hasAttribute:()=>false})},preventDefault(){this.prevented=true;}};
   events.get('document:click')(navigation);assert.equal(navigation.prevented,true);
   assert.equal(events.get('#shoot:click'),beforeLeave,'cancelled leave preserves live But Wait');
   const beforeRestore=scheduled,oldFrame=nextFrame;events.get('window:pagehide')();oldFrame(1000);assert.equal(scheduled,beforeRestore);
