@@ -1,6 +1,7 @@
 import {prepareGamePage} from './game-page-shell.js';
 import {TABLE,pockets,cushions,step,stationary,shotSpeed} from './physics.js';
 import {renderPocket} from './table-geometry.js';
+import {drawAimAssistance} from './aim-assist.js';
 import {angleFromPointer,readInvertAim,INVERT_AIM_KEY} from './aim-preference.js';
 import {ARCADE_CHALLENGE,setupArcadeChallenge,judgeArcadeShot,arcadeAimAngle} from './arcade-challenge.js';
 import {ARCADE_COST,ARCADE_STORAGE_KEY,loadArcadeState,saveArcadeState,enterArcade,conquerArcade,awardPractice,PRACTICE_DAILY_CAP} from './arcade-points.js';
@@ -109,6 +110,7 @@ function draw(){
   ctx.moveTo(b.x+dx*r,b.y+dy*r);ctx.lineTo(b.x+dx*270,b.y+dy*270);ctx.stroke();ctx.setLineDash([]);
   ctx.strokeStyle='#dab27a';ctx.lineWidth=5;ctx.beginPath();
   ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+145),b.y-dy*(r+145));ctx.stroke();
+  drawAimAssistance(ctx,{table:TABLE,striker:b,angle,balls,pockets,calledBallId:1,calledPocketId:'TL'});
  }
 }
 function frame(now){
