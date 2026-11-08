@@ -54,7 +54,7 @@ test('no repeatable topographic wallpaper remains in the final effective theme',
 });
 test('shared header nav has stable dimensions and equal tracks on all pages',()=>{
  const header=read('src/site-header.js');
- assert.equal((header.match(/\['\/[^']*',\s*'/g)||[]).length,7);
+ assert.equal((header.match(/\['\/[^']*',\s*'/g)||[]).length,8);
  for(const invariant of [
   'grid-template-columns:repeat(6,minmax(0,1fr))!important',
   'grid-template-columns:repeat(5,minmax(0,1fr))!important',

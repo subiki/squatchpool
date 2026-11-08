@@ -11,6 +11,7 @@
     ['/press-your-luck.html', '🎲 Press Your Luck'],
     ['/tuna.html', '🐟 Tuna'],
     ['/arcade.html', '🏆 Arcade Lab'],
+    ['/chaos.html', '🎲 Chaos Maker'],
   ];
   // Favicons remain identical across standalone game pages.
   if (document.head) {
@@ -50,6 +51,8 @@
     rockStyle.disabled = !rock;
     if (document.documentElement?.dataset) document.documentElement.dataset.squatchTheme = rock ? 'rock' : 'classic';
     if (persist) try { localStorage.setItem(THEME_KEY, rock ? 'rock' : 'classic'); } catch {}
+    // Chaos is exclusive to Rock & Roll; Classic returns to the clean game hub.
+    if (!rock && /^\/chaos(?:\.html)?$/.test(location.pathname)) { location.assign('/'); return; }
     document.querySelectorAll?.('[data-squatch-theme-choice]')?.forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.squatchThemeChoice === (rock ? 'rock' : 'classic')));
     });
@@ -95,6 +98,7 @@
       for (const [href, label] of pages) {
         const link = document.createElement('a');
         link.href = href;
+        if (href === '/chaos.html') link.setAttribute('data-rock-exclusive', 'true');
         link.textContent = label;
         if (current === href) link.setAttribute('aria-current', 'page');
         nav.append(link);
@@ -103,6 +107,10 @@
         button.addEventListener('click', () => setMode(button.dataset.squatchThemeChoice, true));
       });
       this.append(header);
+      // Rock-exclusive links stay out of Classic navigation.
+      const updateExclusive = () => header.querySelectorAll?.('[data-rock-exclusive]')?.forEach(link => { link.hidden = document.documentElement?.dataset?.squatchTheme !== 'rock'; });
+      header.querySelectorAll?.('[data-squatch-theme-choice]')?.forEach(button => button.addEventListener('click', updateExclusive));
+      updateExclusive();
       setMode(readMode());
     }
   }

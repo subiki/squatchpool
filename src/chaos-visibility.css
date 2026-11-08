@@ -1,0 +1,3 @@
+/* Rock-only features never appear in Classic, including before JS mounts. */
+html:not([data-squatch-theme="rock"]) [data-rock-exclusive]{display:none!important}
+html[data-squatch-theme="rock"] [data-rock-exclusive]{display:block}
