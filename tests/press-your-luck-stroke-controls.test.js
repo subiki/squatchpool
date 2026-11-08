@@ -73,6 +73,6 @@ test('Press Your Luck cancels touch drag when BREAK starts and never moves the c
   'cue dragging must be restricted to the aiming phase');
  assert.match(shoot,/if\(!shot\.startShot\(statsShotId\)\)return;cuePlacement\.cancel\(\)/,
   'successful shot start must release the active pointer before physics');
- assert.match(source,/bind\(\$\('opponent'\),'onchange',\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);update\(\);\}\)/,
+ assert.match(source,/bind\(\$\('opponent'\),'onchange',\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);showtime\.setSpectator\(.+?\);update\(\);\}\)/,
   'switching opponents must release any active touch drag');
 });

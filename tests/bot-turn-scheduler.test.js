@@ -31,21 +31,21 @@ test('bot scheduler allows a follow-up action after a completed turn',async()=>{
 test('Press Your Luck bot shares cancellable turn scheduling with Cutthroat',()=>{
  const controller=readFileSync(new URL('../src/press-your-luck-game.js',import.meta.url),'utf8');
  assert.match(controller,/createBotTurnScheduler\(\)/);
- assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);\}/);
+ assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);showtime\.cancel\(\);\}/);
  assert.match(controller,/botScheduler\.schedule\(\(\)=>\{/);
  assert.match(controller,/botScheduler\.pending/);
  assert.doesNotMatch(controller,/botTimer|botGeneration|setTimeout\(/,
   'bot turn timing must have one shared owner');
  assert.match(controller,/function rack\(\)\{\s*cancelBot\(\)/,
   'new rack must cancel a pending bot action');
- assert.match(controller,/bind\(\$\('opponent'\),'onchange',\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);update\(\);\}\)/,
+ assert.match(controller,/bind\(\$\('opponent'\),'onchange',\(\)=>\{cancelBot\(\);cuePlacement\.cancel\(\);showtime\.setSpectator\(.+?\);update\(\);\}\)/,
   'switching to local players must cancel a pending bot action');
 });
 
 test('Big Tuna bot shares the cancellable scheduler across rack, reset and opponent changes',()=>{
  const controller=readFileSync(new URL('../src/tuna-game.js',import.meta.url),'utf8');
  assert.match(controller,/createBotTurnScheduler\(\)/);
- assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);\}/);
+ assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);showtime\.cancel\(\);\}/);
  assert.match(controller,/botScheduler\.pending/);
  assert.match(controller,/botScheduler\.schedule\(\(\)=>\{/);
  assert.doesNotMatch(controller,/botTimer|botGeneration|setTimeout\(/,

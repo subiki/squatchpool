@@ -44,10 +44,11 @@ test('Tuna bot integration uses shared physical shot path and cancels stale turn
  assert.match(page,/id="opponent"[\s\S]*?value="bot"/);
  assert.ok(controller.includes('const targets=tunaTargets(balls).filter(id=>id!==10||tunaCanWin(balls));'));
  assert.match(controller,/planBotShot\(/);
- assert.match(controller,/updateCallHint\(\);fire\(true\)/);
+ assert.match(controller,/updateCallHint\(\);\s*showtime\.show\(/);
+ assert.match(controller,/shoot:\(\)=>fire\(true\)/);
  assert.match(controller,/function fire\(bot=false\)/);
  assert.match(controller,/shot\.startShot\(statsShotId\)/);
- assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);\}/);
+ assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);showtime\.cancel\(\);\}/);
  assert.match(controller,/botScheduler\.pending/);
  assert.match(controller,/botScheduler\.schedule\(\(\)=>\{/);
  assert.doesNotMatch(controller,/botTimer|botGeneration|setTimeout\(/,

@@ -144,7 +144,8 @@ test('Cutthroat offers all legal solo/local seat counts and a physical, cancella
  assert.match(controller,/resolveCutthroatClaim\(game\.match,id\)/);
  assert.match(controller,/createBotTurnScheduler\(\)/);
  assert.match(controller,/function cancelBot\(\)\{botTurns\.cancel\(\)/);
- assert.match(controller,/listen\(\$\('cut-players'\),'change',newGame\)/);
+ assert.match(controller,/listen\(\$\('cut-players'\),'change',\(\)=>\{/);
+ assert.match(controller,/squatch-cutthroat-player-count/,'spectator mode persists on reload');
  assert.doesNotMatch(controller,/\.click\(\)/,'bot must not impersonate a human clicking UI buttons');
 });
 

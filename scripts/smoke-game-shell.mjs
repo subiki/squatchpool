@@ -24,12 +24,31 @@ const games=['but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
 const probe=`<script>
 (()=>{
  const wantsRock=new URLSearchParams(location.search).has('smokeRock');
+ const wantsBots=new URLSearchParams(location.search).has('smokeBots');
+ if(wantsBots&&location.pathname.includes('cutthroat'))
+  try{localStorage.setItem('squatch-cutthroat-player-count','0');}catch{}
  if(wantsRock)try{localStorage.setItem('squatchpool-visual-mode','rock');}catch{}
  const errors=[];
  const fail=e=>{errors.push(String(e?.message||e?.reason||e||'unknown'));};
  window.addEventListener('error',fail);
  window.addEventListener('unhandledrejection',fail);
  window.addEventListener('DOMContentLoaded',()=>{
+  if(wantsBots){
+   // Let each route's module register its controller and change handler first.
+   setTimeout(()=>{
+    const selected=document.querySelector('main')?.dataset.squatchGameShell;
+    const seat=document.getElementById(selected==='cutthroat'?'cut-players':'mode');
+    // Cutthroat restores its persisted choice at startup; But Wait toggles here.
+    if(seat&&selected!=='cutthroat'){
+     seat.value='bots';seat.dispatchEvent(new Event('change',{bubbles:true}));
+    }
+   },100);
+   setTimeout(()=>{
+    const stage=document.querySelector('#table-stage');
+    document.documentElement.dataset.squatchBotPreview=
+      stage?.dataset.squatchBotPlanning==='true'?'pass':'fail';
+   },1850);
+  }
   setTimeout(()=>{
    try {
     const main=document.querySelector('main');
@@ -56,11 +75,19 @@ const probe=`<script>
       !document.getElementById('squatch-rock-style')?.disabled);
     const wronglyVisibleHidden=[...main.querySelectorAll('[hidden]')]
       .filter(node=>getComputedStyle(node).display!=='none');
+    const spectatorOK=!wantsBots||(
+      !!main?.querySelector('#table-stage .squatch-bot-showtime')&&
+      !main.querySelector('#table-stage .squatch-bot-showtime').hidden
+    );
+    const aimChoices=[...main?.querySelectorAll('.squatch-aim-mode')||[]];
+    const aimOK=aimChoices.length===4&&
+      aimChoices.filter(btn=>btn.getAttribute('aria-pressed')==='true').length===1&&
+      !!main?.querySelector('#table-stage .squatch-aim-assist');
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=appearanceOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
-      !!setupOrder&&rulesUniform&&
+      !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&
       main?.dataset.squatchGameShell&&errors.length===0;
     if(location.search.includes('smokeScroll=table')&&stage){
       // Headless Chrome's --screenshot after scrollIntoView can capture a
@@ -77,7 +104,7 @@ const probe=`<script>
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
-      setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,
+      setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,
       duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
@@ -110,16 +137,17 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const port=server.address().port;
 const outputDir=process.env.SQUATCH_SCREENSHOT_DIR||join(tmpdir(),'squatch-shell-smoke');
 mkdirSync(outputDir,{recursive:true});
-async function browse(game,width,height,focus='top',theme='classic'){
+async function browse(game,width,height,focus='top',theme='classic',spectator=false){
  const params=new URLSearchParams();
  if(focus==='table')params.set('smokeScroll','table');
  if(theme==='rock')params.set('smokeRock','1');
+ if(spectator)params.set('smokeBots','1');
  const url='http://127.0.0.1:'+port+'/'+game+'.html'+(params.size?'?'+params:'');
- const image=join(outputDir,game+'-'+width+(focus==='table'?'-table':'')+(theme==='rock'?'-rock':'')+'.png');
+ const image=join(outputDir,game+'-'+width+(focus==='table'?'-table':'')+(theme==='rock'?'-rock':'')+(spectator?'-bots':'')+'.png');
  const argv=['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
   '--no-first-run','--disable-extensions','--disable-background-networking',
   '--disable-features=TranslateUI','--window-size='+width+','+height,
-  '--virtual-time-budget=2500','--screenshot='+image,'--dump-dom',url];
+  '--virtual-time-budget='+(spectator?2600:2500),'--screenshot='+image,'--dump-dom',url];
  const browser=spawn(exe,argv,{stdio:['ignore','pipe','pipe']});
  let html='',stderr='';
  browser.stdout.on('data',data=>{html+=data;});
@@ -130,7 +158,8 @@ async function browse(game,width,height,focus='top',theme='classic'){
  ]);
  const match=html.match(/data-squatch-smoke="([^"]+)"/);
  const details=html.match(/data-squatch-smoke-details="([^"]+)"/);
- if(result.timeout||result.code!==0||match?.[1]!=='pass'){
+ if(result.timeout||result.code!==0||match?.[1]!=='pass'||
+    (spectator&&!html.includes('data-squatch-bot-preview="pass"'))){
   throw new Error(game+' '+width+'px: '+JSON.stringify(result)+
    ' smoke='+match?.[1]+' details='+details?.[1]+' stderr='+stderr.slice(-500));
  }
@@ -166,5 +195,7 @@ try{
  for(const game of games)await browse(game,390,844);
  for(const game of games)await browse(game,390,844,'table');
  for(const game of games)await browse(game,390,844,'top','rock');
- console.log('Shared game shell: 26 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile).');
+ await browse('but-wait',390,844,'table','rock',true);
+ await browse('cutthroat',390,844,'table','rock',true);
+ console.log('Shared game shell: 28 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile).');
 }finally{await new Promise(resolve=>server.close(resolve));}

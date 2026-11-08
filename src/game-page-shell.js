@@ -1,4 +1,5 @@
 import {GAME_GUIDES} from './game-guides.js';
+import {mountAimAssist} from './aim-assist.js';
 /**
  * Canonical Squatch Pool game-page composition.
  *
@@ -44,7 +45,7 @@ export const GAME_PAGE_CONFIG=Object.freeze({
  arcade:{
   title:'The First Corner · Arcade Lab',eyebrow:"THE 4T'S · POINTS-ONLY ARCADE",
   intro:'Sink the 1-ball in the top-left pocket within three shots. Practice free or play for imaginary Squatch Points.',
-  players:null,size:null,extras:[],
+  players:'arcade-seat',size:null,extras:[],
   selectLabel:'Players',sizeLabel:'Table size'
  }
 });
@@ -128,6 +129,8 @@ export function renderGameRules(main,doc,rules,gameId,config){
 
 function normalizeKit(main,doc){
  const kit=main.querySelector('#table-stage .table-kit');
+ // One visible aim-assistance selector below every pool table, including Arcade.
+ mountAimAssist(main.querySelector('#table-stage'));
  const primary=kit?.querySelector('.kit-primary');
  if(!primary||primary.dataset.squatchNormalized)return;
  primary.dataset.squatchNormalized='true';
