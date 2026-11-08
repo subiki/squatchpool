@@ -5,7 +5,7 @@ const route=url=>{
  const path=url.pathname.replace(/\/+$/,'').replace(/\.html$/,'');
  return !path||path==='/index'?'/':path;
 };
-const supported=url=>['/','/rules','/archive',PRESS,TUNA,CAROMS,CUTTHROAT,BUT_WAIT].includes(route(url));
+const supported=url=>['/',PRESS,TUNA,CAROMS,CUTTHROAT,BUT_WAIT].includes(route(url));
 
 export function attachStaticNavigation(win=globalThis.window,{initialView,loadPress=()=>import('./press-your-luck-game.js'),loadTuna=()=>import('./tuna-game.js'),loadCaroms=()=>import('./caroms-game.js'),loadCutthroat=()=>import('./cutthroat-game.js'),loadButWait=()=>import('./game.js')}={}){
  if(!win?.document)return ()=>{};

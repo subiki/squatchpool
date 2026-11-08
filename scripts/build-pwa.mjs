@@ -32,7 +32,7 @@ for(const file of readdirSync(root)){
 for(const file of ['LICENSE','THIRD_PARTY.md','deployment.json']){
  if(existsSync(fromRoot(file)))assets.add('/'+file);
 }
-scan('src');scan('assets/brand');scan('archive/source');
+scan('src');scan('assets/brand');
 const all=[...assets].filter(item=>item!=='/').sort();
 const hash=createHash('sha256');
 for(const p of all){hash.update(p);hash.update(readFileSync(fromRoot(p.slice(1))));}
