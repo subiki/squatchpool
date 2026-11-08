@@ -588,3 +588,6 @@ body .hub-game .hub-rules summary{color:#f0c478!important}
   transition:none!important;transform:none!important;
  }
 }
+
+/* Wild PNW skin is shared by every page loading this persistent theme. */
+@import url('/src/wild-squatch.css');
