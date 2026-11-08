@@ -190,6 +190,35 @@ function updateLineage(){
  }
  const li=document.createElement('li');li.textContent=`Current: ${lineage.gameId.slice(0,12)} · version ${lineage.versionId.slice(0,12)}`;lineageHistory.append(li);
 }
+const publishButton=document.createElement('button');publishButton.type='button';publishButton.textContent='Publish game link';
+const publicLink=document.createElement('a');publicLink.hidden=true;publicLink.textContent='Open published game';publicLink.rel='noopener';
+lineagePanel.append(publishButton,publicLink);
+publishButton.addEventListener('click',async()=>{
+ if(playing){status('Return to Build mode before publishing.');return;}
+ publishButton.disabled=true;
+ try{
+  const recipe=state();
+  const response=await fetch('/api/chaos-games',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({recipe})});
+  const data=await response.json();
+  if(!response.ok)throw Error(data.error||'Publish failed');
+  const url=new URL(data.url,location.origin).href;
+  publicLink.href=url;publicLink.hidden=false;
+  try{await navigator.clipboard.writeText(url);status('Published! Game link copied.');}catch{status('Published! Open the link below to share.');}
+ }catch(e){status('Could not publish: '+e.message+'. Local save and game codes still work.');}
+ finally{publishButton.disabled=false;}
+});
+async function loadHostedGame(){
+ const version=new URLSearchParams(location.search).get('game');
+ if(!version)return;
+ if(!/^[0-9a-f-]{36}$/i.test(version)){status('Invalid shared game link.');return;}
+ try{
+  const response=await fetch('/api/chaos-games?version='+encodeURIComponent(version));
+  const data=await response.json();if(!response.ok)throw Error(data.error||'Not found');
+  if(load(data.game.recipe))status('Opened shared game: '+data.game.name+'. Fork it to make your own.');
+  else status('Shared game code is invalid.');
+ }catch(e){status('Could not open shared game: '+e.message);}
+}
+
 forkButton.addEventListener('click',()=>{
  if(playing){status('Return to Build mode before forking.');return;}
  lineage=forkLineage(lineage);
@@ -197,5 +226,5 @@ forkButton.addEventListener('click',()=>{
  updateLineage();status('New fork created. Save or export to preserve this branch.');
 });
 
-randomize();refreshSaved();frame=requestAnimationFrame(tick);
+randomize();refreshSaved();loadHostedGame();frame=requestAnimationFrame(tick);
 window.addEventListener('pagehide',()=>cancelAnimationFrame(frame),{once:true});
