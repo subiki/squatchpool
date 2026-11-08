@@ -48,11 +48,13 @@ Cloudflare Pages deploys the static site from `main`; its header displays a buil
 ## Code at a glance
 
 - **One page composition:** `src/game-page-shell.js`, `src/game-shell.css`. Layout and common player/table controls belong here.
-- **Brand/header:** `src/pnw-theme.css`, `src/site-header.js`, `assets/brand/`. Forest, cedar, moss, water and felt; no repeated contour wallpaper.
+- **Brand/header:** `src/pnw-theme.css`, `src/wild-squatch.css`, `src/site-header.js`, `assets/brand/`. Classic and Rock & Roll are appearance options; both use the **same page layout**. Forest, cedar, moss, water and felt imagery is local.
 - **Game behavior:** `src/game.js` and `src/{caroms,cutthroat,press-your-luck,tuna}-game.js`. Rule and bot differences belong in controllers and adjudicators, not in new page templates.
 - **Shared playing engine:** `src/physics.js`, `src/table-geometry.js`, `src/table-renderer.js` and shot/session utilities.
 - **House-rule copy:** `src/game-guides.js`. Keep it aligned with actual adjudication.
 - **Offline:** `src/pwa.js` and `scripts/`. A single PWA serves the seven public pages.
+
+Use the shared header's **Classic / Rock & Roll** toggle to change appearance without changing game controls or section order.
 
 The shared shell currently **moves the existing controller-owned DOM nodes** into one runtime layout, preserving canvas and input IDs. As integration is verified, retire redundant per-game presentation markup; do not create yet another page style.
 

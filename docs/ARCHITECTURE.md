@@ -4,7 +4,8 @@ Squatch Pool is a static, offline-capable pool app, not five independently maint
 
 ```text
 Home / But Wait / Caroms / Cutthroat / Press / Tuna / Arcade
-  ├─ site-header.js + pnw-theme.css       persistent PNW identity
+  ├─ site-header.js + pnw-theme.css       persistent header, Classic base
+  ├─ wild-squatch.css                    optional Rock & Roll appearance
   ├─ game-page-shell.js + game-shell.css   ONE page layout
   │    Introduction → Setup → Rules → Table → Details/history
   └─ game controller                     rule-specific behavior
@@ -20,13 +21,17 @@ Home / But Wait / Caroms / Cutthroat / Press / Tuna / Arcade
 | --- | --- |
 | Section order, player/table controls and shot-kit arrangement | `src/game-page-shell.js` |
 | Game-page responsive, fullscreen, card and control layout | `src/game-shell.css` |
-| Colors, material photography, logo and header | `src/pnw-theme.css`, `src/site-header.js`, `assets/brand/` |
+| Shared header, art, appearance switch and skins | `src/site-header.js`, `src/pnw-theme.css`, `src/wild-squatch.css`, `assets/brand/` |
 | Route switching, header retention, lifecycle | `src/static-navigation.js`, `src/*-entry.js` |
 | Game states and live controls | `src/game.js`, `src/{caroms,cutthroat,press-your-luck,tuna}-game.js`, `src/arcade-game.js` |
 | Shared pool simulation | `src/physics.js`, `src/table-geometry.js`, `src/table-renderer.js` |
 | Rules enforced by gameplay | Rule engines, adjudicators and shot adapters |
 | Rules displayed to players | `src/game-guides.js` |
 | Hosted stats and offline PWA | `src/stats-*.js`, Pages functions, `src/pwa.js`, `scripts/` |
+
+## Appearance versus layout
+
+The header offers **Classic** and **Rock & Roll** skins. The appearance preference persists as the player navigates. Both skins use the **same** shared page composition and control geometry: they may change color, typography and artwork, never reorder sections or restyle individual game interfaces. Diagnose layout bugs in `game-page-shell.js` or `game-shell.css` before touching a skin. Compare both modes during visual acceptance.
 
 ## How one template works
 

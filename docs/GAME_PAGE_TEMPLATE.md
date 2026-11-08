@@ -15,7 +15,7 @@ Shared persistent site header / deployment / statistics
   5. Details and history shot log, optional explanations
 ```
 
-`src/game-page-shell.js` produces these five sections. `src/game-shell.css` owns the **only shared visual layout**. `src/pnw-theme.css` supplies the same forest, cedar, moss, water and felt identity.
+`src/game-page-shell.js` produces these five sections. `src/game-shell.css` owns the **only shared visual layout**. `src/pnw-theme.css` provides the Classic foundation; `src/wild-squatch.css` is the optional Rock & Roll skin. Both appearances share **exactly the same DOM and control dimensions**. Approved rainforest, cedar, moss, water and felt art remains locally hosted.
 
 ## Shared interface rules
 
@@ -51,7 +51,7 @@ A shared renderer may relocate elements, **never clone them**. Preserve IDs, cue
 - [ ] Every game starts a rack, aims/shoots, resolves a foul and finishes/restarts.
 - [ ] Bot/local player modes and unique actions (team claim, bank/kick, carom striker, etc.) work.
 - [ ] Direct load, SPA next/back and returning to a game mount the controller only once.
-- [ ] Desktop/narrow mobile/fullscreen screenshots show same layout and accessible color contrast.
+- [ ] Desktop/narrow mobile/fullscreen screenshots show the same layout and accessible color contrast **in both Classic and Rock & Roll**.
 - [ ] Offline/browser-native install still works without in-page banners.
 - [ ] Node tests, syntax/build, Cloudflare preview and the exact merged production SHA are verified.
 

@@ -44,7 +44,7 @@ hide those seams with yet more repeated overlays. The original SVG remains in
 the brand archive but the shared site no longer renders it.
 
 All files are bundled into the offline PWA by the existing build scanner.
-The shared visual presentation is owned by `src/pnw-theme.css` and `src/game-shell.css`; individual games must never restyle the common layout. CSS falls back to opaque forest gradients if imagery is delayed or unavailable.
+The shared visual presentation is owned by `src/pnw-theme.css` (Classic), `src/wild-squatch.css` (Rock & Roll) and `src/game-shell.css` (common geometry). Changing appearance must never alter control placement; individual games must never restyle the common layout. CSS falls back to opaque forest gradients if imagery is delayed or unavailable.
 Keep default text at least 4.5:1 and important UI boundaries at least 3:1
 against their *actual composited* backgrounds. Source-level palette tests
 alone are not a complete browser WCAG audit.
