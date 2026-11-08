@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chaos Pool Maker · Squatch Pool</title><meta name="description" content="Randomize a wild pool table, play with mods, and save your creations.">
+<script src="/src/site-header.js"></script><link rel="manifest" href="/manifest.webmanifest">
+<script type="module" src="/src/pwa.js"></script><script type="module" src="/src/deployment.js"></script>
+<link rel="stylesheet" href="/src/chaos-maker.css" data-page-style>
+<link rel="stylesheet" href="/src/site-styles.css" data-squatch-shared-styles></head>
+<body><squatch-header></squatch-header><main class="chaos-maker" id="chaos-maker">
+<header class="chaos-intro"><p class="eyebrow">SQUATCH MAKER · EXPERIMENTAL SANDBOX</p><h2>CHAOS POOL</h2><p>Anything goes. Roll a ridiculous table, drag things around, shoot, and save your monster. No account needed.</p></header>
+<section class="chaos-toolbar" aria-label="Maker controls">
+<button id="chaos-random" type="button">🎲 Random chaos</button>
+<button id="chaos-play" type="button">▶ Play</button>
+<button id="chaos-reset" type="button">↺ Reset shot</button>
+<button id="chaos-clear" type="button">Clear table</button>
+<label for="chaos-name">Creation name <input id="chaos-name" maxlength="72" value="Untamed Squatch"></label>
+<button id="chaos-save" type="button">💾 Save with mods</button>
+<label for="chaos-load">My saved tables <select id="chaos-load"><option value="">Choose a saved creation</option></select></label>
+</section>
+<section class="chaos-mods" aria-label="Chaos modifiers">
+<label><input id="mod-bounce" type="checkbox" checked> Super bouncy</label>
+<label><input id="mod-gravity" type="checkbox"> Sideways gravity</label>
+<label><input id="mod-magnet" type="checkbox"> Magnetic center</label>
+<label><input id="mod-pinball" type="checkbox" checked> Bumper madness</label>
+<label for="chaos-power">Cue power <input id="chaos-power" type="range" min="10" max="100" value="55"></label>
+</section>
+<div class="chaos-layout">
+<section class="chaos-table-wrap"><canvas id="chaos-table" width="960" height="520" aria-label="Interactive chaos pool sandbox: drag balls and bumpers in Build mode, then drag away from the white ball to aim in Play mode"></canvas><p id="chaos-status" role="status" aria-live="polite">Build mode: drag balls or bumpers. Tap empty felt to add a ball.</p><div class="chaos-shoot"><button id="chaos-shoot" type="button">🎱 SHOOT</button><span id="chaos-counter">0 shots · 0 balls pocketed</span></div></section>
+<aside class="chaos-help"><h3>Make a mess</h3><p><strong>Build:</strong> drag balls and bumpers. Tap empty felt to drop a new ball. Turn mods on or off whenever you like.</p><p><strong>Play:</strong> drag from the white ball in the direction you want to shoot. Press SHOOT. Hit Reset shot to restore your starting layout.</p><p><strong>Random chaos:</strong> rolls fresh balls, bumpers and modifiers. Save stores the entire setup and mods in this browser.</p><p>This is an experimental toy physics sandbox, not regulation billiards. No accounts, publishing, or competitive scoring yet.</p></aside>
+</div></main><script type="module" src="/src/chaos-maker.js"></script><script type="module" src="/src/static-navigation.js"></script><script type="module" src="/src/site-header-data.js"></script></body></html>
