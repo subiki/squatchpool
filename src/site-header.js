@@ -33,7 +33,7 @@
   rockStyle.href = '/src/wild-squatch.css';
   rockStyle.id = 'squatch-rock-style';
   rockStyle.disabled = true;
-  document.head.append(rockStyle);
+  document.head?.append?.(rockStyle);
   const readMode = () => {
     try { return localStorage.getItem(THEME_KEY) === 'rock' ? 'rock' : 'classic'; }
     catch { return 'classic'; }
@@ -41,9 +41,9 @@
   const setMode = (mode, persist = false) => {
     const rock = mode === 'rock';
     rockStyle.disabled = !rock;
-    document.documentElement.dataset.squatchTheme = rock ? 'rock' : 'classic';
+    if (document.documentElement?.dataset) document.documentElement.dataset.squatchTheme = rock ? 'rock' : 'classic';
     if (persist) try { localStorage.setItem(THEME_KEY, rock ? 'rock' : 'classic'); } catch {}
-    document.querySelectorAll('[data-squatch-theme-choice]').forEach(button => {
+    document.querySelectorAll?.('[data-squatch-theme-choice]')?.forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.squatchThemeChoice === (rock ? 'rock' : 'classic')));
     });
   };
@@ -92,7 +92,7 @@
         if (current === href) link.setAttribute('aria-current', 'page');
         nav.append(link);
       }
-      header.querySelectorAll('[data-squatch-theme-choice]').forEach(button => {
+      header.querySelectorAll?.('[data-squatch-theme-choice]')?.forEach(button => {
         button.addEventListener('click', () => setMode(button.dataset.squatchThemeChoice, true));
       });
       this.append(header);
