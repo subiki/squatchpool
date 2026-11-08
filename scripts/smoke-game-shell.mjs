@@ -25,6 +25,8 @@ const probe=`<script>
 (()=>{
  const wantsRock=new URLSearchParams(location.search).has('smokeRock');
  const wantsBots=new URLSearchParams(location.search).has('smokeBots');
+ if(wantsBots&&location.pathname.includes('cutthroat'))
+  try{localStorage.setItem('squatch-cutthroat-player-count','0');}catch{}
  if(wantsRock)try{localStorage.setItem('squatchpool-visual-mode','rock');}catch{}
  const errors=[];
  const fail=e=>{errors.push(String(e?.message||e?.reason||e||'unknown'));};
@@ -36,8 +38,10 @@ const probe=`<script>
    setTimeout(()=>{
     const selected=document.querySelector('main')?.dataset.squatchGameShell;
     const seat=document.getElementById(selected==='cutthroat'?'cut-players':'mode');
-    if(seat){seat.value=selected==='cutthroat'?'0':'bots';
-     seat.dispatchEvent(new Event('change',{bubbles:true}));}
+    // Cutthroat restores its persisted choice at startup; But Wait toggles here.
+    if(seat&&selected!=='cutthroat'){
+     seat.value='bots';seat.dispatchEvent(new Event('change',{bubbles:true}));
+    }
    },100);
    setTimeout(()=>{
     const stage=document.querySelector('#table-stage');
