@@ -175,6 +175,8 @@ export function prepareGamePage(root=globalThis.document,gameId){
  if(!config||!root?.querySelector)return false;
  const main=root.matches?.('main')?root:root.querySelector('main');
  if(!main||typeof main.querySelector!=='function'||!main.ownerDocument||
+    !main.childNodes||typeof main.replaceChildren!=='function'||
+    typeof main.classList?.add!=='function'||
     main.dataset?.squatchGameShell===gameId)return false;
  const stage=main.querySelector('#table-stage');
  if(!stage||!main.ownerDocument)return false; // fast no-op for unit DOM mocks
