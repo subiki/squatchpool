@@ -1,3 +1,4 @@
+import {prepareGamePage} from './game-page-shell.js';
 /** Caroms local pass-and-play preview, isolated from But Wait's production game. */
 import {TABLE,pockets,cushions,fullRack,step,stationary,shotSpeed,applyCueSpin,headStringX} from './physics.js';
 import {setTableSize,renderPocket} from './table-geometry.js';
@@ -18,6 +19,7 @@ import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {mountTableKit} from './table-kit-controls.js';
 const mountedGames=new WeakMap();
 export function mountCaromsGame(root=globalThis.document){
+ prepareGamePage(root,'caroms');
  mountedGames.get(root)?.dispose();
  const document=root.ownerDocument||root,cleanups=[];
  let disposed=false,frameId=null;

@@ -1,3 +1,4 @@
+import {prepareGamePage} from './game-page-shell.js';
 import {readInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint as pointerToTable} from './table-pointer.js';
 import {createCuePlacement} from './shot-lifecycle.js';
@@ -17,6 +18,7 @@ import {mountTableKit} from './table-kit-controls.js';
 import {attachShotKeyboard} from './shot-keyboard.js';
 const mountedGames=new WeakMap();
 export function mountPressGame(root=globalThis.document){
+ prepareGamePage(root,'press-your-luck');
  mountedGames.get(root)?.dispose();
  const document=root.ownerDocument||root,cleanups=[];
  let disposed=false,frameId=null;
