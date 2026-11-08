@@ -16,14 +16,14 @@
 
 | Order | Player-visible outcome | Work item / release gate |
 | --- | --- | --- |
-| P0 | Existing five games complete full matches; shared controls and production reliability | [#159](https://github.com/subiki/squatchpool/issues/159) remains a release blocker |
+| P0 interrupt | Existing production remains usable and trustworthy; fix critical gameplay/outages immediately | [#159](https://github.com/subiki/squatchpool/issues/159) |
 | P1 — now | Optional Google login, safe profile and favorites saved across devices | [#312](https://github.com/subiki/squatchpool/issues/312); reuse [#163](https://github.com/subiki/squatchpool/issues/163) / [#164](https://github.com/subiki/squatchpool/issues/164) |
 | P1 — next | Player ratings and personal match journal; scores correctly attributed to seats, versions and table sizes | [#163](https://github.com/subiki/squatchpool/issues/163), [#165](https://github.com/subiki/squatchpool/issues/165) |
-| P1 — after identity | Creator recipe proof: remix one known game, safe validation, immediate playtest, publish version and share | [#151](https://github.com/subiki/squatchpool/issues/151) |
+| P1 — early, parallel | Creator recipe proof: remix one known game, safe validation, immediate local playtest; publishing follows identity | [#151](https://github.com/subiki/squatchpool/issues/151) |
 | P2 | Community discovery, replay/popularity signals, ratings, moderation, creator profiles | Extend Maker/Passport with narrow execution tickets after first vertical slice |
 | P2 | Achievements, cosmetic Squatch Points, friendly challenges | [#166](https://github.com/subiki/squatchpool/issues/166), [#167](https://github.com/subiki/squatchpool/issues/167) |
 
-Do not block the small identity slice on finishing an elaborate creator editor. Do not interrupt urgent P0 gameplay repair.
+**Owner override:** community and early creator tools take precedence over optional full-match perfection and physics polish. Do not block identity or the local creator proof on exhaustive five-game acceptance. Interrupt only for urgent P0 gameplay, security or production failures.
 
 ## Data and trust
 
