@@ -12,8 +12,11 @@ test('all routes retain one canonical header and persistent textured theme',()=>
  for(const page of routes){
   const html=read(page+'.html');
   assert.equal((html.match(/<squatch-header\b/g)||[]).length,1,page);
-  assert.equal(html.split('href="/src/pnw-theme.css"').length-1,1,page);
-  assert.match(html,/shared-header\.css/,page);
+  assert.equal(html.split('href="/src/site-styles.css"').length-1,1,page);
+  assert.match(html,/data-squatch-shared-styles/,page);
+  const shared=read('src/site-styles.css');
+  assert.match(shared,/pnw-theme\.css/,page);
+  assert.match(shared,/shared-header\.css/,page);
  }
  const nav=read('src/static-navigation.js');
  assert.match(nav,/querySelectorAll\('\[data-page-style\]'\)/);
