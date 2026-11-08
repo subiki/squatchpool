@@ -191,6 +191,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   element('#ball-picks').children[0].listeners.get('click')();
   events.get('pocket-BR:click')();
   assert.equal(element('#shoot').disabled,false);
+  assert.match(element('#call-hint').textContent,/3\. Aim from the white ball/, 'complete call advances to aiming guidance');
   setSlider('#power',43);
   setSlider('#spin-top',62);
   setSlider('#spin-side',-78);
