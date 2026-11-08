@@ -5,7 +5,14 @@ on:
       - 'src/**'
       - 'tests/**'
       - 'package.json'
+      - 'but-wait.html'
       - 'caroms.html'
+      - 'tuna.html'
+      - 'arcade.html'
+      - 'README.md'
+      - 'AGENTS.md'
+      - 'docs/**'
+      - 'assets/brand/**'
       - 'index.html'
       - 'cutthroat.html'
       - 'press-your-luck.html'
@@ -23,7 +30,7 @@ permissions:
 jobs:
   node-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,6 +45,20 @@ jobs:
         run: npm run check
       - name: Build
         run: npm run build
+      - name: Browser smoke — one shared page across six routes
+        env:
+          SQUATCH_SCREENSHOT_DIR: ${{ runner.temp }}/squatch-game-layouts
+        run: |
+          node --check scripts/smoke-game-shell.mjs
+          node scripts/smoke-game-shell.mjs
+      - name: Preserve browser screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: squatch-game-layouts
+          path: ${{ runner.temp }}/squatch-game-layouts/*.png
+          if-no-files-found: warn
+          retention-days: 7
       - name: Preserve test failure evidence
         if: always()
         uses: actions/upload-artifact@v4
