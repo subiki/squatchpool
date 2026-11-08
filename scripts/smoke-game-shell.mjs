@@ -33,6 +33,31 @@ const probe=`<script>
  window.addEventListener('error',fail);
  window.addEventListener('unhandledrejection',fail);
  window.addEventListener('DOMContentLoaded',()=>{
+  if(new URLSearchParams(location.search).get('smokeNavigate')==='caroms'){
+   const originalHeader=document.querySelector('squatch-header');
+   setTimeout(()=>{
+    document.querySelector('.squatch-header-nav a[href="/caroms.html"]')?.click();
+   },350);
+   setTimeout(()=>{
+    const main=document.querySelector('main');
+    const shared=document.head.querySelector('link[data-squatch-shared-styles]');
+    const pageStyles=[...document.head.querySelectorAll('[data-page-style]')];
+    const inOrder=Boolean(shared&&pageStyles.length>0&&pageStyles.every(node=>
+      Boolean(node.compareDocumentPosition(shared)&Node.DOCUMENT_POSITION_FOLLOWING)));
+    const rules=main?.querySelector('.squatch-rulebook>summary');
+    const ruleFont=rules?getComputedStyle(rules).fontFamily:'missing';
+    const ok=Boolean(main?.dataset.squatchGameShell==='caroms'&&
+      document.querySelector('squatch-header')===originalHeader&&
+      document.querySelectorAll('link[data-squatch-shared-styles]').length===1&&
+      inOrder&&document.documentElement.dataset.squatchTheme==='rock'&&
+      ruleFont.includes('system-ui'));
+    document.documentElement.dataset.squatchSoftNav=ok?'pass':'fail';
+    document.documentElement.dataset.squatchSoftNavDetails=JSON.stringify({
+      game:main?.dataset.squatchGameShell,headerKept:document.querySelector('squatch-header')===originalHeader,
+      pageStyleCount:pageStyles.length,inOrder,ruleFont,errors
+    });
+   },2200);
+  }
   if(location.pathname==='/'&&wantsRock)setTimeout(()=>{
    // Check real computed layout, not just the presence of illustrated assets.
    const hero=document.querySelector('.hub-intro');
@@ -289,7 +314,30 @@ async function browseRockHome(width,height){
  }
  console.log('PASS Rock homepage',width+'x'+height,'artwork / logo / title strips / card alignment');
 }
+async function browseSoftNavigation(){
+ const url='http://127.0.0.1:'+port+'/?smokeRock=1&smokeNavigate=caroms';
+ const image=join(outputDir,'spa-caroms-rock-390.png');
+ const args=['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
+   '--no-first-run','--disable-extensions','--disable-background-networking',
+   '--window-size=390,844','--virtual-time-budget=3500',
+   '--screenshot='+image,'--dump-dom',url];
+ const browser=spawn(exe,args,{stdio:['ignore','pipe','pipe']});
+ let html='',stderr='';
+ browser.stdout.on('data',chunk=>{html+=chunk;});
+ browser.stderr.on('data',chunk=>{stderr+=chunk;});
+ const result=await Promise.race([
+  new Promise(resolve=>browser.on('exit',code=>resolve({code}))),
+  new Promise(resolve=>setTimeout(()=>{browser.kill('SIGKILL');resolve({timeout:true});},25000))
+ ]);
+ if(result.timeout||result.code!==0||!html.includes('data-squatch-soft-nav="pass"')){
+  const details=html.match(/data-squatch-soft-nav-details="([^"]+)"/)?.[1];
+  throw Error('Soft navigation CSS/order/header mismatch: '+JSON.stringify(result)+
+    ' details='+details+' stderr='+stderr.slice(-600));
+ }
+ console.log('PASS home → caroms Rock soft navigation: same header and CSS cascade');
+}
 try{
+ await browseSoftNavigation();
  await browseRockHome(1180,1200);
  await browseRockHome(930,1000);
  await browseRockHome(390,900);
@@ -300,5 +348,5 @@ try{
  for(const game of games)await browse(game,1180,900,'top','rock');
  await browse('but-wait',390,844,'table','rock',true);
  await browse('cutthroat',390,844,'table','rock',true);
- console.log('Shared game shell: 34 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile, six Rock desktop, two bot previews).');
+ console.log('Shared game shell: 35 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile, six Rock desktop, two bot previews).');
 }finally{await new Promise(resolve=>server.close(resolve));}
