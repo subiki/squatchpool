@@ -8,6 +8,10 @@
 - **P1 delivery:** player identity and creator playtest in small, independent slices; then saved casual scores/ratings. Experimental physics is acceptable if playable and accurately labeled.
 - **P2 polish:** deep physics fidelity, broad bot parity, legacy CSS cleanup, exhaustive cross-game acceptance, cosmetic rewards, competitive ranking. Promote only on demonstrated player harm or explicit owner direction.
 
+## Community graduation requirement
+
+Rock & Roll creations are the incubation pool. After publishing/ratings exist, add **Classic promotion nominations and curator approval**: reliable unique-player completion and repeat-play signals, rating confidence and anti-abuse, creator consent, human playability review, immutable Classic version with creator credit, rollback/demotion. Do **not** auto-promote solely by rating count. Do not introduce experimental mechanics into existing Classic games. See [Community product contract](COMMUNITY_PRODUCT.md).
+
 ## Pick next, in this order
 
 | Rank | Work | Lane / dependency | Definition of done |
