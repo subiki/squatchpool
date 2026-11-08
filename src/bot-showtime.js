@@ -62,6 +62,8 @@ export function createBotShowtime(root){
  }
  function show({label,shoot,valid=()=>true,delay=1900}={}){
   if(disposed)return;
+  // Controller test doubles have no visual stage; do not add a fake delay.
+  if(!panel){if(valid())shoot?.();return;}
   resetTimer();
   preview={shoot,valid,delay};
   if(stage?.dataset)stage.dataset.squatchBotPlanning='true';
