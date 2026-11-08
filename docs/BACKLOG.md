@@ -1,39 +1,34 @@
-# Execution queue — lean and current
+# Squatch Pool — single ordered execution queue
 
-**Purpose:** tell a human or agent what outcome to deliver next without relying on a six-week-old ticket number. Live issues, PRs and production status may change after this document is written. Inspect them before starting.
+**Owner priority override · 2026-11-07:** **community first**, **experimental gameplay quality**, **creator tools early**. This replaces the old blanket rule that accounts and Maker must wait for full five-game acceptance. [Roadmap](ROADMAP.md) owns milestone outcomes; GitHub issues own details.
 
-## Prioritization policy
+## Priority policy
 
-**P0:** user-visible gameplay broken, production unavailable, or one-game-only UX that undermines every game.  
-**P1:** improve playability, fidelity, bot behavior and persistent offline use.  
-**P2:** new game modes, accounts, rewards, creator platform and cosmetic experiments.
+- **P0 interrupt:** site down, production/source mismatch, security/privacy failure, existing guest game fundamentally broken, or regressions caused by a new release. Fix immediately; track in [#159](https://github.com/subiki/squatchpool/issues/159).
+- **P1 delivery:** player identity and creator playtest in small, independent slices; then saved casual scores/ratings. Experimental physics is acceptable if playable and accurately labeled.
+- **P2 polish:** deep physics fidelity, broad bot parity, legacy CSS cleanup, exhaustive cross-game acceptance, cosmetic rewards, competitive ranking. Promote only on demonstrated player harm or explicit owner direction.
 
-Keep **one architecture PR** and at most one **nonoverlapping hotfix/verification lane** in flight. When uncertain, choose the smaller playable delivery.
+## Community graduation requirement
 
-## Current goal: one site, one game page
+Rock & Roll creations are the incubation pool. After publishing/ratings exist, add **Classic promotion nominations and curator approval**: reliable unique-player completion and repeat-play signals, rating confidence and anti-abuse, creator consent, human playability review, immutable Classic version with creator credit, rollback/demotion. Do **not** auto-promote solely by rating count. Do not introduce experimental mechanics into existing Classic games. See [Community product contract](COMMUNITY_PRODUCT.md).
 
-| Order | Outcome | Evidence required |
-| --- | --- | --- |
-| **P0 · Unified presentation** | But Wait, Caroms, Cutthroat, Press and Tuna (plus Arcade) share a single introduction/setup/rules/table/details template, one selector layout and one shot kit | [Template contract](GAME_PAGE_TEMPLATE.md); equal-viewport screenshots, DOM IDs preserved, all modes still playable |
-| **P0 · Preserve release integrity** | No game becomes unplayable during the template migration | Automated tests and Cloudflare preview; representative direct-load and SPA rack smoke test |
-| **P0 · Full-match acceptance** | Each of five modes can break, aim, shoot, finish, restart and play against relevant bots or local humans | Desktop and mobile play evidence, release tracking issue #159 |
-| **P1 · Remove legacy duplication** | Move remaining repeated markup and CSS into the common shell after adapters prove safe | No cloned canvas/IDs, no per-game setup styles or divergent button sizing |
-| **P1 · Game feel and physics** | Credible breaks, rails, pockets, cloth, spin, called shots and readable announcer rulings | Real-shot comparisons, no regression at 7/8/9 ft |
-| **P1 · Offline/telemetry** | Native PWA installation/offline operation and accurate statistics | Real offline browser check and exact Pages/D1 evidence |
-| **P2 · New modes and progression** | Add games, achievements, accounts or Maker only after the five-game finish line | Separate owner-approved milestones and clear scope |
+## Pick next, in this order
 
-Do **not** implement a new scoring engine, 3D framework, test platform or unrelated backend as part of the shared-page refactor. Preserve original lore/rules archives without surfacing Google Docs or external links to players.
+| Rank | Work | Lane / dependency | Definition of done |
+| --- | --- | --- | --- |
+| 0 | Urgent production/gameplay regression | Interrupt lane; #159 | Verified fix and exact deployed SHA |
+| 1 | Finish Passport foundation, Google OIDC and favorites | **Active** draft [PR #314](https://github.com/subiki/squatchpool/pull/314), [#312](https://github.com/subiki/squatchpool/issues/312) | Guest unaffected; two-account isolation, cross-device favorites, revocable login |
+| 2 | Maker proof: known game, small declarative rule subset, local playtest | [#151](https://github.com/subiki/squatchpool/issues/151); separate files/PR from Passport | A creator changes a supported rule and actually plays the variant, no deploy |
+| 3 | Personal casual match history and editable ratings | [#165](https://github.com/subiki/squatchpool/issues/165); depends on Passport | Real user attribution, version/table context, no fake verified rankings |
+| 4 | Versioned creator publish/remix + popularity discovery | #151; after creator proof and identity | Another player completes a creator game; repeat plays measured |
+| 5 | UI/physics/bots/offline and legacy cleanup | #159, #303, #311, #77, #131 | Small improvements tied to observed playability, not open-ended refactor |
 
-## Picking up work
+## Agent routing
 
-1. Read [AGENTS.md](../AGENTS.md), [Architecture](ARCHITECTURE.md) and [Template](GAME_PAGE_TEMPLATE.md).
-2. Check `main`, open PRs and live issues. Do not claim a task already owned.
-3. Write acceptance around a player-visible outcome and the mode(s) it touches.
-4. Prefer a small vertical slice on the shared component. Merge only after representative integration checks.
-5. If something cannot be validated, write the gap in the PR and leave the acceptance open.
+One architecture implementation PR at a time; a second lane is allowed only for genuinely nonoverlapping changes (e.g. Passport server API versus creator local recipe validation). Do not merge another agent's branch or silently replace their work. Inspect open PRs before claiming a task. **Do not start another auth implementation while #314 exists.** Creator v0 should reuse existing rules and shared shell, not build a new site or free-form code executor.
 
-### Rules for priority conflicts
+## Shipping rules
 
-Fix active player blockers and failed production ahead of planned cleanup. Escalate only conflicting product choices, missing rule provenance, access or irreversible changes; otherwise ship the highest-priority unblocked improvement. Do not spend more time reorganizing issue labels than delivering a playable change.
+Small, reversible, feature-first PRs; targeted checks and a representative real play path. Preview first. Do not assert production readiness without browser and deployed SHA evidence. Never require login to play, never trust browser scores as competitive, and never remove the Classic/Rock toggle or offline PWA.
 
-**Archive:** [Original October plan](ORIGINAL_GAMES_ROADMAP.md) is historical context. It is *not* today's issue execution order.
+Historical October roadmap and dated issue priorities do not override this explicit owner decision.

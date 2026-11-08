@@ -1,28 +1,31 @@
-# Squatch Pool — outcome-based roadmap
+# Squatch Pool — community-first outcome roadmap
 
-**North star:** all five original Squatch games feel like the same well-made pool app, have their own clear rules, finish reliably and remain fun on phones and desktops. Ship quickly and fix quickly. Dates are not release gates.
+**Owner decision · 2026-11-07:** Community first; experimental, fun gameplay is sufficient for expansion; creator tools begin **early, alongside identity**. AI implements creator intent; creators invent games and players decide popularity. [Community product contract](COMMUNITY_PRODUCT.md).
 
-| Gate | What the player gains | Acceptance |
-| --- | --- | --- |
-| **A · One recognizable site** · current | Shared PNW brand, page composition, setup controls, shot kit and mobile/fullscreen layout on five games and Arcade | Every route uses the same [template](GAME_PAGE_TEMPLATE.md); no cloned game-specific page layout |
-| **B · Complete playable matches** | Break, aim, called pocket, legal/foul adjudication, winner, next rack and stable bot/local mode on all five | A full human-played match in a real browser on desktop and phone, beyond tests or mere page load |
-| **C · Credible pool feel** | Regulation 7/8/9-foot choices, consistent rack geometry, believable rails, pocketing, rolling and spin | Targeted physics benchmarks plus real player shot comparisons |
-| **D · Trustworthy experience** | Fast site transitions, readable announcements/scoreboard, persistent preferences, offline play and honest statistics | Browser navigation/fullscreen/reconnect tests, correct Cloudflare/D1 deployment SHA, no misleading counters |
-| **E · New reasons to return** | Optional achievements, profiles, Squatch Points, additional games and storytelling | Only plan after core games are accepted and the user selects the next outcome |
+## Two-mode community lifecycle (owner decision · 2026-11-07)
 
-## Release decision
+**Rock & Roll is the experimental creator laboratory; Classic is the curated official catalog.** A creation originates as a versioned Rock & Roll experiment. Community ratings, unique completed plays, repeat plays and creator-independent engagement nominate promising games. Nomination is not automatic promotion: review playability, understandable rules, deterministic/reproducible behavior, accessibility, security and compatibility with Classic's clean interface. Owner/editor approval publishes a pinned immutable **Classic edition** with original creator attribution, source version and a link back to the experimental lineage. Experimental physics or mods must never silently bleed into existing Classic games. A promoted edition may retain unusual rules, but they must be intentional, documented, and stable. Keep the Rock original and remixes available. A bad rating alone does not erase a creator's work.
 
-A merged PR, green unit tests or successful Cloudflare Pages build **is not a full-match acceptance**. A gate advances only when its player-facing behavior is demonstrated; record the browser/device, the tested route and any limitation.
+**Trust:** prevent self-rating/brigading, require meaningful completed plays, show sample sizes, and allow rollback/demotion without deleting published history. Until identity, ratings, moderation and measured completions exist, **no automatic promotions**.
 
-For a small hotfix: run targeted checks, preview and production verification. For a shared-layout change: check *all* five games plus Arcade at identical viewport widths, direct load and SPA, phone and desktop, with a real shot. The existing production release inspector and issue #159 can record independent evidence.
+## Five ordered milestones
 
-## Design principles
+| Priority | Milestone / outcome | Exit gate | Work |
+| --- | --- | --- | --- |
+| **P0 — interrupt** | Keep production playable and honest | No known sitewide outage or critical broken game; restore deploy integrity and guest play immediately | [#159](https://github.com/subiki/squatchpool/issues/159) |
+| **P1 — active** | Squatch Passport: sign in, safe profile, favorite a game across devices | Secure Google login/session, guest unchanged, profile/favorite persistence, isolation and logout | [#312](https://github.com/subiki/squatchpool/issues/312), [#164](https://github.com/subiki/squatchpool/issues/164), draft PR #314 |
+| **P1 — parallel, nonoverlapping** | Creator v0: describe/remix a known game and playtest | One existing mode + 3–5 supported validated rule choices, no arbitrary code, local draft and instant playable test | [#151](https://github.com/subiki/squatchpool/issues/151) |
+| **P1 — next** | Saved casual scores and useful feedback | Per-seat/version match journal, personal history, editable ratings, idempotency, explicit unverified labels | [#165](https://github.com/subiki/squatchpool/issues/165), [#163](https://github.com/subiki/squatchpool/issues/163) |
+| **P2 — after proof** | Publish, share and discover fun games | Creator-owned immutable versions, remix attribution, safe moderation, actual weekly completions and replay metrics | [#151](https://github.com/subiki/squatchpool/issues/151) |
 
-- Shared template and architecture **before** repeated presentation patches.
-- Game rules live in adjudicators, not in a second UI rules engine.
-- Good PNW nature materials and accessible contrast, not overwhelming contour wallpaper.
-- Existing five games, fast, lean and fun, before speculative monetization or accounts.
-- Preserve license/source obligations and historical originals in Git.
-- Owner approval for genuinely irreversible infrastructure or domain changes.
+**Not prerequisites for creator v0:** perfect physics, every original bot, exhaustive full-match certification, a new rendering engine, cosmetic polish, or competitive leaderboards. These remain valuable background work and release risks, not blanket blockers. A defect that prevents a creator's chosen source game from being played **is** a blocker.
 
-[Work queue](BACKLOG.md) | [Delivery procedure](DELIVERY.md) | [Architecture](ARCHITECTURE.md).
+## Release gates
+
+A small experimental preview can ship with clear limitations. Do not call a broken game playable, fabricated score verified, or untested build deployed. For each affected route test a real break/shot/finish path; run targeted build checks, check mobile and both skins where touched, then verify deployed SHA. No unreviewed generated JavaScript. Keep the existing five games and offline guest mode intact.
+
+## Product metric
+
+**Weekly completed games**, plus repeat plays by distinct players, are the north star; not visits, prompts, or number of AI-generated rules. Show sample sizes and separate casual from verified results.
+
+[Execution queue](BACKLOG.md) · [Agent instructions](../AGENTS.md) · [Delivery](DELIVERY.md).
