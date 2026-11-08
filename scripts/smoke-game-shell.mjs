@@ -50,10 +50,13 @@ const probe=`<script>
     const dimensions=navRects.every(r=>Math.abs(r.height-navRects[0].height)<2);
     const ids=[...document.querySelectorAll('[id]')].map(x=>x.id);
     const unique=new Set(ids).size===ids.length;
+    const wronglyVisibleHidden=[...main.querySelectorAll('[hidden]')]
+      .filter(node=>getComputedStyle(node).display!=='none');
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
-      !!controls&&visible&&dimensions&&unique&&!!setupOrder&&rulesUniform&&
+      !!controls&&visible&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
+      !!setupOrder&&rulesUniform&&
       main?.dataset.squatchGameShell&&errors.length===0;
     if(location.search.includes('smokeScroll=table')&&stage){
       // Headless Chrome's --screenshot after scrollIntoView can capture a
@@ -71,7 +74,8 @@ const probe=`<script>
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
       setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,
-      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),errors
+      duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),
+      wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
    }catch(e){document.documentElement.dataset.squatchSmoke='fail';
      document.documentElement.dataset.squatchSmokeDetails=String(e?.stack||e);}
