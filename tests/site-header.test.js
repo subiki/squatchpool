@@ -13,7 +13,8 @@ test('all Squatch pages use precisely one canonical header and data initializer'
   assert.equal((html.match(/<header\s+class="squatch-unified-header"/g)||[]).length,0,name+' has duplicate header markup');
   assert.match(html,/<script src="\/src\/site-header\.js"><\/script>/,name);
   assert.match(html,/<script type="module" src="\/src\/site-header-data\.js"><\/script>/,name);
-  assert.match(html,/shared-header\.css/,name);
+  assert.match(html,/href="\/src\/site-styles\.css"/,name);
+  assert.match(read('src/site-styles.css'),/shared-header\.css/,name);
   assert.ok(html.indexOf('/src/site-header.js')<html.indexOf('<squatch-header'),name+' component must register before DOM parses');
  }
 });
