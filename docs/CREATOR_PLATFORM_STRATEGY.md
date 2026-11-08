@@ -1,57 +1,47 @@
-# Squatch Pool — 2027–2028 creator-platform business roadmap
+# Squatch Pool — The Wildest Pool Arcade (2027–2028)
 
-**Status:** proposed strategy for owner review, not an approved financial forecast. **Planning window:** January 2027–December 2028. **Mission:** a social arcade where people create, play, share, remix and compete in original pool games. **North star:** weekly meaningful matches in creator-published games, with repeat players and repeat creators.
+**Direction:** Build the coolest, most playable, most shareable pool-game playground we can, as quickly as we can. **This is a creative roadmap, not a monetization plan.** No revenue, subscription, marketplace, profit, or paid-growth gates. Play is free. Squatch Points are earned, non-purchasable, non-transferable and never redeemable for money.
 
-## Product principles
-- Play first: free guest play, accessible mobile controls, stable game rules and trustworthy shot outcomes.
-- One engine, one interface, many rule packs. Creator games are declarative data with versioned rules and validation; no arbitrary creator JavaScript.
-- Classic and Rock & Roll remain skins, not separate products.
-- Squatch Points are **non-purchasable, non-redeemable, non-transferable** reputation/arcade rewards; no wagering, cash jackpots or pay-to-win competitive advantages.
-- Revenue comes from optional subscriptions, digital content and creator tools—not advertisements or exploiting minors.
-- Ranked competitions require server-authoritative results, abuse controls and replay/audit trails. Browser-local results cannot establish paid/ranked outcomes.
-- Respect GPL-3.0 and third-party asset licensing; obtain legal review of creator uploads, marketplace terms, taxes and payout obligations before commerce.
+## North star
+**People invent wild pool games, other people play and remix them, and everyone keeps coming back for the fun.**
 
-## Milestones and explicit gates
+Measure: weekly games played to completion; creator-made games played by someone else; repeat creators; returning players; completed friend challenges. Do not substitute page views or a green CI build for genuine play.
 
-| Period | Customer outcome | Deliverables | Go/no-go evidence |
-|---|---|---|---|
-| 2027 Q1 | Games work well enough to share | Finish shared UI and match lifecycle, realistic shot/rail physics, mobile/PWA, lightweight telemetry, opt-in Passport | 90%+ successful match completions; meaningful browser/device playtests; baseline retention cohort measured |
-| 2027 Q2 | Anyone can make and share a game | Chaos Maker v1: versioned rule recipe, validation, draft/publish/remix, public game links, creator attribution, reporting | 25 active creators, 100 published playable games, 200 weekly active players (illustrative targets); 20%+ of published games played by another user |
-| 2027 Q3 | Players have friends and rivals | Follows, profiles, favorites, asynchronous challenges, social feed of games, searchable catalog, comments/moderation | 25%+ week-4 player retention; 30%+ creators publish a second game |
-| 2027 Q4 | First customers pay voluntarily | Creator Pro subscriptions, cosmetic player memberships, optional premium creator packs, Stripe/merchant implementation and support | 100 paying accounts or equivalent demand validation; positive gross margin after payment processing, hosting and creator payouts |
-| 2028 Q1 | Creators earn money | Marketplace with versioned paid packs, opt-in storefronts, clear refund terms, creator earnings ledger, identity/payout compliance | 30+ transacting creators; repeat buyer rate >20%; no unresolved payout reconciliation |
-| 2028 Q2 | Competition feels fair | Ranked seasons, clubs, private tournaments, verified replays, moderation and anti-cheat | 99%+ trusted match recording; stable abuse handling; 4-week competitive retention improves |
-| 2028 Q3 | Discovery grows efficiently | Recommendations, themed seasons, creator collaborations, referral links and targeted partnerships | Measured acquisition CAC below contribution LTV; creator and player cohorts improve |
-| 2028 Q4 | The platform sustains itself | Optimize infrastructure and customer support, scale proven creator channels, reserve runway | 3 consecutive months operating profit, positive cash flow after all operating costs and creator payouts |
+## Fast release sequence — ship vertical slices, not big-bang platforms
 
-Targets above are **hypotheses** to revise after instrumented cohorts, not claims about current traffic or guaranteed results.
+| Horizon | What ships | Player-facing acceptance |
+| --- | --- | --- |
+| **Now / next 2–4 weeks** | Trustworthy shot physics and visual aiming, shared game layout, reliable full matches, Rock/Classic theme parity, Chaos Maker iteration | A new player can complete a game on mobile without coaching; actual ball paths agree with aim previews under deterministic modifiers |
+| **Next 4–8 weeks** | **Publish a Chaos game**: safe versioned recipes, game URL, creator attribution, remix button, discoverable public catalog; retain anonymous local drafts | Creator builds → tests → publishes → sends link → another player completes it → remixes it |
+| **Next 2–4 months** | Optional Squatch Passport, saved games and favorites, creator pages, reactions, follows, friend challenges, leaderboards | Friends can find each other and play the same creator challenge asynchronously; no login required just to play |
+| **Next 4–6 months** | Tournaments, seasonal events, game ratings, featured creator challenges, Squatch Points and achievements | An organizer can run a challenge and players can see trustworthy results and a winner |
+| **6–12 months** | More imaginative mechanics, creator templates, better bots, replay sharing, multiplayer experiments, moderation and community curation | New games can be created from reusable mechanics rather than custom forks |
+| **Year 2 (2028)** | Creator clubs, cooperative modes, richer live competition, seasonal universes, replay/spectator features, polish and accessibility | Community activity and returning play justify deeper investment |
 
-## Revenue model (proposed; validate with real customers)
-1. Free: guest games, public creator challenges, standard play, social discovery.
-2. Player Plus: **$4.99/month** for cosmetics, profile customization, extra private clubs and convenience; never better shot physics or ranked advantage.
-3. Creator Pro: **$9.99/month** for advanced publishing, analytics, custom branding and expanded drafts; keep a genuinely useful free creator tier.
-4. Marketplace: creators set prices for optional game packs. Proposed **80% creator / 20% platform of net receipts after refunds, taxes and payment fees**. Make the base, fees and payout timing transparent; model margins before launch.
-5. Clubs/organized events: optional **$19/month** club organizer tier, only after clubs show demand.
+Horizons are **ambitious targets, not promises**; adjust based on demonstrated player experience. Ship something usable weekly when possible. Do not hold back a fun, safe vertical slice waiting for unrelated infrastructure.
 
-No sale of Squatch Points, real-money wagering, entry-fee jackpots, or payouts tied to chance-based game outcomes. Review app-store/payment processor rules and consumer-protection obligations before launch.
+## What we will NOT do
+- No advertising, subscriptions, token purchases, real-money wagering, creator payout marketplace or profit milestones.
+- No rebuilding every game page separately. One reusable game shell, physics layer and declarative rule/recipe system.
+- No huge test suites, enterprise process or speculative architecture before a playable feature. Keep lightweight release checks and focused regression coverage for broken gameplay.
+- No pretending that browser-local match results are authoritative ranked scores.
+- No sacrificing offline/guest play or existing Classic appearance for Rock experiments.
+- No unreviewed creator code execution. Game recipes are validated data, not scripts.
 
-## Illustrative monthly business model (not forecast)
-Assume 10,000 monthly active players; 3% Player Plus conversion (300 x $4.99 = $1,497); 100 Creator Pro subscribers (100 x $9.99 = $999); $5,000 marketplace net-receipt volume at 20% platform share ($1,000); 25 clubs at $19 ($475). **Gross platform revenue = $3,971/month** before hosting, processing, support, taxes, refunds, development, moderation and other costs. This is *not* enough to assume a salaried profitable company. At 100,000 MAU with similar conversion and proportional marketplace volume, gross revenue could be about $39,710/month, but infrastructure, customer acquisition, moderation and support scale too. Build a cohort-based contribution model and calculate true break-even from measured costs.
+## Minimal trust and community foundations
+- Versioned creator recipes, content ownership/attribution, remix lineage, reporting/removal, basic spam/rate limits and moderation.
+- Opt-in accounts for persistence and social identity; guest play remains available.
+- Verified competition outcomes only when there is a server-authoritative or otherwise credible recording path; label casual/local leaderboards accordingly.
+- Respect GPL-3.0, artwork licenses, privacy and accessibility.
 
-## Unit economics and measurement
-- Weekly active players; weekly active creators; matches started/completed; games published/played by non-creators; creator repeat publishing; friend challenges; D1/D7/D30 retention; paid conversion; net receipts; creator payouts; gross margin; contribution margin; CAC, LTV and churn.
-- Define a meaningful match as a verified start plus completion or a valid conceded outcome; do not count page visits as play.
-- Instrument privacy-respecting opt-in events, data deletion, age/eligibility and content-reporting flows.
-- Monthly operating review: active cohorts, creator supply/demand, revenue by stream, gross margin, cash runway, abuse incidents and release quality.
-- Do not scale paid acquisition until retention and contribution margins are validated.
+## Delivery and prioritization
+1. **Playable > pretty > speculative.** Fix aim, ball behavior, game completion and mobile controls first.
+2. **Creator loop > new standalone modes.** Publish, share, play, remix and discover are the next product breakthrough.
+3. **Social loop > monetization.** Friends, challenges, creator recognition and tournaments make games worth returning to.
+4. **Ship small, verify real play, fix fast.** Branch → focused checks → preview → main → production SHA verification; no claims of browser/device acceptance without evidence.
+5. Every issue must state a user-visible outcome, acceptance criteria, dependencies and whether it can ship independently. One active priority per overlapping subsystem; avoid agent collisions.
 
-## Dependency order
-1. Complete playable matches and shared physics; trustworthy game outcome data.
-2. Optional Passport identity and cloud save while preserving guest/offline play.
-3. Versioned creator recipe schema and safe publish/share/remix pipeline.
-4. Catalog, moderation, social graph and challenges.
-5. Subscription billing and creator marketplace/payout compliance.
-6. Server-authoritative competitive seasons, tournaments and creator commerce scaling.
+## Near-term demonstration
+The next flagship demo should show: **a creator invents a ridiculous Chaos table, saves it, publishes a link, a friend opens it without signing in, finishes a challenge, and remixes it into something even crazier.** Make this work before investing in any business model.
 
-## Work policy
-Keep docs/ROADMAP.md as the near-term engineering release gates. This document owns the 24-month business outcomes. Every epic must have a measurable user outcome, dependency, owner, acceptance evidence and explicit deferral of monetization work that outruns retention. No more standalone games or large visual rebuilds ahead of stable play, creator publishing and social loops.
+Engineering release gates remain in [ROADMAP.md](ROADMAP.md); active work belongs in [BACKLOG.md](BACKLOG.md).
