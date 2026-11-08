@@ -49,3 +49,30 @@ body .hub-game:nth-child(6n+5)::after{background-position:left 55%;filter:hue-ro
 body .hub-game:nth-child(6n+6)::after{background-position:right 65%;filter:hue-rotate(175deg)}
 body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!important}
 @media(max-width:650px){body .hub-game{padding-top:98px!important}}
+
+/* Illustrated Squatch art: separate from live text and interactive controls. */
+:root[data-squatch-theme="rock"] body .hub-intro{
+ position:relative;isolation:isolate;overflow:hidden;
+ padding-inline:clamp(22px,21vw,255px)!important;
+ min-height:clamp(310px,38vw,440px);
+}
+:root[data-squatch-theme="rock"] body .hub-intro::before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;
+ left:-4%;bottom:-5%;width:clamp(190px,34%,390px);height:105%;
+ background:url('/assets/brand/rock-squatch-player.svg') center/cover no-repeat;
+ filter:drop-shadow(10px 6px 10px #0009);
+ -webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);
+ mask-image:linear-gradient(90deg,#000 80%,transparent);
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+1)::after,
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+4)::after{
+ background-image:linear-gradient(0deg,#101a12,transparent 80%),url('/assets/brand/rock-squatch-player.svg');
+ background-position:center 56%;background-size:cover;
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+4)::after{filter:hue-rotate(85deg)}
+@media(max-width:700px){
+ :root[data-squatch-theme="rock"] body .hub-intro{padding:22px 18px 22px 32%!important;min-height:260px}
+ :root[data-squatch-theme="rock"] body .hub-intro::before{left:-12%;width:48%;height:100%}
+ :root[data-squatch-theme="rock"] body .hub-intro h2{font-size:clamp(1.75rem,6vw,2.8rem)!important}
+ :root[data-squatch-theme="rock"] body .hub-intro p{font-size:.95rem!important}
+}
