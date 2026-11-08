@@ -45,7 +45,7 @@ export const GAME_PAGE_CONFIG=Object.freeze({
  arcade:{
   title:'The First Corner · Arcade Lab',eyebrow:"THE 4T'S · POINTS-ONLY ARCADE",
   intro:'Sink the 1-ball in the top-left pocket within three shots. Practice free or play for imaginary Squatch Points.',
-  players:null,size:null,extras:[],
+  players:'arcade-seat',size:null,extras:[],
   selectLabel:'Players',sizeLabel:'Table size'
  }
 });
