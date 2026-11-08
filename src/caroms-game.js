@@ -47,7 +47,7 @@ const invertAim=bindInvertAim($('invert-aim'));
 cleanups.push(()=>invertAim.dispose());
 const level=i=>$('caroms-level-'+i).value;
 let state,lastTime=0,accumulator=0,botTimer=null,botActionId=0,matchWins=[0,0],historyNumber=0;
-const solo=()=>$('caroms-mode').value!=='local';
+const solo=()=>['bot','bots'].includes($('caroms-mode').value);
 const isBot=()=> $('caroms-mode').value==='bots'||(solo()&&state.turn===1);
 const humanTurn=()=>!isBot();
 // Invalidate callbacks even when clearTimeout races an already-queued callback.
