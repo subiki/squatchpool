@@ -57,3 +57,38 @@
 .table-stage .kit-rack-actions button{min-height:44px;padding:9px 12px;border:1px solid #69826a;border-radius:9px;background:#294736;color:#f3ebd7;font:inherit;font-weight:750;cursor:pointer}
 .table-stage .kit-rack-actions button[data-rack-action="next"]{background:#efc77c;color:#19271e;border-color:#efc77c}
 .table-stage .kit-rack-actions button:disabled{opacity:.5;cursor:not-allowed}
+
+
+/* One legible, mobile-first long-form house-rule format across all games.
+   Game pages keep their short introduction visible, with details on demand. */
+.game-rules-layout .rulebook-details,
+.game-rules-layout details#cut-rules,
+.game-rules-layout details#caroms-rules-panel{
+ border:1px solid #85ad95;border-radius:12px;overflow:hidden;
+ background:linear-gradient(155deg,#224737ed,#102923f2);
+ color:#f4eeda;
+ box-shadow:inset 0 1px 0 #f4eeda25,inset 0 -7px 13px #04170f88;
+}
+.game-rules-layout .rulebook-details{margin-top:14px}
+.game-rules-layout :is(.rulebook-details,details#cut-rules,details#caroms-rules-panel)>summary{
+ cursor:pointer;min-height:48px;padding:13px 15px;
+ color:#f0c478;font-size:1rem;font-weight:800;line-height:1.4;
+}
+.game-rules-layout :is(.rulebook-details,details#cut-rules,details#caroms-rules-panel)>summary:focus-visible{
+ outline:3px solid #f9c466;outline-offset:-3px;
+}
+.game-rules-layout .rulebook{padding:12px 16px 18px;max-width:92ch}
+.game-rules-layout .rulebook .rulebook-lead{margin:0 0 14px;color:#e1eddf!important;line-height:1.55}
+.game-rules-layout .rulebook-section{border-top:1px solid #85ad9566;padding:14px 0 4px}
+.game-rules-layout .rulebook-section h4{color:#f0c478!important;font-size:1.08rem;margin:0 0 8px}
+.game-rules-layout .rulebook-section ol{padding-left:25px;margin:0}
+.game-rules-layout .rulebook-section li{margin:0 0 10px;line-height:1.6;color:#e1eddf!important}
+.game-rules-layout .rulebook-example,.game-rules-layout .rulebook-controls{
+ margin:12px 0 0;padding:12px;border-radius:9px;line-height:1.55;
+ color:#e1eddf!important;background:linear-gradient(145deg,#214333,#102923);
+ border:1px solid #85ad9566;
+}
+.game-rules-layout .rulebook-example{border-left:3px solid #f0c478}
+.game-rules-layout .rulebook-controls{border-left:3px solid #a4cc99}
+.game-rules-layout .rulebook :is(.rulebook-example,.rulebook-controls) strong{color:#f4eeda!important}
+@media(max-width:650px){.game-rules-layout .rulebook{padding:10px 12px 14px}.game-rules-layout .rulebook-section li{font-size:.98rem}}
