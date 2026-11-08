@@ -142,7 +142,7 @@ function updateCallUI(){
  $('#call-hint').textContent=state.isBreak?(state.phase==='placeBreak'?'Break: first position the white ball in the shaded kitchen.':'Break: no called ball or pocket needed. Aim and shoot.'):
   !picking?(state.phase==='aim'?'Speed Squatch is calling a shot.':'Calls lock once you shoot.'):
   pickingBall?'1. Tap a ball on the table (or its number below).':
-  pickingPocket?'2. Tap a glowing pocket number on the table.':
+  !state.callPocket?'2. Tap a glowing pocket number on the table.':
   '3. Aim from the white ball. Then press SHOOT.';
 }
 
