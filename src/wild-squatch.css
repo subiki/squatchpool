@@ -49,3 +49,125 @@ body .hub-game:nth-child(6n+5)::after{background-position:left 55%;filter:hue-ro
 body .hub-game:nth-child(6n+6)::after{background-position:right 65%;filter:hue-rotate(175deg)}
 body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!important}
 @media(max-width:650px){body .hub-game{padding-top:98px!important}}
+
+/* Illustrated Squatch art: separate from live text and interactive controls. */
+:root[data-squatch-theme="rock"] body .hub-intro{
+ position:relative;isolation:isolate;overflow:hidden;
+ padding-inline:clamp(22px,21vw,255px)!important;
+ min-height:clamp(310px,38vw,440px);
+}
+:root[data-squatch-theme="rock"] body .hub-intro::before{
+ content:"";position:absolute;z-index:-1;pointer-events:none;
+ left:-4%;bottom:-5%;width:clamp(190px,34%,390px);height:105%;
+ background:url('/assets/brand/rock-squatch-player.svg') center/cover no-repeat;
+ filter:drop-shadow(10px 6px 10px #0009);
+ -webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);
+ mask-image:linear-gradient(90deg,#000 80%,transparent);
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+1)::after,
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+4)::after{
+ background-image:linear-gradient(0deg,#101a12,transparent 80%),url('/assets/brand/rock-squatch-player.svg');
+ background-position:center 56%;background-size:cover;
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(6n+4)::after{filter:hue-rotate(85deg)}
+@media(max-width:700px){
+ :root[data-squatch-theme="rock"] body .hub-intro{padding:22px 18px 22px 32%!important;min-height:260px}
+ :root[data-squatch-theme="rock"] body .hub-intro::before{left:-12%;width:48%;height:100%}
+ :root[data-squatch-theme="rock"] body .hub-intro h2{font-size:clamp(1.75rem,6vw,2.8rem)!important}
+ :root[data-squatch-theme="rock"] body .hub-intro p{font-size:.95rem!important}
+}
+
+
+/* ROCK & ROLL: casino marquee meets 1990s wrestling entrance.
+   The spectacle is optional; gameplay and Classic are untouched. */
+:root[data-squatch-theme="rock"]{
+ --rock-neon:#ffec58;--rock-hot:#ff3d8c;--rock-electric:#3df8ed;
+ --rock-lime:#b6ff43;--rock-velvet:#2b092a;
+}
+@keyframes rock-marquee{0%,100%{filter:drop-shadow(0 0 5px #ffd35c) drop-shadow(0 0 10px #ff7a27)}50%{filter:drop-shadow(0 0 10px #ffe968) drop-shadow(0 0 18px #ff386b)}}
+@keyframes rock-shimmer{0%{background-position:0 50%}100%{background-position:200% 50%}}
+:root[data-squatch-theme="rock"] body{
+ background-color:#080c12!important;
+ background-image:radial-gradient(ellipse at 50% 8%,#7a1a5a77,transparent 48%),linear-gradient(180deg,#07150b99,#06100edb 65%),url('/assets/brand/rock-pnw-hero.svg')!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header{
+ border:5px ridge #ffd66a!important;
+ background-image:linear-gradient(115deg,#2b0b31ec,#102c28ee 48%,#35132aef),url('/assets/brand/texture-cedar.svg')!important;
+ box-shadow:0 0 0 3px #271019,0 0 23px #ff9c42a8,0 12px 30px #000b!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-brand-row h1{
+ color:#fff5c3!important;
+ text-shadow:2px 3px 0 #5c1b29,4px 5px 0 #120a13,0 0 14px #ffd54b,0 0 28px #ff4e9a!important;
+ letter-spacing:.04em!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-nav a{
+ border:2px ridge #ffd46b!important;
+ background:linear-gradient(#68304e,#2a1528 45%,#111c1a)!important;
+ color:#fff1be!important;
+ text-shadow:0 1px 3px #000;
+ box-shadow:inset 0 1px #fff6a866,0 3px #0e080d,0 0 8px #ff9a3c55!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-nav a[aria-current="page"]{
+ background:linear-gradient(#e5ff7a,#69bb13)!important;
+ color:#12210a!important;text-shadow:none;
+}
+:root[data-squatch-theme="rock"] body .hub-intro{
+ border:7px ridge #f8c75e!important;
+ box-shadow:0 0 0 3px #4d1d29,0 0 32px #f98e43aa,0 15px 45px #000c!important;
+}
+:root[data-squatch-theme="rock"] body .hub-intro h2{
+ color:#fff5c9!important;
+ text-shadow:3px 4px #420c2f,6px 7px #080b0b,0 0 22px #ffbe4b!important;
+}
+:root[data-squatch-theme="rock"] body .hub-section>h2{
+ background:linear-gradient(100deg,#663018,#e8a743 25%,#fff0a0 50%,#bd712e 75%,#4c2819)!important;
+ border:6px ridge #ffde83!important;
+ color:#28110e!important;
+ text-shadow:1px 2px #ffe5a8!important;
+ box-shadow:0 5px #2b0e13,0 0 24px #ffb94b99!important;
+ transform:rotate(-1deg);
+}
+:root[data-squatch-theme="rock"] body .hub-game{
+ position:relative;isolation:isolate;overflow:hidden;
+ border:5px ridge #f3b84f!important;
+ background-image:linear-gradient(180deg,#451b3b88,#121a16 70%),url('/assets/brand/texture-cedar.svg')!important;
+ box-shadow:0 0 0 2px #371425,0 0 18px #e9873e66,0 12px 26px #000d!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(3n+2){
+ border-color:#fb4d8d!important;
+ box-shadow:0 0 0 2px #36152b,0 0 19px #f34a8c99,0 12px 26px #000d!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game:nth-child(3n+3){
+ border-color:#40dfd2!important;
+ box-shadow:0 0 0 2px #113e40,0 0 19px #38dfdf88,0 12px 26px #000d!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game h3{
+ color:#fff0a0!important;
+ text-shadow:2px 3px 0 #52142c,4px 5px 0 #090d0d,0 0 12px #ff9d40!important;
+ letter-spacing:.015em!important;
+}
+:root[data-squatch-theme="rock"] body :is(.hub-play,.hub-arcade .hub-play){
+ background:linear-gradient(#dbff68,#6dbe18 52%,#326e08)!important;
+ color:#0d2307!important;
+ border:3px ridge #eaffb0!important;
+ text-shadow:0 1px #eaffb0!important;
+ box-shadow:inset 0 2px #f8ffd2,0 4px #1e4a09,0 0 13px #b3ff3c99!important;
+}
+:root[data-squatch-theme="rock"] body :is(.hub-rules,.hub-arcade){
+ border-color:#edb456!important;
+ box-shadow:inset 0 0 14px #ffb44622!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game::after{z-index:0;opacity:.5}
+:root[data-squatch-theme="rock"] body .hub-game>*{position:relative;z-index:1}
+:root[data-squatch-theme="rock"] squatch-header .squatch-theme-switch button[aria-pressed="true"]{
+ border-color:#fff0a5!important;
+ box-shadow:0 0 12px #ffc94b99!important;
+}
+@media(prefers-reduced-motion:no-preference){
+ :root[data-squatch-theme="rock"] body .hub-section>h2{animation:rock-marquee 3s ease-in-out infinite}
+ :root[data-squatch-theme="rock"] body .hub-game:hover{transform:translateY(-3px)}
+}
+@media(max-width:650px){
+ :root[data-squatch-theme="rock"] body .hub-game{border-width:3px!important}
+ :root[data-squatch-theme="rock"] body .hub-section>h2{transform:none}
+}
