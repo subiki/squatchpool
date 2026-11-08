@@ -257,3 +257,35 @@ main.squatch-game-page #table-stage .squatch-aim-mode:focus-visible{
  }
  main.squatch-game-page .squatch-aim-hint{font-size:.76rem!important}
 }
+
+
+/* Spectator HUD sits beside real aiming controls, including fullscreen. */
+main.squatch-game-page #table-stage .squatch-bot-showtime{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;
+ align-items:center!important;gap:8px!important;margin:0 0 9px!important;
+ padding:10px 12px!important;border:2px ridge #f6bb62!important;
+ border-radius:9px!important;
+ background:linear-gradient(110deg,#3e242b,#173d38)!important;
+ box-shadow:0 0 15px #e1a44a5e!important;
+}
+main.squatch-game-page #table-stage .squatch-bot-showtime[hidden]{display:none!important}
+main.squatch-game-page #table-stage .squatch-bot-plan{
+ font:800 .86rem/1.4 system-ui,sans-serif!important;
+ color:#ffe9af!important;min-width:0!important;
+}
+main.squatch-game-page #table-stage .squatch-bot-showtime button{
+ min-height:44px!important;padding:7px 11px!important;
+ border:2px solid #debc7d!important;border-radius:8px!important;
+ color:#fff2c7!important;background:#283d35!important;
+ font:800 .8rem/1.2 system-ui,sans-serif!important;cursor:pointer!important;
+}
+main.squatch-game-page #table-stage .squatch-bot-showtime button[aria-pressed="true"]{
+ background:#edcc88!important;color:#1d241c!important;
+}
+main.squatch-game-page #table-stage .squatch-bot-showtime button:disabled{opacity:.45!important}
+@media(max-width:660px){
+ main.squatch-game-page #table-stage .squatch-bot-showtime{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:8px!important;
+ }
+ main.squatch-game-page #table-stage .squatch-bot-plan{grid-column:1/-1!important}
+}
