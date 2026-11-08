@@ -1,0 +1,22 @@
+/* Wild Squatch: illustrated PNW pool hall. Shared by every route via pnw-theme.css. */
+:root{--wild-gold:#f9cf77;--wild-cedar:#59341c;--wild-bark:#21160f;--wild-moss:#80b843;--wild-cream:#fff4d8}
+body{background-image:linear-gradient(180deg,#07150bb0,#06170dd9 72%),url('/assets/brand/pnw-forest.jpg')!important;background-position:center top!important;background-size:cover!important}
+body>main{max-width:1220px!important;background:linear-gradient(180deg,#081b14a8,#10291cd9 55%,#07170fef)!important;border-inline:4px solid #684626!important;box-shadow:0 18px 70px #000b,inset 0 0 0 2px #ba995b55!important}
+squatch-header .squatch-unified-header{max-width:1220px!important;border:3px solid #75502b!important;border-radius:0 0 17px 17px!important;background-image:linear-gradient(95deg,#15120dcf,#143020dd),url('/assets/brand/pnw-cedar.jpg')!important;box-shadow:0 8px 22px #000a,inset 0 0 0 2px #d2a96550!important}
+squatch-header .squatch-brand-row h1{font-family:Georgia,serif!important;font-weight:900!important;text-transform:uppercase!important;color:var(--wild-cream)!important;text-shadow:2px 3px #26180c,0 0 18px #e9a84977!important}
+squatch-header .squatch-header-nav a{border:2px solid #a97a42!important;background-image:linear-gradient(#53341be0,#281b12f2),url('/assets/brand/pnw-cedar.jpg')!important;color:#ffe0a3!important;box-shadow:inset 0 1px #e6bd7566,0 3px 0 #100c08!important}
+squatch-header .squatch-header-nav a[aria-current="page"]{background:linear-gradient(#a9e350,#528b20)!important;color:#15210b!important;border-color:#d6f48e!important}
+body .hub-intro{min-height:285px;display:flex;flex-direction:column;justify-content:center;text-align:center;align-items:center;background-image:linear-gradient(90deg,#07150bb8,#06150b55,#07150bc9),url('/assets/brand/pnw-water.jpg')!important;background-size:cover!important;background-position:center!important;border:5px ridge #936335!important;box-shadow:0 16px 36px #0009!important}
+body .hub-intro h2{font-family:Georgia,serif!important;font-style:italic;font-size:clamp(2.3rem,6vw,4.4rem)!important;line-height:1.1;color:#fff6e1!important;text-shadow:0 4px 9px #000!important}
+body .hub-intro p{max-width:750px;font-weight:650;text-shadow:0 2px 5px #000}
+body .hub-section>h2{width:max-content;max-width:100%;margin:0 auto 18px!important;padding:9px 30px;background:linear-gradient(#b88949,#6e431f)!important;border:4px ridge #d8b16e!important;color:#21160c!important;font:900 clamp(1.6rem,4vw,2.3rem) Georgia,serif!important;text-align:center;text-transform:uppercase;letter-spacing:.05em;box-shadow:0 7px 15px #0009}
+body .hub-games{gap:18px}
+body .hub-game{border:5px ridge #926536!important;border-radius:14px!important;background-image:linear-gradient(180deg,#1b291b9c,#0d1610 65%),url('/assets/brand/pnw-cedar.jpg')!important;background-size:cover!important;box-shadow:0 10px 24px #000a,inset 0 0 0 2px #d2a76650!important}
+body .hub-game h3{font-family:Georgia,serif!important;font-size:clamp(1.45rem,2.5vw,2rem)!important;text-transform:uppercase;color:#ffe4a0!important;text-shadow:2px 3px #0a0b08}
+body .hub-game .hub-play,body .hub-arcade .hub-play{background:linear-gradient(#a8e84c,#4b8b17)!important;border:2px solid #c9f77a!important;color:#12230a!important;box-shadow:inset 0 1px #f1ffca,0 4px #27470c,0 7px 12px #0009!important;text-transform:uppercase;letter-spacing:.04em}
+body .hub-game .hub-rules{border:2px solid #ae8349!important;background:linear-gradient(#2a2017,#13180f)!important}
+body .hub-game .hub-rules summary{color:#ffe2a5!important}
+body .hub-arcade{border:4px ridge #9c703d!important;background:linear-gradient(115deg,#3e2a18,#132c1c)!important}
+body .table-stage .table-wrap{box-shadow:0 8px 24px #0009!important}
+@media(max-width:650px){body>main{border-inline:0!important}body .hub-intro{min-height:220px;padding:20px!important}body .hub-game{border-width:3px!important}body .hub-section>h2{width:100%;padding:9px 12px}}
+@media(prefers-reduced-motion:reduce){body .hub-game,body .hub-play{transition:none!important}}
