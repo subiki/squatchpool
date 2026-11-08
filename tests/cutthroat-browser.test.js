@@ -47,7 +47,9 @@ test('Cutthroat keeps the core shot kit and required decisions attached to the f
  assert.ok(stage.indexOf('id="cut-group"')<stage.indexOf('id="cut-table"'),
   'team color chooser must appear ABOVE the felt, inside fullscreen');
  assert.match(html,/Choose your team color/);
- assert.match(html,/five blue, five yellow and five red/i);
+ const guide=readFileSync(new URL('../src/game-guides.js',import.meta.url),'utf8');
+ assert.match(guide,/five blue, five yellow and five red/i,
+  'team rules live in one canonical guide, not duplicated page HTML');
 });
 
 test('regulation 7/8/9 ft Cutthroat racks retain 15 object balls and real physics',()=>{

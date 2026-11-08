@@ -16,7 +16,8 @@ test('Caroms remains offered as bot or local two-player beta',()=>{
  assert.match(caroms,/src="\.\/src\/caroms-entry\.js"/);
  assert.match(caroms,/<option value="bot" selected>Squatch Bot · solo<\/option>/);
  assert.match(caroms,/<option value="local">Local player · pass and play<\/option>/);
- assert.match(caroms,/Solo bot or two local players/);
+ assert.ok(read('src/game-page-shell.js').includes("players:'caroms-mode'"),
+  'shared page template must own Caroms player selection');
  assert.match(caroms,/First to two racks wins this playtest match/);
  assert.match(caroms,/content="Play original Caroms.*solo against Squatch Bot/);
  assert.ok(game.rules.length>=3,'Caroms rules now appear in the expandable homepage card');

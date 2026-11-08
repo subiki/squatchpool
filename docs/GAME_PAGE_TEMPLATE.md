@@ -61,4 +61,4 @@ A build-only claim does **not** close visual or gameplay acceptance. Record what
 
 Add a `GAME_PAGE_CONFIG` entry, the game rules, a controller and only its **unique inputs inside an existing slot**. The shell and shared CSS remain untouched unless an improvement benefits every game.
 
-The runtime rulebook is built from `src/game-guides.js` by `prepareGamePage`, so its heading, summary, padding, details behavior and mobile presentation are identical on every route. Legacy static rule markup is preserved for no-JS fallback during migration but is removed from the composed runtime DOM. Arcade's existing How to Win instructions occupy the same rulebook component.
+The runtime rulebook is built from `src/game-guides.js` by `prepareGamePage`, so its heading, summary, padding, details behavior and mobile presentation are identical on every route. Per-game HTML no longer embeds duplicate long-form rules; the shared renderer builds them from `src/game-guides.js`. Because gameplay itself requires JavaScript, a second unmaintained no-JS rules copy does not help players. Arcade's existing How to Win instructions occupy the same rulebook component.

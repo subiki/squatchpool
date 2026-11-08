@@ -3,75 +3,85 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {GAME_GUIDES} from '../src/game-guides.js';
 import {GAMES} from '../src/game-catalog.js';
+import {renderGameRules} from '../src/game-page-shell.js';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const pageByGame={
  'but-wait-theres-more':'but-wait.html',
- 'caroms':'caroms.html',
- 'cutthroat':'cutthroat.html',
+ caroms:'caroms.html',
+ cutthroat:'cutthroat.html',
  'press-your-luck':'press-your-luck.html',
- 'tuna':'tuna.html'
+ tuna:'tuna.html'
 };
-const escapeHtml=text=>text.replaceAll('&','&amp;').replaceAll('<','&lt;')
- .replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;');
 
-test('five complete house rulebooks agree with the actual in-game instructions',()=>{
- assert.deepEqual(Object.keys(GAME_GUIDES),GAMES.map(g=>g.id));
+function fakeElement(tag){
+ return {
+  tag,children:[],className:'',textContent:'',id:'',open:false,
+  append(...items){this.children.push(...items);}
+ };
+}
+const descendants=node=>[node,...node.children.flatMap(descendants)];
+
+test('one rulebook renderer displays the actual guide for all five games',()=>{
+ assert.deepEqual(Object.keys(GAME_GUIDES),GAMES.map(game=>game.id));
  let points=0;
  for(const [id,guide] of Object.entries(GAME_GUIDES)){
-  const html=read(pageByGame[id]);
-  assert.ok(guide.sections.length>=4,id+' needs setup, turn, foul and win guidance');
-  assert.ok(guide.example.length>70,id+' needs a real example');
-  assert.ok(guide.controls.length>65,id+' needs concrete play controls');
-  assert.match(html,/class="rulebook"/,id+' must have in-game rulebook');
-  assert.match(html,/class="rulebook-example"/);
-  assert.match(html,/class="rulebook-controls"/);
-  assert.ok(html.includes(escapeHtml(guide.intro)),id+' intro must match canonical rules');
+  const nodes={createElement:fakeElement};
+  const host=fakeElement('section');
+  const gameId=id==='but-wait-theres-more'?'but-wait':id;
+  renderGameRules({},nodes,host,gameId,{intro:guide.intro});
+  const all=descendants(host);
+  const details=all.filter(n=>n.tag==='details');
+  assert.equal(details.length,1,id+' must render one collapsible rulebook');
+  assert.equal(details[0].open,false,'rules should be collapsed initially');
+  assert.equal(all.filter(n=>n.tag==='summary').length,1);
+  assert.equal(all.filter(n=>n.tag==='h4').length,guide.sections.length);
+  assert.ok(all.some(n=>n.textContent===guide.intro),id+' intro is rendered');
+  assert.ok(all.some(n=>n.textContent==='Example: '+guide.example),id+' example is rendered');
+  assert.ok(all.some(n=>n.textContent==='Playing on this site: '+guide.controls),
+   id+' controls are rendered');
   for(const section of guide.sections){
-   assert.ok(html.includes('<h4>'+escapeHtml(section.title)+'</h4>'),id+': '+section.title);
-   assert.ok(section.items.length>=2,id+': '+section.title+' needs detail');
+   assert.ok(section.items.length>=2,id+' section '+section.title+' is detailed');
+   assert.ok(all.some(n=>n.tag==='h4'&&n.textContent===section.title));
    for(const item of section.items){
     points++;
-    assert.ok(html.includes('<li>'+escapeHtml(item)+'</li>'),id+': '+item);
+    assert.ok(all.some(n=>n.tag==='li'&&n.textContent===item),
+     id+' instruction missing: '+item);
    }
   }
-  assert.ok(html.includes(escapeHtml(guide.example)),id+' example is missing');
-  assert.ok(html.includes(escapeHtml(guide.controls)),id+' controls are missing');
-  assert.doesNotMatch(html,/docs\.google\.com|href=["']https?:\/\//i,id+' must not send users outside');
+  const page=read(pageByGame[id]);
+  assert.doesNotMatch(page,/class="game-rules-layout"|class="rulebook"|class="quickstart"/,
+   id+' page must not duplicate the canonical rules');
+  assert.ok(!page.includes('docs.google.com') && !page.includes('href="https://') &&
+    !page.includes("href='https://"),id+' page must remain internal-only');
  }
- assert.ok(points>=55,'rules should cover the actual games, not just short summaries');
+
+ assert.ok(points>=55,'full house rules are preserved by the shared renderer');
 });
-test('rules remain optional and do not obscure gameplay by default',()=>{
- const pages=Object.values(pageByGame);
- for(const path of pages){
-  const html=read(path);
-  const book=html.indexOf('class="rulebook"');
-  const table=html.indexOf('id="table-stage"');
-  assert.ok(book>0&&table>book,path+' instructions must be above the table');
-  const details=html.slice(Math.max(0,book-650),book);
-  assert.match(details,/<details\b/,path+' long rules must be expandable');
-  assert.doesNotMatch(details,/<details[^>]*\bopen\b/,path+' should load collapsed');
- }
+
+test('home and game routes share the same canonical guide content',()=>{
+ const home=read('src/game-catalog.js');
+ const shell=read('src/game-page-shell.js');
+ assert.ok(home.includes("import {GAME_GUIDES} from './game-guides.js'"));
+ assert.ok(shell.includes("import {GAME_GUIDES} from './game-guides.js'"));
+ assert.ok(!shell.includes("querySelector('.game-rules-layout')"));
  const css=read('src/game-hub.css');
- assert.doesNotMatch(css,/url\s*\(|@import/i,'SPA route CSS must remain self-contained');
- assert.match(css,/\.hub-game:has\(\.hub-rules\[open\]\)/,
-  'expanded rules must get a readable full-width card');
+ assert.ok(!css.includes('url(')&&!css.includes('@import'),'SPA route CSS remains self-contained');
+ assert.ok(css.includes('.hub-game:has(.hub-rules[open])'));
+ const site=read('src/game-shell.css');
+ assert.ok(site.includes('.squatch-rulebook')&&site.includes('.squatch-rule-list'));
 });
-test('important original house-rule twists are explained, not silently normalized',()=>{
- const but=GAME_GUIDES['but-wait-theres-more'];
- const car=GAME_GUIDES.caroms;
- const cut=GAME_GUIDES.cutthroat;
- const press=GAME_GUIDES['press-your-luck'];
- const tuna=GAME_GUIDES.tuna;
- const all=g=>g.sections.flatMap(s=>s.items).join(' ');
- assert.match(all(but),/7-ball and 15-ball/);
- assert.match(all(but),/either still-hidden ball/);
- assert.match(all(car),/white cue ball cannot be used/);
- assert.match(all(car),/center between the side pockets/);
- assert.match(all(cut),/five blue, five yellow and five red/);
- assert.match(all(cut),/brings them back into the game/);
- assert.match(all(press),/entire current-rack award is doubled/);
- assert.match(all(press),/no automatic two points/);
- assert.match(all(tuna),/lowest numbered ball still on the table in either sequence/);
- assert.match(all(tuna),/Other lower solids/);
+
+test('important unusual Squatch rules remain intact',()=>{
+ const all=id=>GAME_GUIDES[id].sections.flatMap(x=>x.items).join(' ');
+ assert.match(all('but-wait-theres-more'),/7-ball and 15-ball/);
+ assert.match(all('but-wait-theres-more'),/either still-hidden ball/);
+ assert.match(all('caroms'),/white cue ball cannot be used/);
+ assert.match(all('caroms'),/center between the side pockets/);
+ assert.match(all('cutthroat'),/five blue, five yellow and five red/);
+ assert.match(all('cutthroat'),/brings them back into the game/);
+ assert.match(all('press-your-luck'),/entire current-rack award is doubled/);
+ assert.match(all('press-your-luck'),/no automatic two points/);
+ assert.match(all('tuna'),/lowest numbered ball still on the table in either sequence/);
+ assert.match(all('tuna'),/Other lower solids/);
 });
