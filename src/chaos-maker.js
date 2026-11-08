@@ -12,7 +12,7 @@ const clone=v=>JSON.parse(JSON.stringify(v));
 const ball=(x,y,c='#f6f3e7')=>({x,y,vx:0,vy:0,c});
 const bounded=(x,y)=>({x:Math.max(32,Math.min(W-32,x)),y:Math.max(32,Math.min(H-32,y))});
 function randomize(){
- playing=false;shots=0;pocketed=0;stage=0;events=[];goalFinished=false;editDraft=null;$('chaos-play').textContent='▶ Play';$('chaos-events').textContent='Chaos event log';
+ playing=false;shots=0;pocketed=0;stage=0;events=[];goalFinished=false;editDraft=null;$('chaos-result').textContent='';$('chaos-play').textContent='▶ Play';$('chaos-events').textContent='Chaos event log';
  balls=[ball(205,260)];
  const colors=['#ffb833','#e64e50','#4ca4ef','#d66de0','#f7f1b0','#76d68d'];
  for(let i=0;i<Math.floor(rand(5,17));i++)balls.push({...ball(rand(340,850),rand(55,465),colors[i%colors.length]),eight:i===0});
@@ -33,7 +33,7 @@ function load(s){
 function status(message){$('chaos-status').textContent=message;$('chaos-counter').textContent=`${shots} shots · ${pocketed} balls pocketed · stage ${stage}`;$('chaos-events').textContent=events.length?events.slice(-4).join(' · '):'Chaos event log';}
 function saved(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x.slice(0,30):[];}catch{return [];}}
 function refreshSaved(){const select=$('chaos-load');select.replaceChildren(new Option('Choose a saved creation',''));saved().forEach((s,i)=>select.add(new Option(s.name||'Untitled',String(i))));}
-function save(){const s=editDraft||state();if(!s.balls.length){status('Add at least one ball before saving.');return;}const list=saved();list.unshift(s);try{localStorage.setItem(KEY,JSON.stringify(list.slice(0,30)));refreshSaved();status('Saved locally with all mods: '+s.name);}catch{status('Browser storage unavailable; table is still playable.');}}
+function save(){const s=editDraft?{...editDraft,name:$('chaos-name').value.slice(0,72)}:state();if(!s.balls.length){status('Add at least one ball before saving.');return;}const list=saved();list.unshift(s);try{localStorage.setItem(KEY,JSON.stringify(list.slice(0,30)));refreshSaved();status('Saved locally with all mods: '+s.name);}catch{status('Browser storage unavailable; table is still playable.');}}
 const pockets=[[28,28],[W/2,22],[W-28,28],[28,H-28],[W/2,H-22],[W-28,H-28]];
 function draw(){
  ctx.clearRect(0,0,W,H);ctx.fillStyle='#1c5c3b';ctx.fillRect(0,0,W,H);
@@ -55,11 +55,14 @@ function tick(time){
   if(m.magnet){const dx=W/2-b.x,dy=H/2-b.y,d=Math.hypot(dx,dy)||1;b.vx+=dx/d*.05*dt;b.vy+=dy/d*.05*dt;}
   b.x+=b.vx*dt;b.y+=b.vy*dt;b.vx*=Math.pow(.988,dt);b.vy*=Math.pow(.988,dt);
   const restitution=m.bounce?1.16:.87;
+  // Pocket mouths must be tested before rail collision clamping.
+  if((b.portalCooldown||0)<=0 && pockets.some(([px,py])=>Math.hypot(b.x-px,b.y-py)<25))continue;
   if(b.x<R+24||b.x>W-R-24){b.x=Math.max(R+24,Math.min(W-R-24,b.x));b.vx*=-restitution;}
   if(b.y<R+24||b.y>H-R-24){b.y=Math.max(R+24,Math.min(H-R-24,b.y));b.vy*=-restitution;}
   if(m.pinball)for(const p of bumpers){const dx=b.x-p.x,dy=b.y-p.y,d=Math.hypot(dx,dy)||.001;if(d<R+p.r){const nx=dx/d,ny=dy/d,impact=b.vx*nx+b.vy*ny;b.x=p.x+nx*(R+p.r);b.y=p.y+ny*(R+p.r);b.vx-=2*impact*nx;b.vy-=2*impact*ny;b.vx+=nx*2;b.vy+=ny*2;}}
  }
- for(let i=0;i<balls.length;i++)for(let j=i+1;j<balls.length;j++){const a=balls[i],b=balls[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.001;if(d<R*2){const nx=dx/d,ny=dy/d,over=(R*2-d)/2;a.x-=nx*over;b.x+=nx*over;a.y-=ny*over;b.y+=ny*over;const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rel<0){onCollision(world,a,b);const imp=-rel*.94;a.vx-=imp*nx;a.vy-=imp*ny;b.vx+=imp*nx;b.vy+=imp*ny;}}}
+ const collisionCount=balls.length;
+ for(let i=0;i<collisionCount;i++)for(let j=i+1;j<collisionCount;j++){const a=balls[i],b=balls[j],dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy)||.001;if(d<R*2){const nx=dx/d,ny=dy/d,over=(R*2-d)/2;a.x-=nx*over;b.x+=nx*over;a.y-=ny*over;b.y+=ny*over;const rel=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rel<0){onCollision(world,a,b);const imp=-rel*.94;a.vx-=imp*nx;a.vy-=imp*ny;b.vx+=imp*nx;b.vy+=imp*ny;}}}
  for(let i=balls.length-1;i>=0;i--)if((balls[i].portalCooldown||0)<=0 && pockets.some(([x,y])=>Math.hypot(balls[i].x-x,balls[i].y-y)<22)){if(i===0){balls[0]=ball(205,260);status('Scratch! Cue ball respotted.');}else{const sunk=balls.splice(i,1)[0];pocketed++;onPocket(world,sunk,false);stage=world.stage;status('Ball pocketed!');}}
   checkGoal();
  }
@@ -69,10 +72,12 @@ function checkGoal(){
  if(goalFinished)return;
  const goal=$('chaos-goal').value,limit=Math.max(1,Math.min(99,Number($('chaos-limit').value)||12));
  const moving=balls.some(b=>Math.hypot(b.vx,b.vy)>.25);
- if(moving||shots===0)return;
+ if(shots===0)return;
+ // Gravity, magnets and bouncy rails can keep a table moving forever.
+ // A completed objective is recognized immediately; shot-limit failure waits for settling.
  const won=goal==='clear'?balls.every((b,i)=>i===0||b.eight):goal==='eight'?!balls.some(b=>b.eight):goal==='shots'?pocketed>=3:goal==='survive'?shots>=5:false;
  if(won){goalFinished=true;$('chaos-result').textContent='🏆 YOU WIN! Your game is playable.';status('Game complete! Return to editing or reset.');return;}
- if(goal!=='sandbox'&&shots>=limit){goalFinished=true;$('chaos-result').textContent='💥 GAME OVER — shot limit reached.';status('Try editing your game or reset for another run.');}
+ if(!moving&&goal!=='sandbox'&&shots>=limit){goalFinished=true;$('chaos-result').textContent='💥 GAME OVER — shot limit reached.';status('Try editing your game or reset for another run.');}
 }
 const coords=e=>{const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*W/r.width,y:(e.clientY-r.top)*H/r.height};};
 canvas.addEventListener('pointerdown',e=>{
@@ -95,7 +100,7 @@ canvas.addEventListener('pointerdown',e=>{
 canvas.addEventListener('pointermove',e=>{if(!drag)return;const p=coords(e);if(drag.type==='aim'&&balls.length){const b=balls[0],dx=p.x-b.x,dy=p.y-b.y,d=Math.hypot(dx,dy)||1;aim={x:dx/d,y:dy/d};}else if(!playing){const b=drag.type==='ball'?balls[drag.i]:bumpers[drag.i];if(b)Object.assign(b,bounded(p.x,p.y));}draw();});
 canvas.addEventListener('pointerup',()=>{drag=null;});canvas.addEventListener('pointercancel',()=>{drag=null;});
 $('chaos-random').addEventListener('click',randomize);
-$('chaos-play').addEventListener('click',()=>{if(!playing){snapshot=state();editDraft=state();goalFinished=false;$('chaos-result').textContent='';}playing=!playing;$('chaos-play').textContent=playing?'✎ Build':'▶ Play';status(playing?'Play mode: drag from the white ball to aim, then shoot.':'Build mode: drag objects and tap felt to add balls.');draw();});
+$('chaos-play').addEventListener('click',()=>{if(playing){if(editDraft){load(editDraft);editDraft=null;}else if(snapshot)load(snapshot);status('Back to editing the original layout.');return;}snapshot=state();editDraft=state();goalFinished=false;$('chaos-result').textContent='';playing=true;$('chaos-play').textContent=playing?'✎ Build':'▶ Play';status(playing?'Play mode: drag from the white ball to aim, then shoot.':'Build mode: drag objects and tap felt to add balls.');draw();});
 $('chaos-reset').addEventListener('click',()=>{if(snapshot&&load(snapshot)){editDraft=null;status('Restored the starting layout, rules and mods.');}});
 $('chaos-clear').addEventListener('click',()=>{playing=false;editDraft=null;goalFinished=false;balls=[ball(205,260)];bumpers=[];shots=0;pocketed=0;snapshot=state();$('chaos-play').textContent='▶ Play';status('Cleared. Tap felt to add balls.');draw();});
 $('chaos-shoot').addEventListener('click',()=>{if(!playing){status('Press Play before shooting.');return;}if(goalFinished){status('Game finished. Reset to play again.');return;}if(!balls.length)return;const b=balls[0];if(Math.hypot(b.vx,b.vy)>.5){status('Wait for the balls to settle.');return;}const power=Number($('chaos-power').value)/100;b.vx=aim.x*(3+power*16);b.vy=aim.y*(3+power*16);shots++;const world={balls,bumpers,mods:mods(),events,stage,shots,pockets};onShot(world);setMods(world.mods);status('CHAOS! Shot '+shots);});
