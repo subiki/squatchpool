@@ -157,14 +157,20 @@ function normalizeKit(main,doc){
  const remainder=[...primary.children];
  primary.replaceChildren(row,utilities,...remainder);
 }
-function clearOriginalIntro(main,gameId,hero){
+function clearOriginalIntro(main,gameId,hero,rules){
  if(gameId==='but-wait'){
   main.querySelector(':scope > .intro')?.remove();
   main.querySelector(':scope > .grain')?.remove();
  }else if(gameId==='arcade'){
   const original=main.querySelector(':scope > .arcade-heading');
   const dynamic=original?.querySelector('#rules-summary');
-  if(dynamic){dynamic.classList.add('squatch-dynamic-intro');hero.append(dynamic);}
+  if(dynamic){
+   // Keep the controller-owned, updated rule sentence by ID, but do not show
+   // a second near-identical pitch inside the illustrated page hero.
+   const lead=rules.querySelector('.squatch-rules-lead');
+   dynamic.classList.add('squatch-rules-lead');
+   if(lead)lead.replaceWith(dynamic);else rules.prepend(dynamic);
+  }
   original?.remove();
  }else{
   const heading=main.querySelector(':scope > h1, :scope > h2');
@@ -238,7 +244,7 @@ export function prepareGamePage(root=globalThis.document,gameId){
   if(anchor)play.append(anchor);
   play.append(stage);
  }
- clearOriginalIntro(main,gameId,hero);
+ clearOriginalIntro(main,gameId,hero,rules);
  if(gameId==='caroms')main.querySelector(':scope > #caroms-setup-panel')?.remove();
  // Remove the old layout-only setup wrapper, after moving all controls.
  if(gameId==='cutthroat')main.querySelector(':scope > .controls')?.remove();
