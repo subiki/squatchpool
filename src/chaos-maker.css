@@ -11,3 +11,11 @@
 .chaos-help{background:#163a2d;color:#f3f2e9;padding:18px;border-radius:16px;line-height:1.55}
 #chaos-status{min-height:1.5em;font-weight:600}.chaos-shoot{justify-content:space-between}
 @media(max-width:850px){.chaos-layout{grid-template-columns:1fr}.chaos-toolbar button{flex:1 1 130px}#chaos-table{border-width:6px}}
+
+.chaos-editor{background:#183f30;color:#f6f1df;border:2px solid #bd9b55;border-radius:16px;padding:16px;margin:18px 0}
+.chaos-editor h3{margin:0 0 10px}.chaos-editor-controls{display:flex;gap:12px;align-items:end;flex-wrap:wrap}
+.chaos-editor-controls label{display:grid;gap:6px;font-weight:700}
+.chaos-editor-controls select,.chaos-editor-controls input{padding:10px;max-width:230px;border-radius:8px}
+.chaos-editor-controls button{padding:12px 15px;border:2px solid #d2ac67;border-radius:10px;background:#254e3a;color:white;font-weight:700;cursor:pointer}
+#chaos-result{font-weight:800;font-size:1.2rem;color:#ffcf69}
+#chaos-events{font-size:.95rem;min-height:1.3em}
