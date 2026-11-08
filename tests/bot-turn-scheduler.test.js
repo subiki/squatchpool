@@ -45,7 +45,7 @@ test('Press Your Luck bot shares cancellable turn scheduling with Cutthroat',()=
 test('Big Tuna bot shares the cancellable scheduler across rack, reset and opponent changes',()=>{
  const controller=readFileSync(new URL('../src/tuna-game.js',import.meta.url),'utf8');
  assert.match(controller,/createBotTurnScheduler\(\)/);
- assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);\}/);
+ assert.match(controller,/function cancelBot\(\)\{botScheduler\.cancel\(\);showtime\.cancel\(\);\}/);
  assert.match(controller,/botScheduler\.pending/);
  assert.match(controller,/botScheduler\.schedule\(\(\)=>\{/);
  assert.doesNotMatch(controller,/botTimer|botGeneration|setTimeout\(/,
