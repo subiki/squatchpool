@@ -6,19 +6,9 @@
 <title>Caroms · Squatch Pool Playable Beta</title>
 <meta name="description" content="Play original Caroms (Whacky Pool) solo against Squatch Bot or locally with a friend in beta.">
 <style data-page-style>
-:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#12251e;color:#f4edda}
-*[hidden]{display:none!important}*{box-sizing:border-box}body{margin:0;line-height:1.5}main,header{max-width:1120px;margin:auto;padding:16px 22px}
-header{display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-bottom:1px solid #617765}
-a{color:#ffe0a0}h1{margin:10px 0;font-size:clamp(1.8rem,4vw,3rem)}
-p{max-width:72ch}.notice{border-left:4px solid #f3c676;background:#263c30;padding:12px 18px;border-radius:6px}
-.controls{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:16px 0}
-.controls label{display:grid;gap:5px;font-weight:650;min-width:125px}
-select,button,input{font:inherit}select,button{padding:12px;border-radius:9px;border:1px solid #b8b78d;background:#2b4638;color:#fff5da;min-height:48px}
-button{cursor:pointer;font-weight:750}button:disabled,select:disabled{opacity:.55;cursor:not-allowed}
-button.primary{background:#efc77c;color:#1a2b22;border-color:#fbe2a7}
-input[type=range]{width:155px;accent-color:#eec67b}
-.table-wrap{background:#553b29;padding:12px;border:8px solid #806344;border-radius:18px;overflow:hidden}
-canvas{display:block;width:100%;height:auto;touch-action:none;border-radius:4px}
+/* Caroms-only art and game-state controls; shared shell owns page layout. */
+#table-stage canvas{touch-action:none}
+.notice{border-left:4px solid #f3c676;background:#263c30;padding:12px 18px;border-radius:6px}
 #caroms-turn{font-weight:850;font-size:1.35rem}
 #caroms-score,#caroms-status{font-size:1.08rem}
 #caroms-option{border:2px solid #eec67b;padding:14px;border-radius:10px}
@@ -37,7 +27,8 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 .story-panel blockquote{border-left:3px solid #eec67b;padding-left:16px;margin:14px 0}.story-actions a{display:inline-block;padding:8px 12px;min-height:44px}.rules-list{padding-left:24px;margin:10px 0}.rules-list li{margin:6px 0}
 .gameplay-heading{margin:18px 0 8px;font-size:1.2rem}.stats-panel strong{color:#f7d18b}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
-@media(max-width:650px){main{padding-bottom:20px}main,header{padding:12px}.table-wrap{padding:4px;border-width:5px}.controls label{flex:1;min-width:135px}select,button{width:100%}.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
+
+@media(max-width:650px){.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
 .caroms-hud{flex:1 0 100%;box-sizing:border-box;display:grid;grid-template-columns:minmax(0,1fr) minmax(130px,1.2fr) minmax(0,1fr);border:1px solid #b08e55;border-radius:12px;overflow:hidden;background:#142a23;color:#f5eddc}.hud-player{padding:10px 12px;display:grid;gap:2px;min-width:0}.hud-player strong{font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}.hud-player small{font-size:.76rem;color:#c9d4c9}.hud-name{font-size:.75rem;letter-spacing:.07em;font-weight:850}.hud-player[data-active="true"]{background:#2c513f;box-shadow:inset 0 4px #efc77c}.hud-center{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px 6px;border-inline:1px solid #657d69;gap:4px}.hud-center span{font-size:.7rem;letter-spacing:.04em}.hud-center strong{font-size:1rem!important;line-height:1.25}.caroms-rack-actions{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}.caroms-rack-actions[hidden]{display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:650px){.hud-player{padding:8px 6px}.hud-player strong{font-size:1.6rem}.hud-name{font-size:.65rem}.hud-center span{font-size:.59rem}.hud-center strong{font-size:.82rem!important}}.table-stage .caroms-status-bar{padding:8px 12px 0}
 .table-stage .caroms-status-bar #caroms-status{margin:4px 0 8px}
 .table-stage .kit-primary #caroms-shoot{font-size:1.1rem;flex:0 0 auto}
