@@ -289,3 +289,24 @@ main.squatch-game-page #table-stage .squatch-bot-showtime button:disabled{opacit
  }
  main.squatch-game-page #table-stage .squatch-bot-plan{grid-column:1/-1!important}
 }
+
+
+main.squatch-game-page #table-stage .squatch-observer-notes{
+ grid-column:1/-1!important;margin:0!important;width:100%!important;
+ border-top:1px solid #e9bd7d77!important;padding:4px 0 0!important;
+}
+main.squatch-game-page #table-stage .squatch-observer-notes summary{
+ min-height:38px!important;cursor:pointer!important;
+ color:#ffe7ae!important;font:800 .88rem/1.4 system-ui,sans-serif!important;
+}
+main.squatch-game-page #table-stage .squatch-observer-notes textarea{
+ width:100%!important;box-sizing:border-box!important;
+ min-height:100px!important;padding:9px!important;
+ border:2px solid #8cbca4!important;border-radius:9px!important;
+ background:#0e2825!important;color:#fff3d4!important;
+ font:550 .93rem/1.45 system-ui,sans-serif!important;
+ resize:vertical!important;
+}
+main.squatch-game-page #table-stage .squatch-observer-notes button{
+ margin-top:6px!important;
+}
