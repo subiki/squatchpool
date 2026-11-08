@@ -292,7 +292,10 @@ function draw(){
  const b=striker();
  if(state.phase==='aim'&&!callPending&&b&&!b.pocketed){
   // The shared renderer receives the selected OBJECT ball, never the white cue ball.
-  renderer.drawAim(ctx,b,state.angle);
+  renderer.drawAim(ctx,b,state.angle,{
+   balls:state.balls,targetBallId:0,calledPocketId:state.calledPocket,
+   suggestUncalled:true
+  });
   ctx.strokeStyle='#ffde7b';ctx.lineWidth=3;ctx.beginPath();
   ctx.arc(b.x,b.y,r+5,0,Math.PI*2);ctx.stroke();
  }
