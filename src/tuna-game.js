@@ -92,7 +92,7 @@ function resetMatch(){cancelBot();money=[0,0];nextBreaker=0;rackNumber=0;$('hist
 function update(){
  $('start').disabled=shot.phase!=='done';
  $('turn').textContent=playerName(turn)+' to '+(shot.phase==='place'?'place cue ball':shot.phase==='done'?'celebrate':'shoot');
- $('money').textContent=playerName(0)+':  $('targets').textContent='Legal first contact: '+tunaTargets(balls).join(' or ');
+ $('money').textContent=playerName(0)+': '+String.fromCharCode(36)+money[0]+' · '+playerName(1)+': '+String.fromCharCode(36)+money[1];
  const selectedCall=$('call-ball').value;
  const callOptions=balls.filter(b=>b.id>0&&!b.pocketed);
  $('call-ball').replaceChildren(new Option('Choose ball',''),...callOptions.map(b=>new Option(String(b.id),String(b.id))));
