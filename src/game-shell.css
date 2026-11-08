@@ -208,3 +208,52 @@ main.squatch-game-page .squatch-shot-row [hidden],
 main.squatch-game-page .kit-primary [hidden]{
  display:none!important;
 }
+
+
+/* Shared, compact aiming-assistance tiers. This is controls UI, not a
+   hard-coded screenshot, and remains on-screen in game fullscreen. */
+main.squatch-game-page #table-stage .squatch-aim-assist{
+ display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;
+ align-items:center!important;gap:5px 13px!important;min-width:0!important;
+ margin:0 0 9px!important;padding:10px 12px!important;
+ border:1px solid #79bfb1!important;border-radius:10px!important;
+ background:linear-gradient(125deg,#153e38,#183526)!important;
+ box-shadow:inset 0 1px #ffffff25!important;
+}
+main.squatch-game-page .squatch-aim-title{
+ color:#f7d58d!important;font:850 .94rem/1.2 system-ui,sans-serif!important;
+ white-space:nowrap;
+}
+main.squatch-game-page .squatch-aim-levels{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ width:100%!important;gap:5px!important;min-width:0!important;
+}
+main.squatch-game-page #table-stage .squatch-aim-mode{
+ min-height:44px!important;min-width:0!important;margin:0!important;padding:7px 6px!important;
+ border:2px solid #679b89!important;border-radius:8px!important;
+ background:#1a312b!important;color:#f4eeda!important;
+ font:850 .81rem/1.25 system-ui,sans-serif!important;text-align:center!important;
+ cursor:pointer!important;touch-action:manipulation!important;
+}
+main.squatch-game-page #table-stage .squatch-aim-mode[aria-pressed="true"]{
+ background:linear-gradient(#d6ff7f,#82bd43)!important;color:#102516!important;
+ border-color:#f2ffbc!important;box-shadow:0 0 8px #aceb8273!important;
+}
+main.squatch-game-page .squatch-aim-hint{
+ grid-column:1/-1!important;
+ font:650 .8rem/1.4 system-ui,sans-serif!important;
+ color:#d6e8db!important;
+}
+main.squatch-game-page #table-stage .squatch-aim-mode:focus-visible{
+ outline:3px solid #f9c466!important;outline-offset:2px!important;
+}
+@media(max-width:660px){
+ main.squatch-game-page #table-stage .squatch-aim-assist{
+  grid-template-columns:minmax(0,1fr)!important;padding:8px!important;gap:7px!important;
+ }
+ main.squatch-game-page .squatch-aim-levels{gap:3px!important}
+ main.squatch-game-page #table-stage .squatch-aim-mode{
+  min-height:46px!important;font-size:.74rem!important;padding:7px 3px!important;
+ }
+ main.squatch-game-page .squatch-aim-hint{font-size:.76rem!important}
+}
