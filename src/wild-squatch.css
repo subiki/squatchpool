@@ -598,3 +598,128 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
   width:44%!important;height:155px!important;opacity:.55!important;
  }
 }
+
+
+/* Screenshot-reviewed compact casino masthead. The full hero and game art,
+   rather than an oversized toolbar, should dominate the first viewport. */
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header{
+ display:grid!important;
+ grid-template-columns:280px minmax(0,1fr)!important;
+ grid-template-rows:36px 52px minmax(42px,auto)!important;
+ column-gap:16px!important;row-gap:6px!important;
+ align-items:center!important;justify-content:stretch!important;
+ padding:10px 18px!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-brand-row{
+ grid-column:1!important;grid-row:1/3!important;
+ height:88px!important;min-height:0!important;gap:0!important;
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-brand-row .brand-mark{
+ width:270px!important;flex:0 0 270px!important;height:82px!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-brand-row .eyebrow{display:none!important}
+:root[data-squatch-theme="rock"] squatch-header .squatch-release{
+ grid-column:2!important;grid-row:1!important;align-self:center!important;
+ justify-self:start!important;width:auto!important;min-width:0!important;
+ display:flex!important;flex-wrap:nowrap!important;gap:7px!important;
+ font-size:.72rem!important;white-space:nowrap!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-release .prototype,
+:root[data-squatch-theme="rock"] squatch-header .squatch-release #deployment-note{
+ display:none!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-theme-switch{
+ grid-column:2!important;grid-row:1!important;justify-self:end!important;
+ display:flex!important;gap:5px!important;align-items:center!important;
+ white-space:nowrap!important;font-size:.78rem!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-theme-switch button{
+ min-height:34px!important;padding:5px 11px!important;font-size:.8rem!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-nav{
+ grid-column:2!important;grid-row:2!important;
+ display:grid!important;grid-template-columns:repeat(7,minmax(0,1fr))!important;
+ grid-auto-flow:row!important;gap:4px!important;
+ width:100%!important;padding:0!important;margin:0!important;
+ overflow:visible!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-nav a{
+ width:auto!important;min-width:0!important;max-width:none!important;
+ height:50px!important;min-height:50px!important;
+ padding:6px 4px!important;font-size:.74rem!important;
+ line-height:1.1!important;white-space:normal!important;text-align:center!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-stats{
+ grid-column:1/-1!important;grid-row:3!important;
+ width:100%!important;margin:0!important;min-height:40px!important;
+ padding:3px 10px!important;border-radius:7px!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-stats summary{
+ min-height:32px!important;display:flex!important;align-items:center!important;
+ padding:4px 3px!important;font-size:.82rem!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-header-stats[open]{
+ align-self:start!important;z-index:3!important;
+}
+@media(min-width:761px) and (max-width:1130px){
+ :root[data-squatch-theme="rock"] squatch-header .squatch-unified-header{
+  grid-template-columns:210px minmax(0,1fr)!important;column-gap:8px!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-brand-row .brand-mark{
+  width:208px!important;flex-basis:208px!important;height:72px!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-header-nav a{
+  font-size:.69rem!important;padding:4px 2px!important;
+ }
+}
+@media(max-width:760px){
+ :root[data-squatch-theme="rock"] squatch-header .squatch-unified-header{
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  grid-template-rows:62px 37px 51px minmax(36px,auto)!important;
+  column-gap:5px!important;row-gap:5px!important;
+  padding:7px 10px!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-brand-row{
+  grid-column:1!important;grid-row:1!important;height:60px!important;min-height:0!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-brand-row .brand-mark{
+  width:100%!important;max-width:186px!important;flex:1 1 auto!important;height:59px!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-release{
+  grid-column:2!important;grid-row:1!important;
+  justify-self:end!important;display:block!important;
+  white-space:normal!important;text-align:right!important;
+  font-size:.65rem!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-release span{
+  display:block!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-theme-switch{
+  grid-column:1/-1!important;grid-row:2!important;
+  justify-self:stretch!important;justify-content:center!important;
+  font-size:.76rem!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-theme-switch button{
+  flex:0 1 auto!important;min-height:34px!important;padding:4px 10px!important;
+  font-size:.78rem!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-header-nav{
+  grid-column:1/-1!important;grid-row:3!important;
+  display:grid!important;grid-template-columns:none!important;
+  grid-auto-flow:column!important;grid-auto-columns:145px!important;
+  overflow-x:auto!important;gap:7px!important;
+  padding:2px 0 4px!important;scrollbar-width:thin!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-header-nav a{
+  width:145px!important;height:44px!important;min-height:44px!important;
+  font-size:.82rem!important;padding:5px 7px!important;white-space:nowrap!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-header-stats{
+  grid-column:1/-1!important;grid-row:4!important;
+  min-height:35px!important;padding:2px 7px!important;
+ }
+ :root[data-squatch-theme="rock"] squatch-header .squatch-header-stats summary{
+  min-height:32px!important;font-size:.78rem!important;
+ }
+}
