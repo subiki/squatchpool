@@ -18,8 +18,8 @@ test('one canonical game template config covers every playable route',()=>{
  assert.match(shell,/main\.replaceChildren\(hero,setup,rules,play,extras\)/,
    'Exactly one shared five-slot composition');
  assert.match(shell,/normalizeKit\(main,doc\)/);
- assert.match(shell,/\.squatch-shot-row/);
- assert.match(shell,/\.squatch-shot-actions/);
+ assert.match(shell,/'squatch-shot-row'/);
+ assert.match(shell,/'squatch-shot-actions'/);
  assert.match(shell,/main\.dataset\.squatchGameShell=gameId/);
  assert.match(shell,/size\.addEventListener\('change'/,
    'But Wait needs a real visible select driving its existing size behavior');
