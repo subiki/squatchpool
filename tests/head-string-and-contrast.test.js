@@ -89,10 +89,12 @@ test('all seven routes preserve PNW artwork and dark, readable content surfaces'
   assert.match(read(page+'.html'),/\/src\/pnw-theme\.css/,page+' must load the common brand');
  }
  for(const selector of ['body .intro','body .game-stats','body .scoreboard .player.active',
-   'body .table-size-pick[aria-pressed="false"]','body .table-stage:fullscreen',
+   'body .table-stage:fullscreen',
    '.game-rules-layout .rules-card','body .table-stage .table-kit','squatch-header']){
   assert.ok(css.includes(selector),selector+' has an intentional contrast treatment');
  }
+ assert.match(read('src/game-shell.css'),/\.squatch-setting :is\(select,input\)/,
+  'table size selection uses the shared native setup styles');
  assert.match(css,/--pnw-night:#0c2119/);
  assert.match(css,/--pnw-ivory:#f4eeda/);
  assert.match(css,/--pnw-ink:#102923/);
