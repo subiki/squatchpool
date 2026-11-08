@@ -105,6 +105,21 @@ $('chaos-reset').addEventListener('click',()=>{if(snapshot&&load(snapshot)){edit
 $('chaos-clear').addEventListener('click',()=>{playing=false;editDraft=null;goalFinished=false;balls=[ball(205,260)];bumpers=[];shots=0;pocketed=0;snapshot=state();$('chaos-play').textContent='▶ Play';status('Cleared. Tap felt to add balls.');draw();});
 $('chaos-shoot').addEventListener('click',()=>{if(!playing){status('Press Play before shooting.');return;}if(goalFinished){status('Game finished. Reset to play again.');return;}if(!balls.length)return;const b=balls[0];if(Math.hypot(b.vx,b.vy)>.5){status('Wait for the balls to settle.');return;}const power=Number($('chaos-power').value)/100;b.vx=aim.x*(3+power*16);b.vy=aim.y*(3+power*16);shots++;const world={balls,bumpers,mods:mods(),events,stage,shots,pockets};onShot(world);setMods(world.mods);status('CHAOS! Shot '+shots);});
 $('chaos-save').addEventListener('click',save);
+$('chaos-export').addEventListener('click',async()=>{
+ const recipe=editDraft?{...editDraft,name:$('chaos-name').value.slice(0,72)}:state();
+ const code=JSON.stringify(recipe);$('chaos-share-code').value=code;
+ try{await navigator.clipboard.writeText(code);status('Game code copied. Share it with another player.');}
+ catch{status('Game code ready in the text box. Select and copy it to share.');}
+});
+$('chaos-import').addEventListener('click',()=>{
+ const code=$('chaos-share-code').value.trim();
+ if(code.length>18000){status('Game code too large.');return;}
+ try{
+  const recipe=JSON.parse(code);
+  if(load(recipe)){editDraft=null;status('Imported '+recipe.name+'. Ready to edit or play.');}
+  else status('Invalid game code. Nothing changed.');
+ }catch{status('Could not read that game code. Nothing changed.');}
+});
 $('chaos-load').addEventListener('change',e=>{const s=saved()[Number(e.target.value)];if(e.target.value!==''&&s&&load(s))status('Loaded '+s.name+' with saved mods.');});
 $('chaos-nightmare').addEventListener('click',()=>{randomize();$('chaos-name').value=NIGHTMARE_PRESET.name;setMods({bounce:true,gravity:false,magnet:false,pinball:true,...NIGHTMARE_PRESET.mods});snapshot=state();status('Squatch\'s Nightmare loaded: eight wild mechanics enabled.');});
 $('chaos-test').addEventListener('click',()=>{if(playing)return;editDraft=state();snapshot=state();goalFinished=false;$('chaos-result').textContent='';playing=true;$('chaos-play').textContent='✎ Build';status('Playtest started. Shoot to try your rules.');});
