@@ -2,10 +2,12 @@ import {prepareGamePage} from './game-page-shell.js';
 import {TABLE,pockets,cushions,step,stationary,shotSpeed} from './physics.js';
 import {renderPocket} from './table-geometry.js';
 import {drawAimAssistance,readAimAssistMode} from './aim-assist.js';
+import {createBotShowtime} from './bot-showtime.js';
 import {angleFromPointer,readInvertAim,INVERT_AIM_KEY} from './aim-preference.js';
 import {ARCADE_CHALLENGE,setupArcadeChallenge,judgeArcadeShot,arcadeAimAngle} from './arcade-challenge.js';
 import {ARCADE_COST,ARCADE_STORAGE_KEY,loadArcadeState,saveArcadeState,enterArcade,conquerArcade,awardPractice,PRACTICE_DAILY_CAP} from './arcade-points.js';
 prepareGamePage(document,'arcade');
+const showtime=createBotShowtime(document);
 const $=id=>document.getElementById(id);
 const canvas=$('table'),ctx=canvas.getContext('2d');
 let storage=null;
@@ -15,6 +17,7 @@ let balls=[],mode='practice',phase='idle',shots=0,paid=false,angle=0;
 let shotEvents=[],previous=0,acc=0,elapsed=0,still=0;
 const cue=()=>balls.find(b=>b.id===0);
 const target=()=>balls.find(b=>b.id===1);
+const botPlaying=()=>document.getElementById('arcade-seat')?.value==='bot';
 function persist(){saveArcadeState(storage,state);}
 function announce(message){$('status').textContent=message;}
 function log(message){
@@ -30,8 +33,8 @@ function renderStats(){
  $('edition-label').textContent=state.edition==='won'?'Conquered on this device':'Open on this device';
  const locked=phase==='moving'||(phase==='aim'&&shots>0);
  $('practice').disabled=locked;
- $('entry').disabled=locked||state.edition!=='open'||state.balance<ARCADE_COST;
- $('shoot').disabled=phase!=='aim';
+ $('entry').disabled=locked||botPlaying()||state.edition!=='open'||state.balance<ARCADE_COST;
+ $('shoot').disabled=phase!=='aim'||botPlaying();
  $('entry').textContent=state.edition==='won'?'Edition conquered':state.balance<ARCADE_COST?'Earn points in practice':'Play for 10 points';
 }
 function begin(next){
@@ -47,11 +50,13 @@ function begin(next){
   :'Free practice. Aim through the 1-ball toward the glowing top-left corner.');
  log('New '+(next==='points'?'points attempt':'practice')+' · Three shots available.');
  renderStats();
+ showtime.setSpectator(botPlaying());
+ if(botPlaying())planArcadeBot();
 }
 function finish(){
  const outcome=judgeArcadeShot(shotEvents,shots);
  if(outcome.status==='continue'){
-  phase='aim';announce(outcome.reason);log('Shot '+shots+': keep trying.');renderStats();return;
+  phase='aim';announce(outcome.reason);log('Shot '+shots+': keep trying.');renderStats();if(botPlaying())planArcadeBot();return;
  }
  phase=outcome.status;
  if(outcome.status==='won'){
@@ -61,17 +66,31 @@ function finish(){
    announce('Corner conquered! +'+prize+' LOCAL demo points. This edition is closed.');
    log('Local points win: '+prize+' awarded once. No shared prize.');
   }else{
+   if(botPlaying()){
+    announce(outcome.reason+' Squatch Bot demonstration earns no points.');
+    log('Bot cleared the practice challenge · spectator demonstration only.');
+   }else{
    const before=state.balance;
    state=awardPractice(state,new Date().toISOString().slice(0,10));persist();
    const earned=state.balance-before;
    announce(outcome.reason+' '+(earned?('+'+earned+' practice points!'):'Daily practice rewards used; keep playing free.'));
    log('Practice cleared'+(earned?' · +'+earned+' points.':' · daily cap reached.'));
+   }
   }
  }else{
   announce(outcome.reason+' Choose Practice or a new Points attempt to retry.');
   log('Challenge missed after '+shots+' shot(s).');
  }
  renderStats();
+ if(botPlaying())showtime.show({label:'Squatch Bot · practice result shown. Restarting free practice.',
+  valid:()=>botPlaying()&&phase!=='moving',shoot:()=>begin('practice'),delay:2900});
+}
+function planArcadeBot(){
+ if(!botPlaying()||phase!=='aim'||showtime.pending)return;
+ angle=arcadeAimAngle(balls);
+ showtime.show({label:'Squatch Bot · 1-ball to top-left corner · ghost ball and pocket path shown.',
+  valid:()=>botPlaying()&&phase==='aim',
+  shoot:stroke});
 }
 function stroke(){
  if(phase!=='aim')return;
@@ -112,7 +131,7 @@ function draw(){
   }
   ctx.strokeStyle='#dab27a';ctx.lineWidth=5;ctx.beginPath();
   ctx.moveTo(b.x-dx*(r+15),b.y-dy*(r+15));ctx.lineTo(b.x-dx*(r+145),b.y-dy*(r+145));ctx.stroke();
-  drawAimAssistance(ctx,{table:TABLE,striker:b,angle,balls,pockets,calledBallId:1,calledPocketId:'TL'});
+  drawAimAssistance(ctx,{table:TABLE,striker:b,angle,balls,pockets,calledBallId:1,calledPocketId:'TL',mode:botPlaying()?'coach':readAimAssistMode()});
  }
 }
 function frame(now){
@@ -129,7 +148,7 @@ function frame(now){
  draw();requestAnimationFrame(frame);
 }
 function pointerAim(event){
- if(phase!=='aim')return;
+ if(phase!=='aim'||botPlaying())return;
  const box=canvas.getBoundingClientRect();
  if(!box.width||!box.height)return;
  const p={x:(event.clientX-box.left)*TABLE.width/box.width,
@@ -140,7 +159,7 @@ function pointerAim(event){
 canvas.addEventListener('pointerdown',event=>{canvas.setPointerCapture(event.pointerId);pointerAim(event);});
 canvas.addEventListener('pointermove',event=>{if(event.buttons)pointerAim(event);});
 window.addEventListener('keydown',event=>{
- if(phase!=='aim'||event.altKey||event.ctrlKey||event.metaKey)return;
+ if(phase!=='aim'||botPlaying()||event.altKey||event.ctrlKey||event.metaKey)return;
  if(event.target instanceof HTMLElement&&event.target.closest('button,input,select,textarea,a,[contenteditable]'))return;
  if(event.key==='ArrowLeft'||event.key==='ArrowRight'){
   event.preventDefault();
@@ -152,6 +171,7 @@ window.addEventListener('keydown',event=>{
 $('practice').addEventListener('click',()=>begin('practice'));
 $('entry').addEventListener('click',()=>begin('points'));
 $('shoot').addEventListener('click',stroke);
+$('arcade-seat')?.addEventListener('change',()=>{showtime.cancel();phase='idle';begin('practice');});
 $('invert-aim').checked=readInvertAim();
 $('invert-aim').addEventListener('change',()=>{
  try{localStorage.setItem(INVERT_AIM_KEY,String($('invert-aim').checked));}catch{}
