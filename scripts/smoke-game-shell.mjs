@@ -38,6 +38,13 @@ const probe=`<script>
     const setup=main?.querySelector('.squatch-setup-grid');
     const controls=stage?.querySelector('.squatch-shot-row');
     const shoot=controls?.querySelector('#shoot,#caroms-shoot,#cut-shoot');
+    const setupTitle=main?.querySelector('.squatch-game-setup > .squatch-section-title');
+    const setupGrid=main?.querySelector('.squatch-game-setup > .squatch-setup-grid');
+    const setupOrder=!!setupTitle&&!!setupGrid&&
+      setupTitle.compareDocumentPosition(setupGrid)&Node.DOCUMENT_POSITION_FOLLOWING;
+    const rulebook=main?.querySelector('.squatch-game-rules .squatch-rulebook');
+    const rulesUniform=!!rulebook&&!rulebook.open&&
+      rulebook.querySelector('summary')?.textContent==='Explore full house rules, examples & controls';
     const nav=[...document.querySelectorAll('.squatch-header-nav a')];
     const navRects=nav.map(x=>x.getBoundingClientRect());
     const dimensions=navRects.every(r=>Math.abs(r.height-navRects[0].height)<2);
@@ -46,11 +53,13 @@ const probe=`<script>
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
-      !!controls&&visible&&dimensions&&unique&&main?.dataset.squatchGameShell&&errors.length===0;
+      !!controls&&visible&&dimensions&&unique&&!!setupOrder&&rulesUniform&&
+      main?.dataset.squatchGameShell&&errors.length===0;
     document.documentElement.dataset.squatchSmoke=ok?'pass':'fail';
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
+      setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,
       duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),errors
     });
    }catch(e){document.documentElement.dataset.squatchSmoke='fail';
