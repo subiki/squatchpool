@@ -140,6 +140,27 @@ const probe=`<script>
     const aimOK=aimChoices.length===4&&
       aimChoices.filter(btn=>btn.getAttribute('aria-pressed')==='true').length===1&&
       !!main?.querySelector('#table-stage .squatch-aim-assist');
+    // Comparable computed typography/control metrics for every game, in each
+    // appearance mode and viewport. Decorative art may differ; this UI may not.
+    const styleOf=selector=>{
+      const el=main?.querySelector(selector);
+      if(!el)return null;
+      const cs=getComputedStyle(el);
+      return [
+        cs.fontFamily,cs.fontSize,cs.fontWeight,cs.lineHeight,
+        cs.borderTopLeftRadius,cs.minHeight
+      ];
+    };
+    const fingerprint={
+      title:styleOf('.squatch-page-title'),
+      section:styleOf('.squatch-section-title'),
+      setting:styleOf('.squatch-setting select'),
+      rules:styleOf('.squatch-rulebook > summary'),
+      aim:styleOf('.squatch-aim-mode'),
+      shot:styleOf('.squatch-shot-row #shoot, .squatch-shot-row #caroms-shoot, .squatch-shot-row #cut-shoot')
+    };
+    document.documentElement.dataset.squatchStyleFingerprint=
+      encodeURIComponent(JSON.stringify(fingerprint));
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=appearanceOK&&rockPageOK&&headerLayoutOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
@@ -194,6 +215,25 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const port=server.address().port;
 const outputDir=process.env.SQUATCH_SCREENSHOT_DIR||join(tmpdir(),'squatch-shell-smoke');
 mkdirSync(outputDir,{recursive:true});
+const sharedStyleFingerprints=new Map();
+function assertConsistentUI(game,width,theme,html){
+ const encoded=html.match(/data-squatch-style-fingerprint="([^"]+)"/)?.[1];
+ if(!encoded)throw Error(game+': computed UI style fingerprint missing');
+ const current=JSON.parse(decodeURIComponent(encoded));
+ const key=theme+'-'+width;
+ if(!sharedStyleFingerprints.has(key)){
+  sharedStyleFingerprints.set(key,{game,metrics:current});
+  return;
+ }
+ const base=sharedStyleFingerprints.get(key);
+ for(const [component,signature] of Object.entries(current)){
+  const expected=base.metrics[component];
+  if(!signature||!expected||JSON.stringify(signature)!==JSON.stringify(expected))
+   throw Error('UI drift in '+theme+' at '+width+'px: '+component+
+    ' '+game+' = '+JSON.stringify(signature)+'; '+base.game+' = '+
+    JSON.stringify(expected));
+ }
+}
 async function browse(game,width,height,focus='top',theme='classic',spectator=false){
  const params=new URLSearchParams();
  if(focus==='table')params.set('smokeScroll','table');
@@ -220,7 +260,8 @@ async function browse(game,width,height,focus='top',theme='classic',spectator=fa
   throw new Error(game+' '+width+'px: '+JSON.stringify(result)+
    ' smoke='+match?.[1]+' details='+details?.[1]+' stderr='+stderr.slice(-500));
  }
- console.log('PASS',game,width+'x'+height,focus,theme,'shared page / controls / unique IDs / startup');
+ if(focus==='top'&&!spectator)assertConsistentUI(game,width,theme,html);
+ console.log('PASS',game,width+'x'+height,focus,theme,'shared page / controls / typography / startup');
 }
 
 async function browseRockHome(width,height){
