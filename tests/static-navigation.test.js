@@ -28,7 +28,14 @@ test('internal SPA navigation preserves the header, updates games, and guards un
  doc.main=page('home').main;
  doc.querySelector=k=>k==='main'?doc.main:null;
  doc.querySelectorAll=k=>k==='[data-page-style]'?doc.styles:navLinks;
- doc.head={append(...xs){doc.styles=xs;}};
+ const sharedEntry={name:'canonical-shared-styles'};
+ const insertions=[];
+ doc.head={
+  querySelector(selector){return selector==='link[data-squatch-shared-styles]'?sharedEntry:null;},
+  insertBefore(style,before){assert.equal(before,sharedEntry);
+   doc.styles.push(style);insertions.push(style);},
+  append(){assert.fail('Route CSS must never be appended after the shared/optional Rock skin');}
+ };
  doc.createElement=()=>({tagName:'STYLE',setAttribute(){},
   remove(){doc.styles=doc.styles.filter(x=>x!==this);}});
  doc.importNode=x=>x;
@@ -100,6 +107,7 @@ test('internal SPA navigation preserves the header, updates games, and guards un
  assert.equal(y,250,'homepage game cards offer working internal anchors');
  assert.equal(requests.length,countBefore,'anchor does not reload home');
  assert.equal(redirects.length,0);
+ assert.ok(insertions.length>=5,'soft navigation reused the shared CSS order');
  stop();
  assert.equal(events.size,0);
  assert.equal(win.history.scrollRestoration,'auto');
