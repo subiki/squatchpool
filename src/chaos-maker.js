@@ -1,3 +1,4 @@
+import {predictShot} from './chaos-shot-predictor.js';
 import {NIGHTMARE_PRESET,NIGHTMARE_MODS,randomMods,onCollision,onPocket,onShot,applyForces} from './chaos-mechanics.js';
 // Experimental browser-local Chaos Pool. No eval, remote code or external storage.
 const canvas=document.querySelector('#chaos-table');
@@ -9,6 +10,7 @@ const AIM_KEY='squatch-invert-aim';
 try{$('chaos-invert').checked=localStorage.getItem(AIM_KEY)==='true';}catch{}
 $('chaos-invert').addEventListener('change',()=>{try{localStorage.setItem(AIM_KEY,String($('chaos-invert').checked));}catch{}draw();});
 $('chaos-guide').addEventListener('change',draw);
+$('chaos-power').addEventListener('input',draw);
 const rand=(a,b)=>a+Math.random()*(b-a);
 const mods=()=>({bounce:$('mod-bounce').checked,gravity:$('mod-gravity').checked,magnet:$('mod-magnet').checked,pinball:$('mod-pinball').checked,...Object.fromEntries(NIGHTMARE_MODS.map(k=>[k,$('mod-'+k).checked]))});
 const setMods=m=>{for(const [key,id] of [['bounce','mod-bounce'],['gravity','mod-gravity'],['magnet','mod-magnet'],['pinball','mod-pinball']])$(id).checked=!!m[key];for(const k of NIGHTMARE_MODS)$('mod-'+k).checked=!!m[k];};
@@ -49,32 +51,29 @@ function draw(){
  if(playing&&balls.length&&Math.hypot(balls[0].vx,balls[0].vy)<.25){
   const b=balls[0],dx=aim.x,dy=aim.y;
   if($('chaos-guide').checked){
-   let distance=Infinity,target=null,kind='rail';
-   const railDistances=[dx>0?(W-24-R-b.x)/dx:Infinity,dx<0?(24+R-b.x)/dx:Infinity,dy>0?(H-24-R-b.y)/dy:Infinity,dy<0?(24+R-b.y)/dy:Infinity].filter(t=>t>0);
-   distance=Math.min(...railDistances);
-   for(let i=1;i<balls.length;i++){
-    const other=balls[i],ox=other.x-b.x,oy=other.y-b.y;
-    const projection=ox*dx+oy*dy,perp2=ox*ox+oy*oy-projection*projection;
-    if(projection<=0||perp2>(2*R)*(2*R))continue;
-    const t=projection-Math.sqrt(Math.max(0,(2*R)*(2*R)-perp2));
-    if(t>=0&&t<distance){distance=t;target=other;kind='ball';}
-   }
-   if(mods().pinball)for(const bumper of bumpers){
-    const ox=bumper.x-b.x,oy=bumper.y-b.y,projection=ox*dx+oy*dy,rad=R+bumper.r;
-    const perp2=ox*ox+oy*oy-projection*projection;
-    if(projection<=0||perp2>rad*rad)continue;
-    const t=projection-Math.sqrt(Math.max(0,rad*rad-perp2));
-    if(t>=0&&t<distance){distance=t;target=bumper;kind='bumper';}
-   }
-   if(Number.isFinite(distance)){
-    const hitX=b.x+dx*distance,hitY=b.y+dy*distance;
-    ctx.save();ctx.setLineDash([10,7]);ctx.strokeStyle='#f8edb6';ctx.lineWidth=3;
-    ctx.beginPath();ctx.moveTo(b.x,b.y);ctx.lineTo(hitX,hitY);ctx.stroke();ctx.setLineDash([]);
-    ctx.strokeStyle=kind==='ball'?'#7ef2d5':'#ffc66d';ctx.lineWidth=3;
-    ctx.beginPath();ctx.arc(hitX,hitY,R,0,Math.PI*2);ctx.stroke();
-    if(kind==='ball'&&target){
-      const nx=(target.x-hitX)/(2*R),ny=(target.y-hitY)/(2*R);
-      ctx.strokeStyle='#7ef2d5';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(target.x,target.y);ctx.lineTo(target.x+nx*70,target.y+ny*70);ctx.stroke();
+   const prediction=predictShot(balls,bumpers,mods(),aim,Number($('chaos-power').value)/100);
+   if(prediction){
+    const hit=prediction.firstCueHit;
+    ctx.save();ctx.lineWidth=2.5;
+    const trace=(points,color,dashes)=>{if(points.length<2)return;ctx.strokeStyle=color;ctx.setLineDash(dashes);ctx.beginPath();ctx.moveTo(...points[0]);for(let i=1;i<points.length;i++)ctx.lineTo(...points[i]);ctx.stroke();};
+    const cuePath=prediction.paths[0]||[];
+    const contactIndex=hit?cuePath.findIndex(p=>Math.hypot(p[0]-hit.x,p[1]-hit.y)<22):-1;
+    const split=contactIndex>=0?contactIndex:cuePath.length-1;
+    trace(cuePath.slice(0,split+1),'#fff2a3',[7,6]);
+    trace(cuePath.slice(split),'#9ce7ff',[5,5]);
+    if(hit){
+     const objectPath=prediction.paths[hit.other]||[];
+     trace(objectPath,'#6dffba',[12,5]);
+     ctx.strokeStyle='#fff4b5';ctx.setLineDash([]);ctx.beginPath();ctx.arc(hit.x,hit.y,R,0,Math.PI*2);ctx.stroke();
+    }
+    if(prediction.cueLanding){
+     const [x,y]=prediction.cueLanding;
+     ctx.setLineDash([4,4]);ctx.strokeStyle='#9ce7ff';ctx.lineWidth=3;
+     ctx.beginPath();ctx.arc(x,y,R+5,0,Math.PI*2);ctx.stroke();
+     ctx.setLineDash([]);ctx.fillStyle='#9ce7ff';ctx.font='bold 14px sans-serif';ctx.fillText('CUE',x+18,y-13);
+    }
+    if(prediction.stochastic){
+     ctx.fillStyle='#ffcf75';ctx.font='bold 15px sans-serif';ctx.fillText('⚠ Chaos randomness: predicted paths may change',45,55);
     }
     ctx.restore();
    }
