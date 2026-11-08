@@ -5,6 +5,7 @@ const canvas=document.querySelector('#chaos-table');
 const ctx=canvas.getContext('2d');
 const $=id=>document.getElementById(id);
 const W=960,H=520,R=13,KEY='squatch-chaos-tables-v1';
+let predictionKey='',predictionCache=null;
 let balls=[],bumpers=[],playing=false,shots=0,pocketed=0,drag=null,aim={x:1,y:0},snapshot=null,last=0,frame=0,stage=0,events=[],goalFinished=false,editDraft=null;
 const AIM_KEY='squatch-invert-aim';
 try{$('chaos-invert').checked=localStorage.getItem(AIM_KEY)==='true';}catch{}
@@ -51,7 +52,9 @@ function draw(){
  if(playing&&balls.length&&Math.hypot(balls[0].vx,balls[0].vy)<.25){
   const b=balls[0],dx=aim.x,dy=aim.y;
   if($('chaos-guide').checked){
-   const prediction=predictShot(balls,bumpers,mods(),aim,Number($('chaos-power').value)/100);
+   const key=JSON.stringify({balls:balls.map(b=>[b.x,b.y,b.vx,b.vy,b.eight]),bumpers,mods:mods(),aim,power:$('chaos-power').value});
+   if(key!==predictionKey){predictionKey=key;predictionCache=predictShot(balls,bumpers,mods(),aim,Number($('chaos-power').value)/100);}
+   const prediction=predictionCache;
    if(prediction){
     const hit=prediction.firstCueHit;
     ctx.save();ctx.lineWidth=2.5;
