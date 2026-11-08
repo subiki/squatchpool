@@ -13,6 +13,7 @@ import {attachShotAnnouncer} from './shot-announcer.js';
 import {adjudicatePressShot} from './press-shot-adapter.js';
 import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
+import {createBotShowtime} from './bot-showtime.js';
 import {groupOf} from './rules.js';
 import {mountTableKit} from './table-kit-controls.js';
 import {attachShotKeyboard} from './shot-keyboard.js';
@@ -37,6 +38,7 @@ export function mountPressGame(root=globalThis.document){
  }
  const $=id=>root.getElementById?.(id)||root.querySelector('#'+id),canvas=$('table'),ctx=canvas.getContext('2d');
  cleanups.push(mountTableKit(root));
+ const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
 const telemetry=createGameTelemetry('press-your-luck',{root});
@@ -49,12 +51,13 @@ if(announcerStage?.ownerDocument)cleanups.push(attachShotAnnouncer(shot,announce
 const cuePlacement=createCuePlacement({getBalls:()=>balls,getCue:cue});
 let statsRackId=null,statsShotId=null;
 const botScheduler=createBotTurnScheduler();
-const solo=()=>$('opponent').value==='bot';
-const isBotTurn=()=>solo()&&turn===1;
-const playerName=i=>i===1&&solo()?'Squatch Bot':'Player '+(i+1);
-function cancelBot(){botScheduler.cancel();}
+const solo=()=>$('opponent').value!=='local';
+const isBotTurn=()=>$('opponent').value==='bots'||(solo()&&turn===1);
+const playerName=i=>$('opponent').value==='bots'?'Squatch Bot '+(i+1):
+ i===1&&solo()?'Squatch Bot':'Player '+(i+1);
+function cancelBot(){botScheduler.cancel();showtime.cancel();}
 function scheduleBot(){
- if(botScheduler.pending||!isBotTurn()||!['aim','place'].includes(shot.phase))return;
+ if(botScheduler.pending||showtime.pending||!isBotTurn()||!['aim','place'].includes(shot.phase))return;
  botScheduler.schedule(()=>{
   if(!isBotTurn())return;
   if(shot.phase==='place'){
@@ -73,7 +76,12 @@ function scheduleBot(){
   if(!plan)return;
   if(!shot.breakShot){callBall.value=String(plan.ballId);callPocket.value=plan.pocketId||'';}
   angle=plan.angle;$('power').value=String(plan.power);$('bank').checked=false;
-  updateCallHint();fire(true);
+  updateCallHint();
+  showtime.show({label:playerName(turn)+' · '+(shot.breakShot?'BREAK':('calls '+plan.ballId+
+    ' to '+(pockets.find(p=>p.id===plan.pocketId)?.label||'pocket'))) +
+    ' · watch the ghost-ball and cut-line guides.',
+   valid:()=>isBotTurn()&&shot.phase==='aim',
+   shoot:()=>fire(true)});
  },650);
 }
 
@@ -88,7 +96,8 @@ function rack(){
  setTableSize(Number($('size').value));canvas.width=TABLE.width;canvas.height=TABLE.height;
  balls=fullRack();Object.assign(balls[0],kitchenPoint(TABLE.width*.18,TABLE.height/2));turn=match.breaker;groups=[null,null];shot.startRack();angle=0;events=[];acc=0;previous=0;statsRackId=newGameStatsId();statsShotId=null;
  $('power').value='85';$('spin-top').value='0';$('spin-side').value='0';$('bank').checked=false;callBall.value='';callPocket.value='';
- $('place').hidden=true;root.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · '+playerName(turn)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK.');update();
+ $('place').hidden=true;root.querySelector('.kit-more')?.removeAttribute('open');$('next').hidden=true;message('Rack '+match.rack+' · '+playerName(turn)+' breaks. Drag the cue ball in the kitchen, aim and press BREAK.');
+ showtime.setSpectator($('opponent').value==='bots');update();
 }
 function update(){
  const rackComplete=shot.phase==='done'&&Boolean(match.lastRack);
@@ -96,7 +105,7 @@ function update(){
  $('score').textContent='Rack '+displayedRack+(rackComplete?' complete':'')+' · Race to '+match.targetScore;
  for(let i=0;i<2;i++){
   const preview=rackScorePreview(match,i);
-  $('press-player-'+i).textContent=(i===0?'You':playerName(1))+' · '+(groups[i]||'open table');
+  $('press-player-'+i).textContent=playerName(i)+' · '+(groups[i]||'open table');
   $('press-banked-'+i).textContent=String(preview.banked);
   $('press-own-'+i).textContent=String(preview.own);
   $('press-press-'+i).textContent=String(preview.press);
@@ -105,7 +114,7 @@ function update(){
  }
  if(rackComplete){
   const {winner,ownPoints,pressBonus,eightPoints,multiplier,awarded}=match.lastRack;
-  $('bonus').textContent=(winner===0?'You':playerName(1))+' banked '+awarded+
+  $('bonus').textContent=playerName(winner)+' banked '+awarded+
    ' this rack ('+ownPoints+' own balls + '+pressBonus+' press bonus + '+eightPoints+
    ' for the 8)'+(multiplier===2?' × 2 bank/kick':'')+'.';
  }else{
@@ -136,7 +145,8 @@ function draw(){
  renderer.drawTable(ctx,balls,{breakSetup:shot.breakShot&&shot.phase==='aim'});
  drawCallTargets();
  if(shot.phase==='aim'&&(shot.breakShot||callReady()))renderer.drawAim(ctx,cue(),angle,{
-  balls,calledBallId:callBall.value||null,calledPocketId:callPocket.value||null
+  balls,calledBallId:callBall.value||null,calledPocketId:callPocket.value||null,
+  mode:isBotTurn()?'coach':undefined
  });
 }
 
@@ -215,7 +225,12 @@ function endShot(){
  }
  if(result.rackEnd){
   shot.settle({done:true});$('next').hidden=match.finished;
-  message(match.finished?playerName(match.winner)+' wins the match!':'Rack over. '+playerName(result.actions.winner)+' breaks next.');update();return;
+  message(match.finished?playerName(match.winner)+' wins the match!':'Rack over. '+playerName(result.actions.winner)+' breaks next.');update();
+  if($('opponent').value==='bots'&&!match.finished)
+   showtime.show({label:'Bot-only match · next rack after reviewing scores.',
+    valid:()=>$('opponent').value==='bots'&&shot.phase==='done',
+    shoot:rack,delay:2800});
+  return;
  }
  turn=result.nextPlayer;
  if(result.ballInHand){
@@ -304,7 +319,7 @@ listen($('call-ball'),'change',()=>{callPocket.value='';updateCallHint();});
 listen($('call-pocket'),'change',updateCallHint);
 bind($('undo-call'),'onclick',()=>{if(shot.phase!=='aim'||shot.breakShot)return;callBall.value='';callPocket.value='';message('Call cleared. Tap a ball to call a new shot.');updateCallHint();});
 bind($('next'),'onclick',rack);bind($('start'),'onclick',begin);
-bind($('opponent'),'onchange',()=>{cancelBot();cuePlacement.cancel();update();});
+bind($('opponent'),'onchange',()=>{cancelBot();cuePlacement.cancel();showtime.setSpectator($('opponent').value==='bots');update();});
 try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 bind($('invert-aim'),'onchange',()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}});
 bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}if(match.finished)begin();else rack();});
