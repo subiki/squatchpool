@@ -7,6 +7,8 @@ import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForS
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
 import {createTableRenderer} from './table-renderer.js';
+import {drawAimAssistance,readAimAssistMode} from './aim-assist.js';
+import {createBotShowtime} from './bot-showtime.js';
 import {createGameSession} from './game-session.js';
 import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
@@ -28,6 +30,7 @@ export function mountButWaitGame(root=globalThis.document){
  }
  const $=selector=>root.querySelector(selector),canvas=$('#table'),ctx=canvas.getContext('2d');
  cleanups.push(mountTableKit(root));
+ const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
  const telemetry=initStats(root);
  cleanups.push(()=>telemetry?.dispose());
  const reportRack=id=>telemetry?.rack(id),reportBalls=(rack,id,count)=>telemetry?.balls(rack,id,count);
@@ -54,8 +57,9 @@ cleanups.push(session.subscribe(result=>{
  if(result.pocketed.length)reportBalls(state.statsRackId,result.shotId,result.pocketed.length);
  log(result.announcement);
 }));
-const person=i=>i===0?(state.mode==='bot'?'You':'Player 1'):(state.mode==='bot'?'Speed Squatch':'Player 2');
-const human=i=>state.mode==='local'||i===0;
+const person=i=>state.mode==='bots'?'Squatch Bot '+(i+1):
+ i===0?(state.mode==='bot'?'You':'Player 1'):(state.mode==='bot'?'Speed Squatch':'Player 2');
+const human=i=>state.mode==='local'||(state.mode==='bot'&&i===0);
 const cue=()=>state.balls.find(b=>b.id===0);
 function say(message){$('#announcer-text').textContent=message;}
 function log(message){
@@ -63,7 +67,7 @@ function log(message){
  while(list.children.length>12)list.lastElementChild.remove();
 }
 function newGame(){
- cancelPointer();clearTimeout(botTimer);
+ cancelPointer();clearTimeout(botTimer);showtime.cancel();
  session.startRack();
  setTableSize(selectedTableSize);
  // Keep the actual native select in sync with restored preferences and rack resets.
@@ -78,7 +82,9 @@ function newGame(){
  state={mode:$('#mode').value,balls:rack(),groups:[null,null],deployed:{solids:false,stripes:false},heldBalls:[7,15],turn:0,phase:'placeBreak',angle:0,power:85,spinTop:0,spinSide:0,callBall:null,callPocket:null,isBreak:true,shotNumber:0,shot:null,pendingStash:null,pendingStashBall:null,pendingStashPoint:null,pendingCue:false,winner:null,statsRackId:newStatsId(),generation:(state?.generation||0)+1};
  accumulator=0;$('#power').value='85';$('#spin-top').value='0';$('#spin-side').value='0';$('#result-modal').hidden=true;$('#shot-log').replaceChildren();
  log('Fresh rack. 7 and 15 are hiding in the back room.');
- say('Break setup: tap or drag anywhere in the shaded kitchen. You can change its position before BREAK!');update();
+ say('Break setup: tap or drag anywhere in the shaded kitchen. You can change its position before BREAK!');
+ showtime.setSpectator(state.mode==='bots');update();
+ if(state.mode==='bots'){finishBreakPlacement();planBotShot();}
 }
 function callTargets(){
  const group=state.groups[state.turn];
@@ -335,14 +341,20 @@ function finishShot(){
 function planBotShot(){
  const token=state.generation;
  botTimer=setTimeout(()=>{
-  if(token!==state.generation||state.turn!==1||state.phase!=='aim')return;
-  const b=cue(),group=state.groups[1];
+  if(token!==state.generation||human(state.turn)||state.phase!=='aim')return;
+  const b=cue(),group=state.groups[state.turn];
   if(readyForEight(state.balls,group,state.deployed[group])&&
      state.balls.filter(o=>o.id>0&&!o.pocketed).length===1){
    const finish=planSharedBotShot({balls:state.balls,targets:[8],pockets,radius:TABLE.radius,table:TABLE});
    if(finish){
-    state.callBall=8;state.callPocket=finish.pocketId;
-    hit(finish.angle,finish.power);return;
+    state.angle=finish.angle;state.callBall=8;state.callPocket=finish.pocketId;
+    update();
+    showtime.show({label:person(state.turn)+' · calls 8 to '+
+      (pockets.find(p=>p.id===finish.pocketId)?.label||'pocket')+
+      ' · ghost-ball line shown before shooting.',
+     valid:()=>token===state.generation&&state.phase==='aim'&&!human(state.turn),
+     shoot:()=>hit(finish.angle,finish.power)});
+    return;
    }
   }
 
@@ -363,7 +375,15 @@ function planBotShot(){
   const angle=best?Math.atan2(best.point.y-b.y,best.point.x-b.x):0;
   state.angle=angle+(Math.random()-.5)*.028;
   state.callBall=best?.targetId??null;state.callPocket=best?.pocketId??null;
-  hit(state.angle,clamp(60+(best?.score||300)/27,56,95));
+  if(!callReady()){say(person(state.turn)+' has no legal called shot.');return;}
+  const power=clamp(60+(best?.score||300)/27,56,95);
+  update();
+  showtime.show({label:person(state.turn)+' · calls '+state.callBall+' to '+
+    (pockets.find(p=>p.id===state.callPocket)?.label||'pocket')+
+    ' · inspect the full shot guides.',
+   valid:()=>token===state.generation&&state.phase==='aim'&&!human(state.turn),
+   shoot:()=>hit(state.angle,power)});
+
  },900);
 }
 function drawBall(b){
@@ -421,7 +441,7 @@ function render(){
      const approach=proj-Math.sqrt(Math.max(0,(2*r)**2-side**2));if(approach>0)reach=Math.min(reach,approach);
     }
    }
-   ctx.save();ctx.setLineDash([11,11]);ctx.lineWidth=2.5;ctx.strokeStyle='#f0dda4ad';ctx.beginPath();ctx.moveTo(cb.x+dx*16,cb.y+dy*16);ctx.lineTo(cb.x+dx*reach,cb.y+dy*reach);ctx.stroke();ctx.setLineDash([]);
+   ctx.save();if(readAimAssistMode()!=='minimal'){ctx.setLineDash([11,11]);ctx.lineWidth=2.5;ctx.strokeStyle='#f0dda4ad';ctx.beginPath();ctx.moveTo(cb.x+dx*16,cb.y+dy*16);ctx.lineTo(cb.x+dx*reach,cb.y+dy*reach);ctx.stroke();ctx.setLineDash([]);}
    const back=30+state.power/100*45;
    ctx.strokeStyle='#d4a76c';ctx.lineWidth=6;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(cb.x-dx*(r+back),cb.y-dy*(r+back));ctx.lineTo(cb.x-dx*(r+back+180),cb.y-dy*(r+back+180));ctx.stroke();
    ctx.strokeStyle='#78c3bd';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(cb.x-dx*(r+back),cb.y-dy*(r+back));ctx.lineTo(cb.x-dx*(r+back+15),cb.y-dy*(r+back+15));ctx.stroke();ctx.restore();
@@ -432,6 +452,11 @@ function render(){
   ctx.fillText(state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
  }
  renderer.drawBalls(ctx,state.balls,drawBall);
+ if(state.phase==='aim'&&callReady())drawAimAssistance(ctx,{
+  table:TABLE,striker:cue(),angle:state.angle,balls:state.balls,pockets,
+  calledBallId:state.callBall,calledPocketId:state.callPocket,
+  mode:human(state.turn)?readAimAssistMode():'coach'
+ });
  if(state.phase==='placeStash'&&state.pendingStashBall!==null&&state.pendingStashPoint){
   ctx.save();ctx.globalAlpha=.6;
   drawBall(ball(state.pendingStashBall,state.pendingStashPoint.x,state.pendingStashPoint.y));
