@@ -108,7 +108,7 @@
       });
       this.append(header);
       // Rock-exclusive links stay out of Classic navigation.
-      const updateExclusive = () => header.querySelectorAll('[data-rock-exclusive]').forEach(link => { link.hidden = readMode() !== 'rock'; });
+      const updateExclusive = () => header.querySelectorAll('[data-rock-exclusive]').forEach(link => { link.hidden = document.documentElement.dataset.squatchTheme !== 'rock'; });
       header.querySelectorAll('[data-squatch-theme-choice]').forEach(button => button.addEventListener('click', updateExclusive));
       updateExclusive();
       setMode(readMode());
