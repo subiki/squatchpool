@@ -33,7 +33,14 @@
   rockStyle.href = '/src/wild-squatch.css';
   rockStyle.id = 'squatch-rock-style';
   rockStyle.disabled = true;
-  document.head?.append?.(rockStyle);
+  // Insert the optional skin after page styles so shared game styling cannot
+  // override it. The preference is read immediately, before the page renders.
+  // This is one persistent stylesheet; SPA navigation does not recreate it.
+  if (document.addEventListener && document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => document.head?.append?.(rockStyle), {once:true});
+  } else {
+    document.head?.append?.(rockStyle);
+  }
   const readMode = () => {
     try { return localStorage.getItem(THEME_KEY) === 'rock' ? 'rock' : 'classic'; }
     catch { return 'classic'; }
