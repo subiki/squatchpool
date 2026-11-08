@@ -199,3 +199,11 @@ main.squatch-game-page .squatch-rulebook .arcade-instructions{
  main.squatch-game-page .squatch-rulebook{padding:0 11px!important}
  main.squatch-game-page .squatch-rule-list li{font-size:.97rem!important}
 }
+
+
+/* Never let shared presentation resurrect an action the game engine hides.
+   This must beat .squatch-shot-actions button {display:flex!important},
+   including after SPA navigation or phase transitions. */
+main.squatch-game-page [hidden]{
+ display:none!important;
+}
