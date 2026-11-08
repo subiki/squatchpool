@@ -11,6 +11,7 @@ import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
 import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
+import {createBotShowtime} from './bot-showtime.js';
 import {adjudicateCutthroatShot} from './cutthroat-shot-adapter.js';
 import {createGameTelemetry,newGameStatsId as newCutthroatStatsId} from './game-telemetry.js';
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
@@ -31,6 +32,7 @@ export function mountCutthroatGame(root=globalThis.document){
  }
  const $=id=>root.getElementById?.(id)||root.querySelector('#'+id);
  cleanups.push(mountTableKit(root));
+ const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
  let telemetry;
  cleanups.push(()=>telemetry?.dispose());
  const reportCutthroatRack=id=>telemetry?.rack(id);
@@ -58,7 +60,7 @@ function drawCutthroatBall(ball,ctx){
 let game,lastTime=0,accumulator=0,dragging=false,activePointer=null;
 function cancelPointer(){dragging=false;activePointer=null;}
 const botTurns=createBotTurnScheduler();
-function cancelBot(){botTurns.cancel();}
+function cancelBot(){botTurns.cancel();showtime.cancel();}
 function say(message){
  const li=document.createElement('li');li.textContent=message;
  $('cut-log').prepend(li);
@@ -88,8 +90,8 @@ function newGame(){
  accumulator=0;
  $('cut-log').replaceChildren();
  $('cut-power').value='85';$('cut-top').value='0';$('cut-side').value='0';
- say('New three-player rack. Player 1 breaks. Tap or drag in the kitchen, release, then aim and BREAK.');
- update();
+ say('New three-player rack. '+seatName(0)+' breaks. '+($('cut-players').value==='0'?'Bots-only spectator match.':'Tap or drag in the kitchen, release, then aim and BREAK.'));
+ showtime.setSpectator($('cut-players').value==='0');update();
 }
 const cue=()=>game.balls[0];
 function update(){
@@ -148,6 +150,11 @@ function finishShot(){
  else if(game.match.pendingClaim){game.phase='claim';}
  else game.phase='aim';
  update();
+ if(game.phase==='done'&&$('cut-players').value==='0')
+  showtime.show({label:'Cutthroat · '+seatName(game.match.winner)+
+    ' wins. Next three-bot rack begins shortly.',
+   valid:()=>game.phase==='done'&&$('cut-players').value==='0',
+   shoot:newGame,delay:3000});
 }
 function shoot(fromBot=false){
  if(game.phase!=='aim'||(botSeat(game.match.turn)&&!fromBot))return;
@@ -182,7 +189,7 @@ function draw(){
   label:'BREAK · KITCHEN'});
  renderer.drawBalls(ctx,game.balls,drawCutthroatBall);
  if(game.phase==='aim')renderer.drawAim(ctx,cue(),game.angle,{
-  balls:game.balls,suggestUncalled:true
+  balls:game.balls,suggestUncalled:true,mode:botSeat(game.match.turn)?'coach':undefined
  });
 }
 function frame(t){
@@ -276,7 +283,7 @@ function resolveClaim(id,fromBot=false){
  update();
 }
 function scheduleBot(){
- if(botTurns.pending||!game)return;
+ if(botTurns.pending||showtime.pending||!game)return;
  const m=game.match,phase=game.phase;
  const actor=phase==='claim'?m.pendingClaim?.claimant:m.turn;
  if(actor===undefined||!botSeat(actor)||!['placeBreak','placeCue','aim','chooseGroup','claim'].includes(phase))return;
@@ -306,7 +313,12 @@ function scheduleBot(){
   const plan=planBotShot({balls:game.balls,targets,pockets,radius:TABLE.radius,table:TABLE,breakShot:session.breakShot});
   if(!plan){say('Squatch Bot has no available object-ball target.');return;}
   game.angle=plan.angle;game.power=plan.power;game.top=0;game.side=0;
-  shoot(true);
+  showtime.show({label:seatName(current.turn)+' · '+(session.breakShot?'BREAK':('target '+plan.ballId+
+    ' · '+(pockets.find(p=>p.id===plan.pocketId)?.label||'contact shot')))+
+    ' · full cue and collision guide.',
+   valid:()=>game.phase==='aim'&&botSeat(game.match.turn)&&
+     game.match.turn===current.turn,
+   shoot:()=>shoot(true)});
  },650);
 }
 listen($('cut-place'),'click',()=>{if(game.phase==='placeCue')confirmPlacement();});
