@@ -256,7 +256,8 @@ try{
  for(const game of games)await browse(game,390,844);
  for(const game of games)await browse(game,390,844,'table');
  for(const game of games)await browse(game,390,844,'top','rock');
+ for(const game of games)await browse(game,1180,900,'top','rock');
  await browse('but-wait',390,844,'table','rock',true);
  await browse('cutthroat',390,844,'table','rock',true);
- console.log('Shared game shell: 28 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile).');
+ console.log('Shared game shell: 34 Chromium page loads passed (12 Classic top, six Classic table, six Rock mobile, six Rock desktop, two bot previews).');
 }finally{await new Promise(resolve=>server.close(resolve));}
