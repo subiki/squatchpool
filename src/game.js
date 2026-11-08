@@ -7,6 +7,7 @@ import {groupOf,otherGroup,otherPlayer,stashBall,resolveSurpriseChoice,readyForS
 import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint} from './table-pointer.js';
 import {createTableRenderer} from './table-renderer.js';
+import {drawAimAssistance} from './aim-assist.js';
 import {createGameSession} from './game-session.js';
 import {attachMatchExitGuard} from './match-navigation.js';
 import {attachShotAnnouncer} from './shot-announcer.js';
@@ -432,6 +433,10 @@ function render(){
   ctx.fillText(state.phase==='placeCue'?'TAP TO PLACE CUE BALL':'TAP TO PLACE THE SURPRISE BALL',w/2,40);
  }
  renderer.drawBalls(ctx,state.balls,drawBall);
+ if(state.phase==='aim'&&callReady())drawAimAssistance(ctx,{
+  table:TABLE,striker:cue(),angle:state.angle,balls:state.balls,pockets,
+  calledBallId:state.callBall,calledPocketId:state.callPocket
+ });
  if(state.phase==='placeStash'&&state.pendingStashBall!==null&&state.pendingStashPoint){
   ctx.save();ctx.globalAlpha=.6;
   drawBall(ball(state.pendingStashBall,state.pendingStashPoint.x,state.pendingStashPoint.y));
