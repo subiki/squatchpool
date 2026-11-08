@@ -24,10 +24,10 @@ function state(){return{version:1,name:$('chaos-name').value.slice(0,72),balls:c
 function load(s){
  if(!s||s.version!==1||!Array.isArray(s.balls)||!Array.isArray(s.bumpers)||s.balls.length>70||s.bumpers.length>40)return false;
  if(!s.balls.every(b=>Number.isFinite(b.x)&&Number.isFinite(b.y)&&typeof b.c==='string'&&/^#[0-9a-f]{6}$/i.test(b.c))||!s.bumpers.every(b=>Number.isFinite(b.x)&&Number.isFinite(b.y)&&Number.isFinite(b.r)&&b.r>=10&&b.r<=45))return false;
- balls=s.balls.map(b=>({...ball(...Object.values(bounded(b.x,b.y)),b.c)}));
+ balls=s.balls.map(b=>{const p=bounded(b.x,b.y);return ball(p.x,p.y,b.c);});
  bumpers=s.bumpers.map(b=>({...bounded(b.x,b.y),r:b.r}));
  setMods(s.mods||{});$('chaos-name').value=String(s.name||'Chaos Pool').slice(0,72);
- playing=false;shots=0;pocketed=0;snapshot=state();draw();return true;
+ playing=false;shots=0;pocketed=0;$('chaos-play').textContent='▶ Play';snapshot=state();draw();return true;
 }
 function status(message){$('chaos-status').textContent=message;$('chaos-counter').textContent=`${shots} shots · ${pocketed} balls pocketed`;}
 function saved(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x.slice(0,30):[];}catch{return [];}}
