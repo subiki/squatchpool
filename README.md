@@ -31,23 +31,27 @@ Use a modern browser and a local HTTP server:
 
 ```bash
 npm ci
+npm run build
 python3 -m http.server 8080
 # Open http://localhost:8080
 ```
 
-Run the existing lightweight checks before proposing a change:
+Validate a change through the **same build command used for release**:
 
 ```bash
-npm test
-npm run check
-npm run build
+npm run build          # UI ownership + all JS syntax + tests + PWA verification
 ```
+
+For a quicker iteration, use `npm run check` (syntax and the UI stylesheet
+contract) or `npm test` (gameplay tests). `npm ci` only installs packages; it
+does not build the application or regenerate deployment metadata.
 
 Cloudflare Pages deploys the static site from `main`; its header displays a build timestamp in Pacific time and a commit identifier. Cloudflare D1 supplies optional hosted anonymous statistics. Game functionality must degrade gracefully if statistics cannot load.
 
 ## Code at a glance
 
 - **One page composition:** `src/game-page-shell.js`, `src/game-shell.css`. Layout and common player/table controls belong here.
+- **One shared CSS entry on every route:** `src/site-styles.css`. It imports shared control utilities, the persistent header, Classic materials and the game shell in one fixed order. Only route-specific CSS may appear before it; the optional Rock skin is loaded afterward by `src/site-header.js`.
 - **Brand/header:** `src/pnw-theme.css`, `src/wild-squatch.css`, `src/site-header.js`, `assets/brand/`. Classic and Rock & Roll are appearance options; both use the **same page layout**. Forest, cedar, moss, water and felt imagery is local.
 - **Game behavior:** `src/game.js` and `src/{caroms,cutthroat,press-your-luck,tuna}-game.js`. Rule and bot differences belong in controllers and adjudicators, not in new page templates.
 - **Shared playing engine:** `src/physics.js`, `src/table-geometry.js`, `src/table-renderer.js` and shot/session utilities.
@@ -55,6 +59,12 @@ Cloudflare Pages deploys the static site from `main`; its header displays a buil
 - **Offline:** `src/pwa.js` and `scripts/`. A single PWA serves the seven public pages.
 
 Use the shared header's **Classic / Rock & Roll** toggle to change appearance without changing game controls or section order.
+
+A single CSS entry also matters during navigation: `src/static-navigation.js` inserts
+route-specific styles **before** the shared stylesheet, matching direct navigation.
+Changing this order makes the same game look different depending on where the visitor
+clicked. `scripts/verify-ui-contract.mjs` rejects duplicate shared imports and
+global CSS resets inside individual game pages.
 
 The shared shell currently **moves the existing controller-owned DOM nodes** into one runtime layout, preserving canvas and input IDs. The five game HTML files no longer copy lengthy rulebooks: `src/game-guides.js` supplies one renderer for Home and in-game instructions. Continue retiring obsolete setup and shot-kit wrappers in small verified slices; do not create another page style.
 
