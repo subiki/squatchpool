@@ -135,7 +135,7 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'repositioned cue can break');
 
-  assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
+  assert.equal(element('#size').value,'7','native select reflects selected table');
   assert.match(element('#table-dimensions').textContent,/7 FT.*78.*39/);
   const width7=element('#table').width,height7=element('#table').height;
   assert.ok(width7<800&&height7<420,'default is the compact 7 foot bar box');
@@ -213,9 +213,8 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'new rack can place and break');
   assert.equal(element('#undo-call').disabled,true);
-  events.get('size-8:click')();
-  assert.equal(sizeButtons[1].attributes['aria-pressed'],'true');
-  assert.equal(sizeButtons[0].attributes['aria-pressed'],'false');
+  element('#size').value='8';events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'8');
   assert.match(element('#table-dimensions').textContent,/8 FT.*88.*44/);
   assert.ok(element('#table').width>width7&&element('#table').height>height7);
   assert.equal(element('#shoot').disabled,true,'size change starts cue-placement phase');
@@ -224,16 +223,16 @@ test('tap-to-call: break, select ball, choose pocket, reveal cue, undo, shoot', 
   assert.equal(element('#shoot').disabled,false,'size 8 accepts head-quarter placement');
   assert.equal(element('#pocket-targets').hidden,true);
   const width8=element('#table').width,height8=element('#table').height;
-  events.get('size-9:click')();
-  assert.equal(sizeButtons[2].attributes['aria-pressed'],'true');
+  element('#size').value='9';events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'9');
   assert.match(element('#table-dimensions').textContent,/9 FT.*100.*50/);
   assert.ok(element('#table').width>width8&&element('#table').height>height8);
   assert.equal(element('#shoot').disabled,true,'size 9 requires cue placement');
   events.get('#table:pointerdown')({clientX:145,clientY:215,pointerId:6});
   events.get('#table:pointerup')({pointerId:lastPointer});
   assert.equal(element('#shoot').disabled,false,'size 9 accepts legal placement');
-  events.get('size-7:click')();
-  assert.equal(sizeButtons[0].attributes['aria-pressed'],'true');
+  element('#size').value='7';events.get('#size:change')({target:element('#size')});
+  assert.equal(element('#size').value,'7');
   assert.equal(element('#table').width,width7);
   assert.equal(element('#table').height,height7);
   assert.equal(element('#shoot').disabled,true,'switching back reracks and requires cue placement');
