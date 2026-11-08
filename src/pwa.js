@@ -1,43 +1,13 @@
 // Runs on every Squatch page. Installing is optional; the game never depends on the worker.
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  const header = document.querySelector('.squatch-unified-header') || document.querySelector('header') || document.body;
+  // Keep offline support silent: the browser owns installation and update UI.
   let ready = false;
   let updateWaiting = false;
   let offlineCheckFailed = false;
   let registration = null;
-  const bar = document.createElement('div');
-  bar.className = 'squatch-offline-tools';
-  const status = document.createElement('span');
-  status.setAttribute('role', 'status');
-  status.setAttribute('aria-live', 'polite');
-  const retry = document.createElement('button');
-  retry.type = 'button';
-  retry.textContent = 'Retry offline download';
-  retry.hidden = true;
-  bar.append(status, retry);
-  header?.append(bar);
   function render() {
-    if (!navigator.onLine) {
-      status.textContent = ready ? 'Offline · Play locally; site stats sync when connected' : 'Offline · Download not verified; reconnect to finish';
-    } else if (offlineCheckFailed) {
-      status.textContent = 'Online play available · Offline files not verified';
-    } else if (updateWaiting) {
-      status.textContent = 'New version downloaded · Reopen the app to update';
-    } else {
-      status.textContent = ready ? 'Ready to play offline' : 'Downloading offline game…';
-    }
-    retry.hidden = !offlineCheckFailed || !navigator.onLine;
+    // No visible offline status banner; preserve background readiness checks.
   }
-  retry.addEventListener('click', () => {
-    // A transient 404 or interrupted first install can leave no active worker.
-    // Retry the actual registration instead of trapping players in a failed
-    // download state until they manually reload the page.
-    if (!registration) { window.location.reload(); return; }
-    offlineCheckFailed = false;
-    ready = false;
-    render();
-    void registration.update().then(() => checkReady(registration), () => checkReady(registration));
-  });
   window.addEventListener('online', () => {
     render();
     if (registration) { void registration.update().catch(() => {}); void checkReady(registration); }
@@ -91,7 +61,6 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       await waitForActiveWorker(reg);
       verified = await verifyCache(reg);
       if (!verified && navigator.onLine) {
-        status.textContent = 'Restoring missing offline game files…';
         verified = await verifyCache(reg, true);
       }
     } catch {
