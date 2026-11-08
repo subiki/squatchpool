@@ -49,3 +49,98 @@ body .hub-game:nth-child(6n+5)::after{background-position:left 55%;filter:hue-ro
 body .hub-game:nth-child(6n+6)::after{background-position:right 65%;filter:hue-rotate(175deg)}
 body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!important}
 @media(max-width:650px){body .hub-game{padding-top:98px!important}}
+
+
+/* ROCK TYPOGRAPHY CONTRACT
+ * Exactly two intentional font roles on every route:
+ * display = Georgia (hero, page/game headings, wordmark)
+ * interface = system-ui (body, navigation, controls, stats, deployment)
+ * No external font requests, no per-game font overrides.
+ * Scoped to the optional Rock stylesheet; Classic remains untouched.
+ */
+:root[data-squatch-theme="rock"]{
+ --rock-font-display:Georgia,"Times New Roman",serif;
+ --rock-font-ui:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+ --rock-type-xs:.82rem;
+ --rock-type-sm:.94rem;
+ --rock-type-body:1rem;
+ --rock-type-lead:1.13rem;
+ --rock-type-h3:clamp(1.4rem,2.5vw,1.85rem);
+ --rock-type-h2:clamp(1.8rem,4vw,2.65rem);
+ --rock-type-h1:clamp(2.2rem,6vw,4rem);
+}
+:root[data-squatch-theme="rock"] body,
+:root[data-squatch-theme="rock"] body :is(main,footer,aside,section,article,nav,form,fieldset,table,details),
+:root[data-squatch-theme="rock"] squatch-header,
+:root[data-squatch-theme="rock"] :is(button,input,select,textarea,option){
+ font-family:var(--rock-font-ui)!important;
+ font-size:var(--rock-type-body);
+ font-style:normal;
+}
+:root[data-squatch-theme="rock"] body :is(h1,h2,h3,h4),
+:root[data-squatch-theme="rock"] body :is(.intro h2,.hub-intro h2,.world-hero h1,.hub-section>h2,.hub-game h3,.hub-arcade h2),
+:root[data-squatch-theme="rock"] squatch-header .squatch-brand-row h1{
+ font-family:var(--rock-font-display)!important;
+ font-style:normal;
+ font-weight:800!important;
+ letter-spacing:-.025em;
+ line-height:1.14;
+}
+:root[data-squatch-theme="rock"] body h1{font-size:var(--rock-type-h1)}
+:root[data-squatch-theme="rock"] body h2{font-size:var(--rock-type-h2)}
+:root[data-squatch-theme="rock"] body h3{font-size:var(--rock-type-h3)}
+:root[data-squatch-theme="rock"] body h4{font-size:1.18rem}
+:root[data-squatch-theme="rock"] body :is(p,li,dd,dt,label,output,summary,td,th){font-family:var(--rock-font-ui)!important;line-height:1.5}
+:root[data-squatch-theme="rock"] body :is(button,input,select,textarea),
+:root[data-squatch-theme="rock"] body :is(.hub-play,.hub-rules summary,.links a,.world-nav a),
+:root[data-squatch-theme="rock"] squatch-header :is(a,button,summary){
+ font-family:var(--rock-font-ui)!important;
+ font-style:normal!important;
+ font-weight:800!important;
+ letter-spacing:.015em;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header .squatch-brand-row h1{
+ font-family:var(--rock-font-display)!important;
+ font-size:clamp(1.6rem,4vw,2.35rem)!important;
+ font-weight:900!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header .squatch-release,
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header .squatch-release *,
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header .squatch-release time{
+ font-family:var(--rock-font-ui)!important;
+ font-size:var(--rock-type-xs)!important;
+ font-weight:600!important;
+ font-style:normal!important;
+ letter-spacing:normal!important;
+ text-transform:none!important;
+}
+:root[data-squatch-theme="rock"] squatch-header .squatch-unified-header .squatch-header-nav a{
+ font-family:var(--rock-font-ui)!important;
+ font-size:var(--rock-type-sm)!important;
+ font-weight:800!important;
+}
+:root[data-squatch-theme="rock"] body .hub-intro h2{
+ font-family:var(--rock-font-display)!important;
+ font-style:italic!important;
+ font-size:var(--rock-type-h1)!important;
+}
+:root[data-squatch-theme="rock"] body .hub-section>h2{
+ font-family:var(--rock-font-display)!important;
+ font-size:var(--rock-type-h2)!important;
+}
+:root[data-squatch-theme="rock"] body .hub-game h3{
+ font-family:var(--rock-font-display)!important;
+ font-size:var(--rock-type-h3)!important;
+}
+:root[data-squatch-theme="rock"] body :is(.hub-meta,.hub-eyebrow,.eyebrow,.game-stats,.kit-status,.squatch-stats-table){
+ font-family:var(--rock-font-ui)!important;
+}
+:root[data-squatch-theme="rock"] body :is(.hub-meta,.hub-eyebrow,.eyebrow){font-size:var(--rock-type-xs)!important}
+:root[data-squatch-theme="rock"] body :is(.hub-description,.hub-rule-lead,.hub-rule-section li){font-size:var(--rock-type-body)!important}
+:root[data-squatch-theme="rock"] body :is(.hub-highlight,.hub-intro p){font-size:var(--rock-type-lead)!important}
+@media(max-width:650px){
+ :root[data-squatch-theme="rock"] squatch-header .squatch-unified-header .squatch-release,
+ :root[data-squatch-theme="rock"] squatch-header .squatch-unified-header .squatch-release *{
+  font-size:.75rem!important;
+ }
+}
