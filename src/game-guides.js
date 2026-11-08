@@ -88,8 +88,8 @@ export const GAME_GUIDES = Object.freeze({
         "title": "Players, colors and break",
         "items": [
           "Use fifteen object balls: five blue, five yellow and five red. The numbers printed on balls do not matter in this version.",
-          "Player 1 breaks from the kitchen. Balls made on the break stay pocketed; no color is assigned just for making a break ball.",
-          "After your first legal post-break pocket, choose an available color. You may wait until the end of that turn; after two players choose, the third gets the remaining color."
+          "Player 1 breaks from the kitchen. Balls made on the break stay pocketed; the breaker may choose a color after a legal break pot.",
+          "After your first legal pocket, including a legal break pot, choose an available color. You may wait until the end of that turn; after two players choose, the third gets the remaining color."
         ]
       },
       {
