@@ -55,6 +55,8 @@ const probe=`<script>
     const ok=JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&!!setupOrder&&rulesUniform&&
       main?.dataset.squatchGameShell&&errors.length===0;
+    if(location.search.includes('smokeScroll=table')&&stage)
+      stage.scrollIntoView({block:'start',behavior:'instant'});
     document.documentElement.dataset.squatchSmoke=ok?'pass':'fail';
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
@@ -91,9 +93,9 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const port=server.address().port;
 const outputDir=process.env.SQUATCH_SCREENSHOT_DIR||join(tmpdir(),'squatch-shell-smoke');
 mkdirSync(outputDir,{recursive:true});
-async function browse(game,width,height){
- const url='http://127.0.0.1:'+port+'/'+game+'.html';
- const image=join(outputDir,game+'-'+width+'.png');
+async function browse(game,width,height,focus='top'){
+ const url='http://127.0.0.1:'+port+'/'+game+'.html'+(focus==='table'?'?smokeScroll=table':'');
+ const image=join(outputDir,game+'-'+width+(focus==='table'?'-table':'')+'.png');
  const argv=['--headless=new','--no-sandbox','--disable-gpu','--disable-dev-shm-usage',
   '--no-first-run','--disable-extensions','--disable-background-networking',
   '--disable-features=TranslateUI','--window-size='+width+','+height,
@@ -112,10 +114,11 @@ async function browse(game,width,height){
   throw new Error(game+' '+width+'px: '+JSON.stringify(result)+
    ' smoke='+match?.[1]+' details='+details?.[1]+' stderr='+stderr.slice(-500));
  }
- console.log('PASS',game,width+'x'+height,'one shared page / controls / unique IDs / script startup');
+ console.log('PASS',game,width+'x'+height,focus,'shared page / controls / unique IDs / startup');
 }
 try{
  for(const game of games)await browse(game,1180,900);
  for(const game of games)await browse(game,390,844);
- console.log('Shared game shell: 12 actual Chromium page loads passed.');
+ for(const game of games)await browse(game,390,844,'table');
+ console.log('Shared game shell: 18 Chromium page loads passed (six desktop, six mobile, six mobile table-focused).');
 }finally{await new Promise(resolve=>server.close(resolve));}
