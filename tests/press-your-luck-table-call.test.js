@@ -94,7 +94,7 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    assert.equal(pressSpace('BODY',{repeat:true}),true,'held Space cannot scroll during ball motion');
    listeners.get('window:beforeunload')(exiting);
    assert.equal(exiting.prevented,true,'actual break protects the unfinished rack from document exit');
-   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/rules.html',hasAttribute:()=>false,target:''})},preventDefault(){this.prevented=true;}};
+   const navigation={button:0,target:{closest:()=>({href:'https://squatch.example/',hasAttribute:()=>false,target:''})},preventDefault(){this.prevented=true;}};
    listeners.get('document:click')(navigation);
    assert.equal(navigation.prevented,true);
    assert.equal(listeners.has('table:pointerdown'),true,'cancelled in-shell leave preserves the actual controller');

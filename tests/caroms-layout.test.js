@@ -82,18 +82,10 @@ test('all controller IDs remain unique and call/shot controls are accessible',()
  assert.match(html,/id="caroms-call-controls" hidden/);
 });
 
-test('original story remains intact but collapsed after the game',()=>{
- const table=html.indexOf('id="caroms-table"');
- const rules=html.indexOf('id="caroms-rules-panel"');
- const story=html.indexOf('id="caroms-story-panel"');
- assert.ok(rules<table&&table<story,'source rules are available before the table; optional story follows gameplay');
- const tag=html.match(/<details[^>]*id="caroms-story-panel"[^>]*>/)?.[0];
- assert.ok(tag&&!/\bopen\b/.test(tag),'story must be closed by default');
- assert.match(html,/Optional original story/);
- assert.match(html,/href="#caroms-play-anchor"/);
+test('Caroms exposes active rules without obsolete manuscripts or field notes',()=>{
+ assert.ok(html.indexOf('id="caroms-rules-panel"')<html.indexOf('id="caroms-table"'));
+ assert.doesNotMatch(html,/archive\.html|original story|story-panel/i);
  assert.match(html,/id="caroms-play-anchor"/);
- assert.match(html,/archive.html#episode-3/);
- assert.match(html,/tap to expand/);
 });
 
 test('Caroms keeps required actions inside the fullscreen table',()=>{

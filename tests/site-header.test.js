@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
 
-const pages=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade','rules','archive'];
+const pages=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 
 test('all Squatch pages use precisely one canonical header and data initializer',()=>{
@@ -52,7 +52,7 @@ test('But Wait skips the competing read-only stats reader on every production/of
  const source=read('src/site-header-data.js')
   .replace("import './deployment.js';","load('deployment');")
   .replace("import('./hub-stats.js')","load('stats')");
- for(const pathname of ['/but-wait','/but-wait.html','/but-wait/','/caroms','/rules.html','/']){
+ for(const pathname of ['/but-wait','/but-wait.html','/but-wait/','/caroms','/arcade.html','/']){
   const imports=[];
   runInNewContext(source,{location:{pathname},load:name=>imports.push(name)});
   assert.deepEqual(imports,pathname.startsWith('/but-wait')?['deployment']:['deployment','stats'],pathname);

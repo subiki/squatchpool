@@ -82,10 +82,10 @@ test('PNW palette remains contrast-safe in dark and light OS modes',()=>{
   assert.ok(contrast(fg,bg)>=4.5,fg+' on '+bg+' = '+contrast(fg,bg).toFixed(2));
  assert.ok(contrast('#85AD95','#214333')>=3,'card borders must remain distinct');
 });
-test('all nine routes preserve PNW artwork and dark, readable content surfaces',()=>{
+test('all seven routes preserve PNW artwork and dark, readable content surfaces',()=>{
  const css=read('src/pnw-theme.css');
  for(const page of ['index','but-wait','caroms','cutthroat','press-your-luck',
-                    'tuna','arcade','rules','archive']){
+                    'tuna','arcade']){
   assert.match(read(page+'.html'),/\/src\/pnw-theme\.css/,page+' must load the common brand');
  }
  for(const selector of ['body .intro','body .game-stats','body .scoreboard .player.active',

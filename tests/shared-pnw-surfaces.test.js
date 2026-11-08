@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
-const routes=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade','rules','archive'];
+const routes=['index','but-wait','caroms','cutthroat','press-your-luck','tuna','arcade'];
 const css=read('src/pnw-theme.css');
 const v4=css.slice(css.indexOf('PNW surface system v4'));
 const assets=['pnw-forest.jpg','pnw-cedar.jpg','pnw-moss.jpg','pnw-water.jpg'];
@@ -51,7 +51,7 @@ test('no repeatable topographic wallpaper remains in the final effective theme',
 });
 test('shared header nav has stable dimensions and equal tracks on all pages',()=>{
  const header=read('src/site-header.js');
- assert.equal((header.match(/\['\/[^']*',\s*'/g)||[]).length,9);
+ assert.equal((header.match(/\['\/[^']*',\s*'/g)||[]).length,7);
  for(const invariant of [
   'grid-template-columns:repeat(6,minmax(0,1fr))!important',
   'grid-template-columns:repeat(5,minmax(0,1fr))!important',

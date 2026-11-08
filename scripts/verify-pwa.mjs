@@ -38,7 +38,7 @@ assert.ok(Array.isArray(assets),'worker precache must be an array');
 assert.equal(new Set(assets).size,assets.length,'duplicate worker precache paths');
 
 // Check the ENTIRE offline edition, not only a few known entry points.
-// A missing CSS/JS/lore asset would otherwise pass the build verifier and
+// A missing CSS/JS/brand asset would otherwise pass the build verifier and
 // cause Cache.addAll to fail during installation on a real device.
 const expected=new Set([...essentials,'/LICENSE','/THIRD_PARTY.md']);
 function collect(dir){
@@ -53,7 +53,6 @@ function collect(dir){
 }
 collect('src');
 collect('assets/brand');
-collect('archive/source');
 if(existsSync(join(root,'deployment.json')))expected.add('/deployment.json');
 for(const path of assets){
   assert.match(path,/^\/[^/?#]+(?:\/[^/?#]+)*$/,'invalid worker asset path: '+path);

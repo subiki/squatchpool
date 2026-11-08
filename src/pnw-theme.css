@@ -568,3 +568,16 @@ body main :is(input:not([type=range]),select,textarea){
 :where(a,button,summary,input,select,textarea):focus-visible{
  outline:3px solid #f9c466!important;outline-offset:3px!important
 }
+
+/* Game showcase materials are owned by the persistent stylesheet, not
+   route-local CSS (soft navigation rejects URL-backed route styles). */
+body .hub-game .hub-rules{
+ background-color:#102923!important;
+ background-image:linear-gradient(145deg,#1c4031eb,#081c16f1),var(--pnw-photo-moss)!important;
+ background-position:center,center!important;
+ background-size:auto,cover!important;
+ background-repeat:no-repeat,no-repeat!important;
+ box-shadow:inset 0 1px 0 #e1eddf2a,inset 0 -7px 13px #03140c7d!important;
+}
+body .hub-game .hub-rules :is(li,p){color:#e1eddf!important}
+body .hub-game .hub-rules summary{color:#f0c478!important}
