@@ -33,6 +33,36 @@ const probe=`<script>
  window.addEventListener('error',fail);
  window.addEventListener('unhandledrejection',fail);
  window.addEventListener('DOMContentLoaded',()=>{
+  if(location.pathname==='/'&&wantsRock)setTimeout(()=>{
+   // Check real computed layout, not just the presence of illustrated assets.
+   const hero=document.querySelector('.hub-intro');
+   const logo=hero?.querySelector('.rock-hero-wordmark');
+   const heading=hero?.querySelector('h2');
+   const cta=hero?.querySelector('.hub-hero-cta');
+   const cards=[...document.querySelectorAll('.hub-game')];
+   const box=el=>el?.getBoundingClientRect();
+   const h=box(hero),l=box(logo),t=box(heading),a=box(cta);
+   const heroOK=Boolean(h&&l&&t&&a&&
+    getComputedStyle(logo).display!=='none'&&
+    Math.abs((l.left+l.right-t.left-t.right)/2)<8&&
+    l.bottom+3<t.top&&a.bottom<h.bottom-9&&t.left>=h.left&&t.right<=h.right);
+   const metrics=cards.map(card=>{
+    const r=box(card),title=card.querySelector('h3'),n=box(title);
+    const artHeight=parseFloat(getComputedStyle(card,'::before').height);
+    const aligned=Boolean(r&&n&&
+     n.top>=r.top+artHeight-8&&n.left>=r.left-4&&n.right<=r.right+4&&
+     title.scrollWidth<=title.clientWidth+2&&title.scrollHeight<=title.clientHeight+2);
+    return {name:title?.textContent,top:r?.top,titleTop:n?.top,aligned};
+   });
+   const sameRow=metrics.every(x=>metrics.every(y=>
+     Math.abs(x.top-y.top)>3||Math.abs(x.titleTop-y.titleTop)<3));
+   const ok=heroOK&&cards.length===5&&metrics.every(x=>x.aligned)&&sameRow;
+   document.documentElement.dataset.squatchHomeAlignment=ok?'pass':'fail';
+   document.documentElement.dataset.squatchHomeDetails=JSON.stringify({
+    heroOK,logoBottom:l?.bottom,titleTop:t?.top,heroBottom:h?.bottom,
+    cards:metrics,sameRow
+   });
+  },1000);
   if(wantsBots){
    // Let each route's module register its controller and change handler first.
    setTimeout(()=>{
@@ -183,13 +213,17 @@ async function browseRockHome(width,height){
  ]);
  const loaded=html.includes('data-squatch-theme="rock"')&&
   html.includes('class="rock-hero-wordmark"')&&html.includes('class="hub-game"');
- if(result.timeout||result.code!==0||!loaded)
+ const aligned=html.includes('data-squatch-home-alignment="pass"');
+ if(result.timeout||result.code!==0||!loaded||!aligned){
+  const details=html.match(/data-squatch-home-details="([^"]+)"/)?.[1];
   throw new Error('Rock homepage '+width+'px: '+JSON.stringify(result)+
-   ' hero/cards ready='+loaded+' stderr='+stderr.slice(-500));
- console.log('PASS Rock homepage',width+'x'+height,'artwork, live cards and mode');
+   ' hero/cards ready='+loaded+' alignment='+aligned+' '+details+' stderr='+stderr.slice(-500));
+ }
+ console.log('PASS Rock homepage',width+'x'+height,'artwork / logo / title strips / card alignment');
 }
 try{
  await browseRockHome(1180,1200);
+ await browseRockHome(930,1000);
  await browseRockHome(390,900);
  for(const game of games)await browse(game,1180,900);
  for(const game of games)await browse(game,390,844);
