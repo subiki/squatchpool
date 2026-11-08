@@ -56,11 +56,15 @@ const probe=`<script>
       !document.getElementById('squatch-rock-style')?.disabled);
     const wronglyVisibleHidden=[...main.querySelectorAll('[hidden]')]
       .filter(node=>getComputedStyle(node).display!=='none');
+    const aimChoices=[...main?.querySelectorAll('.squatch-aim-mode')||[]];
+    const aimOK=aimChoices.length===4&&
+      aimChoices.filter(btn=>btn.getAttribute('aria-pressed')==='true').length===1&&
+      !!main?.querySelector('#table-stage .squatch-aim-assist');
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=appearanceOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
-      !!setupOrder&&rulesUniform&&
+      !!setupOrder&&rulesUniform&&aimOK&&
       main?.dataset.squatchGameShell&&errors.length===0;
     if(location.search.includes('smokeScroll=table')&&stage){
       // Headless Chrome's --screenshot after scrollIntoView can capture a
@@ -77,7 +81,7 @@ const probe=`<script>
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,navEqualHeights:dimensions,
-      setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,
+      setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,
       duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
