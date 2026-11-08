@@ -27,7 +27,7 @@ assert.deepEqual(routes,[
  'index.html','press-your-luck.html','tuna.html'
 ],'All playable HTML routes must use the common styling contract.');
 
-const broadSelector=/^\s*(?::root\b|html\b|body\b|main\b|section\b|header\b|canvas\b|button\b|select\b|input\b|label\b|details\b|summary\b|p\b|li\b|a\b|\*\b|\*\[)/m;
+const broadSelector=/^\s*(?::root\b|(?:html|body|main|section|header|canvas|button|select|input|label|details|summary|p|li|a)(?=\s*(?:[,{:]|$))|\*(?=\s*[{\[,]))/m;
 for(const path of routes){
  const html=read(path);
  const shared=[...html.matchAll(/<link\b[^>]*\bdata-squatch-shared-styles\b[^>]*>/gi)];
