@@ -51,8 +51,14 @@ jobs:
           set -euo pipefail
           expected="104335a2ddd65413d70438f91c4f59eb918246da"
           site="https://squatch.subikistudios.com"
-          for attempt in $(seq 1 12); do
-            echo "Production verification attempt $attempt/12"
+          echo "PUBLIC STATUS PROBE"
+          for path in / /deployment.json /assets/brand/rock-hero-1600.webp /but-wait.html /api/stats; do
+            code="$(curl -Ls --connect-timeout 5 --max-time 15 -o /dev/null -w '%{http_code}' "$site$path?probe=$GITHUB_RUN_ID")"
+            echo "Public $path => HTTP $code"
+          done
+          curl -sSI --connect-timeout 5 --max-time 12 "$site/deployment.json" | grep -Ei '^(HTTP/|server:|content-type:|cf-ray:|location:)' || true
+          for attempt in $(seq 1 2); do
+            echo "Production verification attempt $attempt/2"
             manifest="$(curl -fsSL --connect-timeout 5 --max-time 15 "$site/deployment.json?probe=$GITHUB_RUN_ID-$attempt" || true)"
             echo "Manifest: $manifest"
             if printf '%s' "$manifest" | jq -e --arg commit "$expected" '.commit == $commit and .branch == "main"' >/dev/null 2>&1; then
@@ -72,7 +78,7 @@ jobs:
               echo "LIVE SQUATCH ROCK RELEASE VERIFIED $expected"
               exit 0
             fi
-            sleep 10
+            sleep 2
           done
           echo "Production did not expose expected Cloudflare build within verification window." >&2
           exit 1
