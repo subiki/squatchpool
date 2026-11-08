@@ -56,7 +56,11 @@ test('Caroms has concise rules before play, with optional panels after the table
  assert.ok(html.indexOf('<squatch-header>')<table,'shared header precedes game table');
  for(const id of ['caroms-call-controls','caroms-shot-panel','caroms-shoot'])
   assert.ok(at(id)>table,id+' must follow the playable table');
- assert.ok(at('caroms-rules-panel')>0&&at('caroms-rules-panel')<table,'rules appear before gameplay without forcing an expanded panel');
+ // All games now generate their one canonical rules component in the shared shell.
+ assert.doesNotMatch(html,/class="game-rules-layout"|class="rulebook"/,
+  'no duplicate static rulebook is shipped in Caroms HTML');
+ assert.match(readFileSync(new URL('../src/game-page-shell.js',import.meta.url),'utf8'),
+  /caroms:'caroms-rules-panel'/,'the shared template owns the Caroms rulebook ID');
  assert.match(html,/<p class="notice">\s*<strong>Play Caroms:/);
  assert.match(html,/@media\(max-width:650px\)/);
  assert.doesNotMatch(html,/#caroms-shoot\{position:fixed/);
@@ -65,7 +69,7 @@ test('Caroms has concise rules before play, with optional panels after the table
  assert.match(html,/src="\.\/src\/caroms-entry.js"/);
  assert.equal(html.split('<details').length,html.split('</details>').length,
   'all collapsible panels must close');
- for(const id of ['caroms-rules-panel','caroms-setup-panel','caroms-shot-panel','caroms-history-panel'])
+ for(const id of ['caroms-setup-panel','caroms-shot-panel','caroms-history-panel'])
   assert.match(html,new RegExp('id="'+id+'"'));
 });
 
@@ -83,7 +87,8 @@ test('all controller IDs remain unique and call/shot controls are accessible',()
 });
 
 test('Caroms exposes active rules without obsolete manuscripts or field notes',()=>{
- assert.ok(html.indexOf('id="caroms-rules-panel"')<html.indexOf('id="caroms-table"'));
+ assert.doesNotMatch(html,/id="caroms-rules-panel"/,
+  'the rulebook must come from the shared shell rather than duplicate static HTML');
  assert.doesNotMatch(html,/archive\.html|Optional original story|<details[^>]*id="caroms-story-panel"/i);
  assert.match(html,/id="caroms-play-anchor"/);
 });

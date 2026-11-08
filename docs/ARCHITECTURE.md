@@ -37,7 +37,7 @@ The header offers **Classic** and **Rock & Roll** skins. The appearance preferen
 
 At game mount, `prepareGamePage(root,gameId)` builds a single outer structure. It **moves**, rather than clones, existing game inputs/HUD/canvas into its named slots, then the controller installs listeners on those original elements. Config lists only valid game-specific setup fields and titles. The visual hierarchy is the same for every route.
 
-This adapter stage intentionally preserves legacy game HTML until verified. **Next cleanup:** move repeated source markup into common builders and remove obsolete per-route styling; do not build another abstraction beside this one.
+This adapter stage preserves controller-required game markup, but removes duplicate static rulebook markup: rule text has one source in `src/game-guides.js`. **Next cleanup:** move repeated source markup into common builders and remove obsolete per-route styling; do not build another abstraction beside this one.
 
 ## Compatibility boundaries
 

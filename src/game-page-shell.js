@@ -121,8 +121,8 @@ const RULE_IDS={
  cutthroat:'cut-rules','press-your-luck':'press-full-rules',
  tuna:'tuna-full-rules',arcade:'arcade-full-rules'
 };
-/** One in-page rulebook presentation; only copy/content differs by game. */
-function renderGameRules(main,doc,rules,gameId,config){
+/** The canonical in-page rulebook. Game HTML contains no duplicate rule copy. */
+export function renderGameRules(main,doc,rules,gameId,config){
  const guide=GAME_GUIDES[gameId==='but-wait'?'but-wait-theres-more':gameId];
  const lead=make(doc,'p','squatch-rules-lead',guide?.intro||config.intro);
  rules.append(lead);
@@ -148,10 +148,6 @@ function renderGameRules(main,doc,rules,gameId,config){
   if(info)details.append(info);
  }
  rules.append(details);
- // These are legacy display-only copies, retained in static source for
- // non-JavaScript fallback. Runtime uses the same canonical rulebook for all.
- main.querySelector('.game-rules-layout')?.remove();
- main.querySelector('.quickstart')?.remove();
 }
 
 function normalizeKit(main,doc){

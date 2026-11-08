@@ -56,7 +56,7 @@ Cloudflare Pages deploys the static site from `main`; its header displays a buil
 
 Use the shared header's **Classic / Rock & Roll** toggle to change appearance without changing game controls or section order.
 
-The shared shell currently **moves the existing controller-owned DOM nodes** into one runtime layout, preserving canvas and input IDs. As integration is verified, retire redundant per-game presentation markup; do not create yet another page style.
+The shared shell currently **moves the existing controller-owned DOM nodes** into one runtime layout, preserving canvas and input IDs. The five game HTML files no longer copy lengthy rulebooks: `src/game-guides.js` supplies one renderer for Home and in-game instructions. Continue retiring obsolete setup and shot-kit wrappers in small verified slices; do not create another page style.
 
 ## Documentation
 

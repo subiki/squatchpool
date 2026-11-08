@@ -38,7 +38,7 @@ If the browser or device cannot be inspected, document the missing acceptance ra
 ## Product and process
 
 - **Features over tests**, but retain targeted regression tests for repeated bugs. Avoid extensive new QA infrastructure and speculative frameworks.
-- Original game rules are stored in `src/game-guides.js` for display and in adjudicators for behavior. Preserve `archive/source/` untouched.
+- Original game rules are stored in `src/game-guides.js` for display and in adjudicators for behavior. **Never paste a second static rulebook into an individual HTML game page**; the shared renderer owns every rule section. Preserve `archive/source/` untouched.
 - One architecture PR at a time, plus nonoverlapping verification/hotfix work. Never cross-merge agent lanes or force-push another contributor's work.
 - Keep product direction in [Backlog](docs/BACKLOG.md) and [Roadmap](docs/ROADMAP.md); keep procedure in [Delivery](docs/DELIVERY.md); keep component ownership in [Architecture](docs/ARCHITECTURE.md). Do not copy the same instructions into new one-off documents.
 - Escalate only real owner choices, unavailable access, conflicting game rules or irreversible changes. Otherwise execute the highest-priority unblocked task.
