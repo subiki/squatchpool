@@ -12,7 +12,7 @@ const clone=v=>JSON.parse(JSON.stringify(v));
 const ball=(x,y,c='#f6f3e7')=>({x,y,vx:0,vy:0,c});
 const bounded=(x,y)=>({x:Math.max(32,Math.min(W-32,x)),y:Math.max(32,Math.min(H-32,y))});
 function randomize(){
- playing=false;shots=0;pocketed=0;stage=0;events=[];
+ playing=false;shots=0;pocketed=0;stage=0;events=[];$('chaos-play').textContent='▶ Play';$('chaos-events').textContent='Chaos event log';
  balls=[ball(205,260)];
  const colors=['#ffb833','#e64e50','#4ca4ef','#d66de0','#f7f1b0','#76d68d'];
  for(let i=0;i<Math.floor(rand(5,17));i++)balls.push({...ball(rand(340,850),rand(55,465),colors[i%colors.length]),eight:i===0});
@@ -28,9 +28,9 @@ function load(s){
  balls=s.balls.map(b=>{const p=bounded(b.x,b.y);return {...ball(p.x,p.y,b.c),eight:!!b.eight,fragment:!!b.fragment};});
  bumpers=s.bumpers.map(b=>({...bounded(b.x,b.y),r:b.r}));
  setMods(s.mods||{});$('chaos-name').value=String(s.name||'Chaos Pool').slice(0,72);
- playing=false;shots=0;pocketed=0;stage=0;events=[];$('chaos-play').textContent='▶ Play';snapshot=state();draw();return true;
+ playing=false;shots=0;pocketed=0;stage=0;events=[];$('chaos-events').textContent='Chaos event log';$('chaos-play').textContent='▶ Play';snapshot=state();draw();return true;
 }
-function status(message){$('chaos-status').textContent=message;$('chaos-counter').textContent=`${shots} shots · ${pocketed} balls pocketed · stage ${stage}`;if(events.length)$('chaos-events').textContent=events.slice(-4).join(' · ');}
+function status(message){$('chaos-status').textContent=message;$('chaos-counter').textContent=`${shots} shots · ${pocketed} balls pocketed · stage ${stage}`;$('chaos-events').textContent=events.length?events.slice(-4).join(' · '):'Chaos event log';}
 function saved(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x.slice(0,30):[];}catch{return [];}}
 function refreshSaved(){const select=$('chaos-load');select.replaceChildren(new Option('Choose a saved creation',''));saved().forEach((s,i)=>select.add(new Option(s.name||'Untitled',String(i))));}
 function save(){const s=state();if(!s.balls.length){status('Add at least one ball before saving.');return;}const list=saved();list.unshift(s);try{localStorage.setItem(KEY,JSON.stringify(list.slice(0,30)));refreshSaved();status('Saved locally with all mods: '+s.name);}catch{status('Browser storage unavailable; table is still playable.');}}
