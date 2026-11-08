@@ -54,8 +54,8 @@ test('one rulebook renderer displays the actual guide for all five games',()=>{
    id+' page must not duplicate the canonical rules');
   assert.ok(!page.includes('docs.google.com') && !page.includes('href="https://') &&
     !page.includes("href='https://"),id+' page must remain internal-only');
-   id+' page must remain internal-only');
  }
+
  assert.ok(points>=55,'full house rules are preserved by the shared renderer');
 });
 
@@ -69,7 +69,6 @@ test('home and game routes share the same canonical guide content',()=>{
  assert.ok(!css.includes('url(')&&!css.includes('@import'),'SPA route CSS remains self-contained');
  assert.ok(css.includes('.hub-game:has(.hub-rules[open])'));
  const site=read('src/game-shell.css');
- assert.ok(site.includes('.squatch-rulebook')&&site.includes('.squatch-rule-list'));
  assert.ok(site.includes('.squatch-rulebook')&&site.includes('.squatch-rule-list'));
 });
 
