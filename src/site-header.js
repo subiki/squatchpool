@@ -98,7 +98,7 @@
       for (const [href, label] of pages) {
         const link = document.createElement('a');
         link.href = href;
-        if (href === '/chaos.html') link.dataset.rockExclusive = 'true';
+        if (href === '/chaos.html') link.setAttribute('data-rock-exclusive', 'true');
         link.textContent = label;
         if (current === href) link.setAttribute('aria-current', 'page');
         nav.append(link);
@@ -108,8 +108,8 @@
       });
       this.append(header);
       // Rock-exclusive links stay out of Classic navigation.
-      const updateExclusive = () => header.querySelectorAll('[data-rock-exclusive]').forEach(link => { link.hidden = document.documentElement.dataset.squatchTheme !== 'rock'; });
-      header.querySelectorAll('[data-squatch-theme-choice]').forEach(button => button.addEventListener('click', updateExclusive));
+      const updateExclusive = () => header.querySelectorAll?.('[data-rock-exclusive]')?.forEach(link => { link.hidden = document.documentElement?.dataset?.squatchTheme !== 'rock'; });
+      header.querySelectorAll?.('[data-squatch-theme-choice]')?.forEach(button => button.addEventListener('click', updateExclusive));
       updateExclusive();
       setMode(readMode());
     }
