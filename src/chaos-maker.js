@@ -1,3 +1,4 @@
+import {newOrigin,forkLineage,reviseLineage,validLineage,describeLineage} from './chaos-lineage.js';
 import {predictShot} from './chaos-shot-predictor.js';
 import {NIGHTMARE_PRESET,NIGHTMARE_MODS,randomMods,onCollision,onPocket,onShot,applyForces} from './chaos-mechanics.js';
 // Experimental browser-local Chaos Pool. No eval, remote code or external storage.
@@ -6,6 +7,7 @@ const ctx=canvas.getContext('2d');
 const $=id=>document.getElementById(id);
 const W=960,H=520,R=13,KEY='squatch-chaos-tables-v1';
 let predictionKey='',predictionCache=null;
+let lineage=newOrigin(),loadedRecipe=null;
 let balls=[],bumpers=[],playing=false,shots=0,pocketed=0,drag=null,aim={x:1,y:0},snapshot=null,last=0,frame=0,stage=0,events=[],goalFinished=false,editDraft=null;
 const AIM_KEY='squatch-invert-aim';
 try{$('chaos-invert').checked=localStorage.getItem(AIM_KEY)==='true';}catch{}
@@ -19,6 +21,7 @@ const clone=v=>JSON.parse(JSON.stringify(v));
 const ball=(x,y,c='#f6f3e7')=>({x,y,vx:0,vy:0,c});
 const bounded=(x,y)=>({x:Math.max(32,Math.min(W-32,x)),y:Math.max(32,Math.min(H-32,y))});
 function randomize(){
+ lineage=newOrigin();loadedRecipe=null;updateLineage();
  playing=false;shots=0;pocketed=0;stage=0;events=[];goalFinished=false;editDraft=null;$('chaos-result').textContent='';$('chaos-play').textContent='▶ Play';$('chaos-events').textContent='Chaos event log';
  balls=[ball(205,260)];
  const colors=['#ffb833','#e64e50','#4ca4ef','#d66de0','#f7f1b0','#76d68d'];
@@ -28,19 +31,20 @@ function randomize(){
  $('chaos-name').value=['Wild Pocket','Forest Frenzy','Squatch Panic','Unhinged Eight','Moss Monster'][Math.floor(rand(0,5))];
  snapshot=state();status('Random chaos ready. Drag things around or press Play.');draw();
 }
-function state(){return{version:1,name:$('chaos-name').value.slice(0,72),balls:clone(balls.map(({x,y,c,eight,fragment})=>({x,y,c,eight:!!eight,fragment:!!fragment}))),bumpers:clone(bumpers),mods:mods(),goal:$('chaos-goal').value,shotLimit:Number($('chaos-limit').value)};}
+function state(){return{version:1,name:$('chaos-name').value.slice(0,72),balls:clone(balls.map(({x,y,c,eight,fragment})=>({x,y,c,eight:!!eight,fragment:!!fragment}))),bumpers:clone(bumpers),mods:mods(),goal:$('chaos-goal').value,shotLimit:Number($('chaos-limit').value),lineage:clone(lineage)};}
 function load(s){
  if(!s||s.version!==1||!Array.isArray(s.balls)||!Array.isArray(s.bumpers)||s.balls.length<1||s.balls.length>70||s.bumpers.length>40)return false;
  if(!s.balls.every(b=>Number.isFinite(b.x)&&Number.isFinite(b.y)&&typeof b.c==='string'&&/^#[0-9a-f]{6}$/i.test(b.c))||!s.bumpers.every(b=>Number.isFinite(b.x)&&Number.isFinite(b.y)&&Number.isFinite(b.r)&&b.r>=10&&b.r<=45))return false;
  balls=s.balls.map(b=>{const p=bounded(b.x,b.y);return {...ball(p.x,p.y,b.c),eight:!!b.eight,fragment:!!b.fragment};});
  bumpers=s.bumpers.map(b=>({...bounded(b.x,b.y),r:b.r}));
  setMods(s.mods||{});$('chaos-goal').value=['clear','eight','shots','survive','sandbox'].includes(s.goal)?s.goal:'clear';$('chaos-limit').value=String(Math.max(1,Math.min(99,Number(s.shotLimit)||12)));$('chaos-name').value=String(s.name||'Chaos Pool').slice(0,72);
+ lineage=validLineage(s.lineage)?clone(s.lineage):newOrigin();loadedRecipe=clone(s);updateLineage();
  playing=false;shots=0;pocketed=0;stage=0;events=[];goalFinished=false;$('chaos-result').textContent='';$('chaos-events').textContent='Chaos event log';$('chaos-play').textContent='▶ Play';snapshot=state();draw();return true;
 }
 function status(message){$('chaos-status').textContent=message;$('chaos-counter').textContent=`${shots} shots · ${pocketed} balls pocketed · stage ${stage}`;$('chaos-events').textContent=events.length?events.slice(-4).join(' · '):'Chaos event log';}
 function saved(){try{const x=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(x)?x.slice(0,30):[];}catch{return [];}}
 function refreshSaved(){const select=$('chaos-load');select.replaceChildren(new Option('Choose a saved creation',''));saved().forEach((s,i)=>select.add(new Option(s.name||'Untitled',String(i))));}
-function save(){const s=editDraft?{...editDraft,name:$('chaos-name').value.slice(0,72)}:state();if(!s.balls.length){status('Add at least one ball before saving.');return;}const list=saved();list.unshift(s);try{localStorage.setItem(KEY,JSON.stringify(list.slice(0,30)));refreshSaved();status('Saved locally with all mods: '+s.name);}catch{status('Browser storage unavailable; table is still playable.');}}
+function save(){lineage=reviseLineage(lineage);updateLineage();const s=editDraft?{...editDraft,name:$('chaos-name').value.slice(0,72),lineage:clone(lineage)}:state();if(!s.balls.length){status('Add at least one ball before saving.');return;}const list=saved();list.unshift(s);try{localStorage.setItem(KEY,JSON.stringify(list.slice(0,30)));refreshSaved();status('Saved locally with all mods: '+s.name);}catch{status('Browser storage unavailable; table is still playable.');}}
 const pockets=[[28,28],[W/2,22],[W-28,28],[28,H-28],[W/2,H-22],[W-28,H-28]];
 function draw(){
  ctx.clearRect(0,0,W,H);ctx.fillStyle='#1c5c3b';ctx.fillRect(0,0,W,H);
@@ -146,7 +150,7 @@ $('chaos-clear').addEventListener('click',()=>{playing=false;editDraft=null;goal
 $('chaos-shoot').addEventListener('click',()=>{if(!playing){status('Press Play before shooting.');return;}if(goalFinished){status('Game finished. Reset to play again.');return;}if(!balls.length)return;const b=balls[0];if(Math.hypot(b.vx,b.vy)>.5){status('Wait for the balls to settle.');return;}const power=Number($('chaos-power').value)/100;b.vx=aim.x*(3+power*16);b.vy=aim.y*(3+power*16);shots++;const world={balls,bumpers,mods:mods(),events,stage,shots,pockets};onShot(world);setMods(world.mods);status('CHAOS! Shot '+shots);});
 $('chaos-save').addEventListener('click',save);
 $('chaos-export').addEventListener('click',async()=>{
- const recipe=editDraft?{...editDraft,name:$('chaos-name').value.slice(0,72)}:state();
+ const recipe=editDraft?{...editDraft,name:$('chaos-name').value.slice(0,72),lineage:clone(lineage)}:state();
  const code=JSON.stringify(recipe);$('chaos-share-code').value=code;
  try{await navigator.clipboard.writeText(code);status('Game code copied. Share it with another player.');}
  catch{status('Game code ready in the text box. Select and copy it to share.');}
@@ -164,5 +168,34 @@ $('chaos-load').addEventListener('change',e=>{const s=saved()[Number(e.target.va
 $('chaos-nightmare').addEventListener('click',()=>{randomize();$('chaos-name').value=NIGHTMARE_PRESET.name;setMods({bounce:true,gravity:false,magnet:false,pinball:true,...NIGHTMARE_PRESET.mods});snapshot=state();status('Squatch\'s Nightmare loaded: eight wild mechanics enabled.');});
 $('chaos-test').addEventListener('click',()=>{if(playing)return;editDraft=state();snapshot=state();goalFinished=false;$('chaos-result').textContent='';playing=true;$('chaos-play').textContent='✎ Build';status('Playtest started. Shoot to try your rules.');});
 $('chaos-edit').addEventListener('click',()=>{if(editDraft&&load(editDraft)){editDraft=null;status('Back to editing your original design.');}else if(playing&&snapshot){load(snapshot);status('Back to editing.');}});
+
+// Local lineage is portable in share codes. This is not yet server publishing.
+const lineagePanel=document.createElement('section');
+lineagePanel.id='chaos-lineage-panel';
+lineagePanel.style.cssText='margin:12px 0;padding:12px;border:1px solid currentColor;border-radius:12px';
+const lineageTitle=document.createElement('strong');lineageTitle.textContent='Game family tree';
+const lineageDescription=document.createElement('p');lineageDescription.id='chaos-lineage-description';
+const lineageHistory=document.createElement('ol');lineageHistory.id='chaos-lineage-history';
+const forkButton=document.createElement('button');forkButton.type='button';forkButton.textContent='Fork this game';
+lineagePanel.append(lineageTitle,lineageDescription,lineageHistory,forkButton);
+$('chaos-save').parentElement?.append(lineagePanel);
+function updateLineage(){
+ if(!lineageDescription)return;
+ lineageDescription.textContent=describeLineage(lineage);
+ lineageHistory.replaceChildren();
+ for(const ancestor of (lineage.ancestors||[]).slice(-15)){
+  const li=document.createElement('li');
+  li.textContent=`Generation ${ancestor.generation}: ${ancestor.creatorName||'Anonymous'} · ${ancestor.gameId.slice(0,12)}`;
+  lineageHistory.append(li);
+ }
+ const li=document.createElement('li');li.textContent=`Current: ${lineage.gameId.slice(0,12)} · version ${lineage.versionId.slice(0,12)}`;lineageHistory.append(li);
+}
+forkButton.addEventListener('click',()=>{
+ if(playing){status('Return to Build mode before forking.');return;}
+ lineage=forkLineage(lineage);
+ $('chaos-name').value=($('chaos-name').value+' Remix').slice(0,72);
+ updateLineage();status('New fork created. Save or export to preserve this branch.');
+});
+
 randomize();refreshSaved();frame=requestAnimationFrame(tick);
 window.addEventListener('pagehide',()=>cancelAnimationFrame(frame),{once:true});
