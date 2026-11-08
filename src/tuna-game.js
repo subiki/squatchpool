@@ -101,7 +101,7 @@ function update(){
  const callOptions=balls.filter(b=>b.id>0&&!b.pocketed);
  $('call-ball').replaceChildren(new Option('Choose ball',''),...callOptions.map(b=>new Option(String(b.id),String(b.id))));
  if(callOptions.some(b=>String(b.id)===selectedCall))$('call-ball').value=selectedCall;
- $('shoot').disabled=isBotTurn()||shot.phase!=='aim';$('shoot').textContent=shot.breakShot?'BREAK':'SHOOT';
+ $('shoot').textContent=shot.breakShot?'BREAK':'SHOOT';
  const placing=shot.phase==='place';
  $('place').hidden=!placing;$('place').disabled=!placing||isBotTurn();
  $('place').textContent='Confirm cue placement';
@@ -125,6 +125,7 @@ function draw(){
 
 const callReady=()=>Boolean($('call-ball').value&&$('call-pocket').value);
 function updateCallHint(){
+ $('shoot').disabled=isBotTurn()||shot.phase!=='aim'||(!shot.breakShot&&!callReady());
  const undo=$('undo-call');
  undo.hidden=shot.phase!=='aim'||!($('call-ball').value||$('call-pocket').value);
  undo.disabled=isBotTurn()||shot.phase!=='aim';

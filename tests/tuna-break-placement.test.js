@@ -91,10 +91,17 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    }
    assert.equal(settled,true,'physical break must settle and keep the frame loop alive');
    if(!node('place').hidden)node('place').onclick();
+   assert.equal(node('shoot').disabled,true,'ordinary shot requires a complete call');
    node('shoot').onclick();
    assert.match(node('status').textContent,/before shooting/,'missing call blocks an ordinary strike');
-   node('call-ball').value='1';node('call-pocket').value='TM';
+   node('call-ball').value='1';listeners.get('call-ball:change')();
+   assert.equal(node('shoot').disabled,true,'ball alone cannot enable Shoot');
+   node('call-pocket').value='TM';
    listeners.get('call-pocket:change')();
+   assert.equal(node('shoot').disabled,false,'complete dropdown call enables Shoot immediately');
+   node('undo-call').onclick();
+   assert.equal(node('shoot').disabled,true,'Undo blocks the cleared shot');
+   node('call-ball').value='1';node('call-pocket').value='TM';listeners.get('call-pocket:change')();
    queuedFrame(time+1000/120);
    node('shoot').onclick();
    assert.equal(node('shoot').disabled,true,'complete call permits the next physical shot');
