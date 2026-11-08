@@ -111,8 +111,7 @@ function update(){
 }
 const renderer=createTableRenderer({table:TABLE,pockets,cushions,renderPocket});
 function draw(){
- renderer.drawTable(ctx,balls,{
-  breakSetup:shot.breakShot&&shot.phase==='aim',
+ renderer.drawTable(ctx,balls,{breakSetup:shot.breakShot&&shot.phase==='aim',
   customDrawBall:ball=>drawPoolBall(ctx,ball,TABLE.radius,'realistic')
  });
  drawCallTargets();
