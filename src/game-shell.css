@@ -120,7 +120,7 @@ main.squatch-game-page .squatch-shot-actions :is(button,.kit-aim){
  gap:7px!important}
 main.squatch-game-page .squatch-shot-actions #invert-aim{
  font:800 .88rem/1.2 system-ui,sans-serif!important;padding:8px 12px!important;
- border-width:2px!important;
+ border-width:2px!important;letter-spacing:normal!important;
  flex:0 1 auto;max-width:100%;white-space:normal
 }
 main.squatch-game-page .kit-more{width:100%!important;margin:0!important;
