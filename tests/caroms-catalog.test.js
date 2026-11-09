@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {GAME_GUIDES} from '../src/game-guides.js';
 import {GAMES,rankedGames} from '../src/game-catalog.js';
 import {mountGameHub} from '../src/game-hub.js';
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
@@ -18,7 +19,8 @@ test('Caroms remains offered as bot or local two-player beta',()=>{
  assert.match(caroms,/<option value="local">Local player · pass and play<\/option>/);
  assert.ok(read('src/game-page-shell.js').includes("players:'caroms-mode'"),
   'shared page template must own Caroms player selection');
- assert.match(caroms,/First to two racks wins this playtest match/);
+ assert.match(JSON.stringify(GAME_GUIDES.caroms),/best of three racks \(first to two\)/,
+  'match rules come from the canonical shared guide');
  assert.match(caroms,/content="Play original Caroms.*solo against Squatch Bot/);
  assert.ok(game.rules.length>=3,'Caroms rules now appear in the expandable homepage card');
 });
