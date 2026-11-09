@@ -268,12 +268,13 @@ test('compact games display their own live totals through the existing client an
  const find=id=>{if(!nodes.has(id))nodes.set(id,{textContent:''});return nodes.get(id);};
  let online,available=true,missing=false;
  try{
-  globalThis.document={getElementById:find};
+  globalThis.document={getElementById:find,querySelector:selector=>selector==='#site-stats-breakdown'?null:find(selector.slice(1))};
   globalThis.window={addEventListener:(event,callback)=>{if(event==='online')online=callback;}};
   Object.defineProperty(globalThis,'localStorage',{configurable:true,get(){throw new Error('Storage denied');}});
   globalThis.fetch=async(url,options)=>{
    requests.push({url,options});
    return {ok:available,status:available?200:503,json:async()=>({site:{players:5,racks:9,balls:12},games:missing?[]:[
+    {id:game,players:5,racks:4,balls:22},
     {id:'press-your-luck',players:3,racks:0,balls:10},
     {id:'tuna',players:2,racks:9,balls:2},
     {id:'caroms',players:4,racks:6,balls:16},
@@ -281,6 +282,7 @@ test('compact games display their own live totals through the existing client an
    ]})};
   };
   for(const [gameId,values,init] of [
+   [game,['5','4','22'],()=>initStats()],
    ['press-your-luck',['3','0','10'],()=>createGameTelemetry('press-your-luck')],
    ['tuna',['2','9','2'],()=>createGameTelemetry('tuna')],
    ['caroms',['4','6','16'],initCaromsStats],
@@ -290,12 +292,13 @@ test('compact games display their own live totals through the existing client an
    init();
    await new Promise(resolve=>setImmediate(resolve));
    assert.deepEqual(requests,[{url:'/api/stats',options:{cache:'no-store'}}],'rendering must not add another client or request');
-   const totals=()=>['players','racks','balls'].map(field=>find('current-game-stats-'+field).textContent);
+   const prefix=gameId===game?'game-stats-':'current-game-stats-';
+   const totals=()=>['players','racks','balls'].map(field=>find(prefix+field).textContent);
    assert.deepEqual(totals(),values,'use this game, not site totals or the default But Wait game');
-   assert.match(find('current-game-stats-status').textContent,/Live game totals/);
+   assert.match(find(prefix+'status').textContent,/Live game totals/);
    available=false;online();await new Promise(resolve=>setImmediate(resolve));
    assert.deepEqual(totals(),['—','—','—']);
-   assert.match(find('current-game-stats-status').textContent,/unavailable/);
+   assert.match(find(prefix+'status').textContent,/unavailable/);
    available=true;missing=true;online();await new Promise(resolve=>setImmediate(resolve));
    assert.deepEqual(totals(),['—','—','—'],'missing game must not become fabricated zero');
    missing=false;online();await new Promise(resolve=>setImmediate(resolve));
