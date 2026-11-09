@@ -929,8 +929,7 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting :is(select,input),
 :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting-static{
  background:#fff1d1!important;color:#19221c!important;
- border:3px ridge #d8ad66!important;border-radius:9px!important;
- font:750 .98rem/1.25 system-ui,sans-serif!important;
+ border-color:#d8ad66!important;border-style:ridge!important;border-radius:9px!important;
  box-shadow:inset 0 1px #ffffff!important;
 }
 :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting :is(select,input):disabled{
@@ -1023,10 +1022,9 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 }
 :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-shot-row
  :is(#shoot,#caroms-shoot,#cut-shoot){
- min-height:51px!important;
  background:linear-gradient(#deff93,#91db36 48%,#3a8c11)!important;
  color:#0f2508!important;
- border:3px ridge #f0ffb8!important;
+ border-color:#f0ffb8!important;border-style:ridge!important;
  box-shadow:inset 0 2px #f9ffcd,0 4px #245810,0 0 12px #a9ff4d94!important;
  text-shadow:0 1px #eafdbd!important;
 }
