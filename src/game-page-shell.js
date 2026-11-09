@@ -245,12 +245,9 @@ export function prepareGamePage(root=globalThis.document,gameId){
   play.append(stage);
   // Arcade instruction card was already placed in the shared rulebook.
  }else{
-  const anchor=main.querySelector('#caroms-play-anchor');
-  if(anchor)play.append(anchor);
   play.append(stage);
  }
  clearOriginalIntro(main,gameId,hero,rules);
- if(gameId==='caroms')main.querySelector(':scope > #caroms-setup-panel')?.remove();
  // Remove the old layout-only setup wrapper, after moving all controls.
  if(gameId==='cutthroat')main.querySelector(':scope > .controls')?.remove();
  if(gameId==='press-your-luck'||gameId==='tuna')main.querySelector(':scope > section.controls')?.remove();

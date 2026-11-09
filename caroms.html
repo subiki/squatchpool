@@ -8,7 +8,6 @@
 <style data-page-style>
 /* Caroms-only art and game-state controls; shared shell owns page layout. */
 #table-stage canvas{touch-action:none}
-.notice{border-left:4px solid #f3c676;background:#263c30;padding:12px 18px;border-radius:6px}
 #caroms-turn{font-weight:850;font-size:1.35rem}
 #caroms-score,#caroms-status{font-size:1.08rem}
 #caroms-option{border:2px solid #eec67b;padding:14px;border-radius:10px}
@@ -25,7 +24,7 @@ details.panel>summary::marker{color:#f7d18b}
 details.panel>.panel-body{padding:12px 16px}
 details.panel[open]>summary{border-bottom:1px solid #728b72}
 .story-panel blockquote{border-left:3px solid #eec67b;padding-left:16px;margin:14px 0}.story-actions a{display:inline-block;padding:8px 12px;min-height:44px}.rules-list{padding-left:24px;margin:10px 0}.rules-list li{margin:6px 0}
-.gameplay-heading{margin:18px 0 8px;font-size:1.2rem}.stats-panel strong{color:#f7d18b}
+.stats-panel strong{color:#f7d18b}
 :focus-visible{outline:3px solid #fbe5a2;outline-offset:3px}
 
 @media(max-width:650px){.pocket-quick{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0}}
@@ -50,20 +49,11 @@ details.panel[open]>summary{border-bottom:1px solid #728b72}
 <main>
 
 
-<h1>Caroms (Whacky Pool)</h1>
-<p class="notice"><strong>Play Caroms:</strong> Play solo against Squatch Bot or pass and play with a friend. First to two racks wins this playtest match. Strike a numbered ball into the white ball first; after contact, a ball must reach a rail.</p>
-
-
-
-<details class="panel" id="caroms-setup-panel"><summary>Table &amp; player settings</summary><div class="panel-body">
-<div class="controls">
-<label>Opponent<select id="caroms-mode"><option value="bot" selected>Squatch Bot · solo</option><option value="local">Local player · pass and play</option><option value="bots">Watch two Squatch Bots</option></select></label>
-<label>Table size<select id="caroms-size"><option value="7" selected>7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select></label>
-<label>Player 1 skill<select id="caroms-level-0"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
-<label>Player 2 skill<select id="caroms-level-1"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select></label>
-
-</div></div></details>
-<h2 class="gameplay-heading">Pool table</h2><div id="caroms-play-anchor"></div>
+<!-- Setup controls are moved into the shared game-page composer before binding. -->
+<select id="caroms-mode"><option value="bot" selected>Squatch Bot · solo</option><option value="local">Local player · pass and play</option><option value="bots">Watch two Squatch Bots</option></select>
+<select id="caroms-size"><option value="7" selected>7 ft · 78 × 39 in</option><option value="8">8 ft · 88 × 44 in</option><option value="9">9 ft · 100 × 50 in</option></select>
+<select id="caroms-level-0"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select>
+<select id="caroms-level-1"><option value="beginner">Beginner · slop</option><option value="intermediate">Intermediate · call 8</option><option value="advanced">Advanced · call all</option></select>
 <div class="table-stage" id="table-stage">
 <div class="caroms-status-bar"><div class="caroms-hud" aria-label="Match scoreboard"><div class="hud-player" id="caroms-hud-p0"><span class="hud-name">PLAYER 1</span><strong id="caroms-hud-score-0">0</strong><small id="caroms-hud-group-0">Open table</small></div><div class="hud-center"><span>CAROMS · BEST OF 3</span><strong id="caroms-turn" aria-live="polite">BREAK</strong><span id="caroms-hud-possession">On the table</span></div><div class="hud-player" id="caroms-hud-p1"><span class="hud-name" id="caroms-hud-name-1">SQUATCH BOT</span><strong id="caroms-hud-score-1">0</strong><small id="caroms-hud-group-1">Open table</small></div></div><div id="caroms-score" class="sr-only"></div><p id="caroms-status" role="status" aria-live="polite"></p></div>
 <div class="game-live-stats" aria-label="Caroms lifetime statistics"><strong>All-time game totals</strong><span><b id="current-game-stats-players">&#8212;</b> Players</span><span><b id="current-game-stats-racks">&#8212;</b> Racks</span><span><b id="current-game-stats-balls">&#8212;</b> Balls made</span><small id="current-game-stats-status" role="status">Connecting to statistics...</small></div><div class="table-wrap"><canvas id="caroms-table" aria-label="Caroms pool table. Tap an eligible numbered ball to select it, then drag elsewhere on the table to aim."></canvas></div>
