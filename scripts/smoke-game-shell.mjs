@@ -181,6 +181,9 @@ const probe=`<script>
       ];
     };
     const fingerprint={
+      geometry:[main.querySelector('.squatch-game-setup').getBoundingClientRect().width,
+        main.querySelector('.squatch-game-play').getBoundingClientRect().width,
+        stageRect.width,canvasRect.width],
       title:styleOf('.squatch-page-title'),
       section:styleOf('.squatch-section-title'),
       setting:styleOf('.squatch-setting select'),
@@ -251,7 +254,7 @@ function assertConsistentUI(game,width,theme,html){
  if(!encoded)throw Error(game+': computed UI style fingerprint missing');
  const current=JSON.parse(decodeURIComponent(encoded));
  const controlKey=game+'-'+width;
- const controls=JSON.stringify({setting:current.setting,shot:current.shot});
+ const controls=JSON.stringify({setting:current.setting,shot:current.shot,geometry:current.geometry});
  if(theme==='classic')appearanceControlFingerprints.set(controlKey,controls);
  else if(appearanceControlFingerprints.has(controlKey)&&
    appearanceControlFingerprints.get(controlKey)!==controls)

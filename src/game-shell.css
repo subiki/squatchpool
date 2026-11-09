@@ -5,10 +5,12 @@
  --sg-night:#0d281e;--sg-forest:#163c2d;--sg-cream:#f4eeda;--sg-copy:#e1eddf;
  --sg-accent:#f0c478;--sg-edge:#85ad95;--sg-button:#a4cc99;--sg-ink:#102923;
 }
+body:has(> main.squatch-game-page){margin:0}
 main.squatch-game-page{
  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
  align-items:start!important;gap:14px!important;max-width:1120px!important;
  width:100%!important;margin:0 auto!important;padding:14px clamp(12px,2.4vw,22px) 60px!important;
+ border-inline-width:1px!important;
  background:transparent!important;box-sizing:border-box!important;color:var(--sg-cream)!important;
 }
 main.squatch-game-page>*{min-width:0!important;width:100%!important;margin:0!important;box-sizing:border-box!important}
@@ -72,13 +74,14 @@ main.squatch-game-page .squatch-game-play .match{
  box-shadow:none!important;display:block!important
 }
 main.squatch-game-page #table-stage{
- width:100%!important;max-width:none!important;
+ width:100%!important;max-width:none!important;box-sizing:border-box;
  border:1px solid var(--sg-edge)!important;border-radius:12px!important;
  overflow:hidden!important;margin:0!important;
  background:linear-gradient(140deg,#102a20,#1d4230)!important;
 }
 /* Scale the drawing surface, not its physics coordinates, to the available felt. */
-main.squatch-game-page #table-stage .table-wrap{width:100%;box-sizing:border-box}
+main.squatch-game-page #table-stage :is(.table-wrap,.table-frame){width:100%;box-sizing:border-box}
+main.squatch-game-page #table-stage .table-frame{border-width:0}
 main.squatch-game-page #table-stage canvas{display:block;width:100%;max-width:100%;height:auto}
 main.squatch-game-page .table-kit{
  width:100%!important;box-sizing:border-box!important;
