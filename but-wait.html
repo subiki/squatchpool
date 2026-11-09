@@ -48,28 +48,13 @@
   <squatch-header></squatch-header>
   
   <main class="app">
- <div class="grain" aria-hidden="true"></div>
-   
-   <div class="intro">
-    <div>
-     <div class="eyebrow highlight">THE FIRST GAME</div>
-     <h2>But Wait, <em>There's More.</em></h2>
-     <p>Classic 8-ball, with a Squatch-sized surprise: one solid and one stripe wait off-table. When you clear your balls, your opponent chooses either remaining ball and where it goes.</p>
-    </div>
-    <div class="mode-controls">
-     <label for="mode">Who's at the table?</label>
-     <select id="mode" aria-label="Opponent type"><option value="bot">You vs. Speed Squatch</option><option value="local">Two players (pass &amp; play)</option><option value="bots">Watch Squatch Bot vs Squatch Bot (no humans)</option></select>
-     <label class="table-size-label" for="size">Table size</label>
-     <select id="size" aria-label="Table size">
+<!-- Shared composer owns the introduction, setup labels and panels. -->
+<select id="mode" aria-label="Opponent type"><option value="bot">You vs. Speed Squatch</option><option value="local">Two players (pass &amp; play)</option><option value="bots">Watch Squatch Bot vs Squatch Bot (no humans)</option></select>
+<select id="size" aria-label="Table size">
       <option value="7">7 ft · Bar · 78 × 39 in</option>
       <option value="8">8 ft · Home · 88 × 44 in</option>
       <option value="9">9 ft · Pro · 100 × 50 in</option>
      </select>
-
-    </div>
-   </div>
-   
-   
    <section class="match" aria-label="Pool game">
     <div class="game-live-stats" aria-label="But Wait, There's More lifetime statistics">
      <strong>All-time game totals</strong>

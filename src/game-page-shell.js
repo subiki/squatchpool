@@ -158,10 +158,7 @@ function normalizeKit(main,doc){
  primary.replaceChildren(row,utilities,...remainder);
 }
 function clearOriginalIntro(main,gameId,hero,rules){
- if(gameId==='but-wait'){
-  main.querySelector(':scope > .intro')?.remove();
-  main.querySelector(':scope > .grain')?.remove();
- }else if(gameId==='arcade'){
+ if(gameId==='arcade'){
   const original=main.querySelector(':scope > .arcade-heading');
   const dynamic=original?.querySelector('#rules-summary');
   if(dynamic){
