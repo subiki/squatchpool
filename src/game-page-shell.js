@@ -248,8 +248,6 @@ export function prepareGamePage(root=globalThis.document,gameId){
   play.append(stage);
  }
  clearOriginalIntro(main,gameId,hero,rules);
- // Remove the old layout-only setup wrapper, after moving all controls.
- if(gameId==='press-your-luck'||gameId==='tuna')main.querySelector(':scope > section.controls')?.remove();
  // Preserve shot history, in-game modals, notes, and future game-specific
  // extensions. Append them after the shared table slot; never discard nodes.
  extras.append(...[...main.childNodes]);
