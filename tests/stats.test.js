@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {onRequestGet,onRequestPost} from '../functions/api/stats.js';
-import {createStatsClient,initStats} from '../src/stats.js';
+import {createStatsClient,initStats,isStatsSpectator} from '../src/stats.js';
 import {createGameTelemetry} from '../src/game-telemetry.js';
 import {initCaromsStats} from '../src/caroms-stats.js';
 import {initCutthroatStats} from '../src/cutthroat-stats.js';
@@ -365,4 +365,21 @@ test('Press Your Luck and Tuna add comparable sitewide racks and balls',async()=
  assert.deepEqual(result.site,{players:1,racks:2,balls:5});
  assert.deepEqual(result.games.filter(g=>['press-your-luck','tuna'].includes(g.id))
   .map(g=>[g.id,g.racks,g.balls]),[['press-your-luck',1,3],['tuna',1,2]]);
+});
+
+
+test('spectator modes suppress new events while preserving human replay and totals reads',async()=>{
+ for(const value of ['bots','0','bot','local','1','2','3'])
+  assert.equal(isStatsSpectator({querySelector:()=>({value})}),['bots','0'].includes(value));
+ let spectator=true,available=false;const requests=[];
+ const client=createStatsClient({storage:null,uuid:()=>A,canRecord:()=>!spectator,
+  request:async(url,options={})=>{requests.push(options);return {ok:available,status:503,json:async()=>({site:{},games:[]})};}});
+ client.rack(R1);client.balls(R1,S1,2);await client.flush();
+ assert.equal(client.pending(),0);assert.equal(requests.length,0,'spectator creates no POST or outbox event');
+ await client.refresh();assert.equal(requests.length,1,'spectators can still read real totals');
+ spectator=false;client.rack(R2);await client.flush();assert.equal(client.pending(),1,'unavailable human break remains queued');
+ spectator=true;available=true;await client.flush();assert.equal(client.pending(),0,'spectator switch must not discard or strand queued human events');
+ const posts=requests.filter(r=>r.method==='POST').map(r=>JSON.parse(r.body));
+ assert.equal(posts.length,2);assert.ok(posts.every(e=>e.rackId===R2),'only the real human break is retried');
+ spectator=false;client.rack(R3);await client.flush();assert.equal(client.pending(),0,'human play records after leaving spectator mode');
 });
