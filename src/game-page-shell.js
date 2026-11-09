@@ -219,6 +219,11 @@ export function prepareGamePage(root=globalThis.document,gameId){
  const extras=make(doc,'section','squatch-game-after');
  extras.setAttribute('aria-label','Game details and history');
  if(gameId==='but-wait'){
+  // Fullscreen must retain persistent placement guidance and rack results,
+  // as well as the shared transient shot-ruling banner. Move original nodes.
+  for(const feedback of [main.querySelector('.announcer'),main.querySelector('#result-modal')]){
+   if(feedback)stage.append(feedback);
+  }
   const match=main.querySelector(':scope > .match');
   if(match){
    // Align But Wait status placement with the other four HUD layouts.
