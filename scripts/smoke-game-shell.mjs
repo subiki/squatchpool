@@ -123,7 +123,9 @@ const probe=`<script>
     const setupOrder=!!setupTitle&&!!setupGrid&&
       setupTitle.compareDocumentPosition(setupGrid)&Node.DOCUMENT_POSITION_FOLLOWING;
     const rulebook=main?.querySelector('.squatch-game-rules .squatch-rulebook');
+    const rulesBounds=main?.querySelector('.squatch-game-rules')?.getBoundingClientRect();
     const rulesUniform=!!rulebook&&!rulebook.open&&
+      rulebook.getBoundingClientRect().right<=rulesBounds.right+1&&
       rulebook.querySelector('summary')?.textContent==='Explore full house rules, examples & controls';
     const nav=[...document.querySelectorAll('.squatch-header-nav a')];
     const navRects=nav.map(x=>x.getBoundingClientRect());
