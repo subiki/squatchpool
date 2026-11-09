@@ -167,6 +167,8 @@ const probe=`<script>
       !!main?.querySelector('#table-stage .squatch-bot-showtime')&&
       !main.querySelector('#table-stage .squatch-bot-showtime').hidden
     );
+    const feedbackInside=main?.dataset.squatchGameShell!=='but-wait'||
+      ['announcer-text','result-modal'].every(id=>stage?.contains(main.querySelector('#'+id)));
     const aimChoices=[...main?.querySelectorAll('.squatch-aim-mode')||[]];
     const aimOK=aimChoices.length===4&&
       aimChoices.filter(btn=>btn.getAttribute('aria-pressed')==='true').length===1&&
@@ -202,7 +204,7 @@ const probe=`<script>
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=appearanceOK&&rockPageOK&&headerLayoutOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
       !!controls&&visible&&canvasFits&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
-      !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&
+      !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&feedbackInside&&
       main?.dataset.squatchGameShell&&errors.length===0;
     if(location.search.includes('smokeScroll=table')&&stage){
       // Headless Chrome's --screenshot after scrollIntoView can capture a
@@ -219,7 +221,7 @@ const probe=`<script>
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
       hasControls:!!controls,buttonVisible:visible,canvasFits,navEqualHeights:dimensions,
-      setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,
+      setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,feedbackInside,
       duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,rockPageOK,headerLayoutOK,heroImg,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
     });
