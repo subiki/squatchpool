@@ -1,5 +1,5 @@
 import {prepareGamePage} from './game-page-shell.js';
-import {readInvertAim,angleFromPointer} from './aim-preference.js';
+import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint as pointerToTable} from './table-pointer.js';
 import {createCuePlacement} from './shot-lifecycle.js';
 import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
@@ -38,6 +38,7 @@ export function mountTunaGame(root=globalThis.document){
  }
  const $=id=>root.getElementById?.(id)||root.querySelector('#'+id),canvas=$('table'),ctx=canvas.getContext('2d');
  cleanups.push(mountTableKit(root));
+ const invertAim=bindInvertAim($('invert-aim'));cleanups.push(()=>invertAim.dispose());
  const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
 
 let balls=[],turn=0,money=[0,0],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0,shotCall=0,shotPocket='';
@@ -245,7 +246,7 @@ function pointer(e,allowCall=false){
  }
  if(allowCall&&pickTableCall(x,y))return;
  if(!shot.breakShot&&!callReady())return;
- const a=angleFromPointer(cue(),{x,y},$('invert-aim').checked,TABLE.radius);
+ const a=angleFromPointer(cue(),{x,y},invertAim(),TABLE.radius);
  if(a!==null)angle=a;
 }
 listen(canvas,'pointerdown',e=>{
@@ -297,8 +298,7 @@ bind($('undo-call'),'onclick',()=>{if(isBotTurn()||shot.phase!=='aim')return;$('
 bind($('start'),'onclick',()=>{if(shot.phase==='done')rack();});
 bind($('reset-match'),'onclick',resetMatch);
 if($('opponent'))bind($('opponent'),'onchange',resetMatch);
-try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
-bind($('invert-aim'),'onchange',()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}});
+try{$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}rack();});
 const controller={
  get isRackInProgress(){return shot.isRackInProgress;},

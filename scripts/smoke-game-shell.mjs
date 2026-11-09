@@ -194,6 +194,7 @@ const probe=`<script>
         stageRect.width,canvasRect.width],
       title:styleOf('.squatch-page-title'),
       section:styleOf('.squatch-section-title'),
+      reverseAim:styleOf('#invert-aim'),
       settingLabel:styleOf('.squatch-setting-name'),
       setting:styleOf('.squatch-setting select'),
       rules:styleOf('.squatch-rulebook > summary'),

@@ -118,7 +118,11 @@ main.squatch-game-page .squatch-shot-actions>*{margin:0!important;min-height:44p
 main.squatch-game-page .squatch-shot-actions :is(button,.kit-aim){
  display:flex!important;align-items:center!important;justify-content:center!important;
  gap:7px!important}
-main.squatch-game-page .squatch-shot-actions .kit-aim{padding:6px 10px!important}
+main.squatch-game-page .squatch-shot-actions #invert-aim{
+ font:800 .88rem/1.2 system-ui,sans-serif!important;padding:8px 12px!important;
+ border-width:2px!important;letter-spacing:normal!important;
+ flex:0 1 auto;max-width:100%;white-space:normal
+}
 main.squatch-game-page .kit-more{width:100%!important;margin:0!important;
  flex:initial!important;border-top:1px solid #85ad9566!important;padding:8px 0 0!important}
 main.squatch-game-page .kit-more summary{min-height:44px!important;color:var(--sg-accent)!important}
