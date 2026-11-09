@@ -18,6 +18,7 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    getBoundingClientRect(){return {left:0,top:0,width:this.width,height:this.height};},
    getContext(){return ctx;},
    setPointerCapture(){},focus(){},
+   setAttribute(name,value){this[name]=value;},
    addEventListener(event,fn){listeners.set(id+':'+event,fn);},
    removeEventListener(event,fn){if(listeners.get(id+':'+event)===fn)listeners.delete(id+':'+event);},
    replaceChildren(...children){this.children=children;},

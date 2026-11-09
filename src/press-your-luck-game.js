@@ -1,5 +1,5 @@
 import {prepareGamePage} from './game-page-shell.js';
-import {readInvertAim,angleFromPointer} from './aim-preference.js';
+import {bindInvertAim,angleFromPointer} from './aim-preference.js';
 import {tablePoint as pointerToTable} from './table-pointer.js';
 import {createCuePlacement} from './shot-lifecycle.js';
 import {createGameTelemetry,newGameStatsId} from './game-telemetry.js';
@@ -38,6 +38,7 @@ export function mountPressGame(root=globalThis.document){
  }
  const $=id=>root.getElementById?.(id)||root.querySelector('#'+id),canvas=$('table'),ctx=canvas.getContext('2d');
  cleanups.push(mountTableKit(root));
+ const invertAim=bindInvertAim($('invert-aim'));cleanups.push(()=>invertAim.dispose());
  const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
 const callBall=$('call-ball'),callPocket=$('call-pocket');
@@ -283,7 +284,7 @@ function aimPointer(e,allowCall=false){
  }
  if(allowCall&&pickTableCall(x,y))return;
  if(!shot.breakShot&&!callReady())return;
- const next=angleFromPointer(cue(),{x,y},$('invert-aim').checked,TABLE.radius);
+ const next=angleFromPointer(cue(),{x,y},invertAim(),TABLE.radius);
  if(next!==null)angle=next;
 }
 listen(canvas,'pointerdown',e=>{
@@ -320,8 +321,7 @@ listen($('call-pocket'),'change',updateCallHint);
 bind($('undo-call'),'onclick',()=>{if(shot.phase!=='aim'||shot.breakShot)return;callBall.value='';callPocket.value='';message('Call cleared. Tap a ball to call a new shot.');updateCallHint();});
 bind($('next'),'onclick',rack);bind($('start'),'onclick',begin);
 bind($('opponent'),'onchange',()=>{cancelBot();cuePlacement.cancel();showtime.setSpectator($('opponent').value==='bots');update();});
-try{$('invert-aim').checked=readInvertAim();$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
-bind($('invert-aim'),'onchange',()=>{try{localStorage.setItem('squatch-invert-aim',String($('invert-aim').checked));}catch{}});
+try{$('size').value=localStorage.getItem('squatch-table-size')||'7';}catch{}
 bind($('size'),'onchange',()=>{try{localStorage.setItem('squatch-table-size',$('size').value);}catch{}if(match.finished)begin();else rack();});
 const controller={
  get isRackInProgress(){return shot.isRackInProgress;},

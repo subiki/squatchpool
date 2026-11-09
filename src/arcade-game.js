@@ -3,13 +3,14 @@ import {TABLE,pockets,cushions,step,stationary,shotSpeed} from './physics.js';
 import {renderPocket} from './table-geometry.js';
 import {drawAimAssistance,readAimAssistMode} from './aim-assist.js';
 import {createBotShowtime} from './bot-showtime.js';
-import {angleFromPointer,readInvertAim,INVERT_AIM_KEY} from './aim-preference.js';
+import {angleFromPointer,bindInvertAim} from './aim-preference.js';
 import {ARCADE_CHALLENGE,setupArcadeChallenge,judgeArcadeShot,arcadeAimAngle} from './arcade-challenge.js';
 import {ARCADE_COST,ARCADE_STORAGE_KEY,loadArcadeState,saveArcadeState,enterArcade,conquerArcade,awardPractice,PRACTICE_DAILY_CAP} from './arcade-points.js';
 prepareGamePage(document,'arcade');
 const showtime=createBotShowtime(document);
 const $=id=>document.getElementById(id);
 const canvas=$('table'),ctx=canvas.getContext('2d');
+const invertAim=bindInvertAim($('invert-aim'));
 let storage=null;
 try{storage=globalThis.localStorage??null;}catch{}
 let state=loadArcadeState(storage);
@@ -153,7 +154,7 @@ function pointerAim(event){
  if(!box.width||!box.height)return;
  const p={x:(event.clientX-box.left)*TABLE.width/box.width,
   y:(event.clientY-box.top)*TABLE.height/box.height};
- const next=angleFromPointer(cue(),p,$('invert-aim').checked,TABLE.radius);
+ const next=angleFromPointer(cue(),p,invertAim(),TABLE.radius);
  if(next!==null)angle=next;
 }
 canvas.addEventListener('pointerdown',event=>{canvas.setPointerCapture(event.pointerId);pointerAim(event);});
@@ -172,10 +173,6 @@ $('practice').addEventListener('click',()=>begin('practice'));
 $('entry').addEventListener('click',()=>begin('points'));
 $('shoot').addEventListener('click',stroke);
 $('arcade-seat')?.addEventListener('change',()=>{showtime.cancel();phase='idle';begin('practice');});
-$('invert-aim').checked=readInvertAim();
-$('invert-aim').addEventListener('change',()=>{
- try{localStorage.setItem(INVERT_AIM_KEY,String($('invert-aim').checked));}catch{}
-});
 $('reset-demo').addEventListener('click',()=>{
  if(!window.confirm('Reset this device’s Squatch Points, creator earnings, jackpot and local win?'))return;
  try{storage?.removeItem(ARCADE_STORAGE_KEY);}catch{}
