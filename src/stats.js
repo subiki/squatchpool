@@ -12,7 +12,12 @@ export function newStatsId(){
 
 // Small dependency-injectable client so tests can exercise retries, duplicate
 // delivery and rendering without an HTTP server or the Cloudflare account.
-export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{},onStatus=()=>{},gameId=CURRENT_GAME}){
+export function isStatsSpectator(root){
+ const mode=root?.querySelector?.('#mode,#opponent,#caroms-mode,#cut-players')?.value;
+ return mode==='bots'||mode==='0';
+}
+
+export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{},onStatus=()=>{},gameId=CURRENT_GAME,canRecord=()=>true}){
  const game=GAME_CATALOG.find(g=>g.id===gameId);
  if(!game)throw new Error('Unknown stats game: '+gameId);
  // Preserve the original But Wait queue; separate game queues must never discard each other.
@@ -66,6 +71,7 @@ export function createStatsClient({request,storage,uuid=newStatsId,onStats=()=>{
   return flushing;
  }
  function add(event){
+  if(!canRecord())return; // Watching bots must not enqueue players, racks or pockets.
   if(!isUuid(visitor)||!isUuid(event.rackId))return;
   if(queue.length>=LIMIT)return; // Never replace the parent rack event with a shot.
   queue.push({visitorId:visitor,game:gameId,...event});persist();
@@ -131,6 +137,7 @@ export function initStats(root=globalThis.document){
  let storage=null;
  try{storage=globalThis.localStorage??null;}catch{}
  const client=createStatsClient({
+  canRecord:()=>!isStatsSpectator(root),
   request:typeof fetch==='function'?fetch.bind(globalThis):null,
   storage,
   onStats:data=>{if(disposed)return;const game=data.games.find(g=>g.id===CURRENT_GAME);

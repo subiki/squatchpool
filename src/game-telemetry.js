@@ -1,5 +1,5 @@
 /** Shared, optional rack/shot telemetry for compact playable games. */
-import {createStatsClient,newStatsId} from './stats.js';
+import {createStatsClient,newStatsId,isStatsSpectator} from './stats.js';
 export const newGameStatsId=()=>newStatsId();
 export function createGameTelemetry(gameId,{root=globalThis.document}={}){
  let storage=null,client=null;
@@ -15,6 +15,7 @@ export function createGameTelemetry(gameId,{root=globalThis.document}={}){
  try{storage=globalThis.localStorage??null;}catch{}
  try{
   client=createStatsClient({
+   canRecord:()=>!isStatsSpectator(root),
    gameId,storage,
    request:typeof fetch==='function'?fetch.bind(globalThis):null,
    onStats:data=>{
