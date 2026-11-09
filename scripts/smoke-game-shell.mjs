@@ -245,10 +245,18 @@ const port=server.address().port;
 const outputDir=process.env.SQUATCH_SCREENSHOT_DIR||join(tmpdir(),'squatch-shell-smoke');
 mkdirSync(outputDir,{recursive:true});
 const sharedStyleFingerprints=new Map();
+const appearanceControlFingerprints=new Map();
 function assertConsistentUI(game,width,theme,html){
  const encoded=html.match(/data-squatch-style-fingerprint="([^"]+)"/)?.[1];
  if(!encoded)throw Error(game+': computed UI style fingerprint missing');
  const current=JSON.parse(decodeURIComponent(encoded));
+ const controlKey=game+'-'+width;
+ const controls=JSON.stringify({setting:current.setting,shot:current.shot});
+ if(theme==='classic')appearanceControlFingerprints.set(controlKey,controls);
+ else if(appearanceControlFingerprints.has(controlKey)&&
+   appearanceControlFingerprints.get(controlKey)!==controls)
+  throw Error('Control metrics change with appearance: '+game+' at '+width+'px; Classic '+
+    appearanceControlFingerprints.get(controlKey)+'; Rock '+controls);
  const key=theme+'-'+width;
  if(!sharedStyleFingerprints.has(key)){
   sharedStyleFingerprints.set(key,{game,metrics:current});
