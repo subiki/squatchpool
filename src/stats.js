@@ -124,7 +124,8 @@ let live=null;
 export function initStats(root=globalThis.document){
  if(typeof document==='undefined')return;
  const status=(root.ownerDocument||root).querySelector('#stats-status');
- let disposed=false;
+ const gameStatus=root.querySelector('#game-stats-status');
+ let disposed=false,hasGameTotals=false;
  // Browser storage access may throw before the client can handle getItem errors.
  // Missing telemetry storage must not stop the original playable game.
  let storage=null;
@@ -132,10 +133,21 @@ export function initStats(root=globalThis.document){
  const client=createStatsClient({
   request:typeof fetch==='function'?fetch.bind(globalThis):null,
   storage,
-  onStats:data=>{if(!disposed)renderStats(data,root);},
-  onStatus:state=>{if(!disposed&&status)status.textContent=state==='live'
-   ?'Live totals since statistics launched · players = distinct anonymous browsers that played; shared devices count once.'
-   :'Statistics are not connected yet. Game play still works; totals will appear when the server is ready.';},
+  onStats:data=>{if(disposed)return;const game=data.games.find(g=>g.id===CURRENT_GAME);
+   hasGameTotals=Boolean(game)&&['players','racks','balls'].every(field=>Number.isSafeInteger(game[field])&&game[field]>=0);
+   renderStats(data,root);},
+  onStatus:state=>{
+   if(disposed)return;
+   if(status)status.textContent=state==='live'
+    ?'Live totals since statistics launched · players = distinct anonymous browsers that played; shared devices count once.'
+    :'Statistics are not connected yet. Game play still works; totals will appear when the server is ready.';
+   if(gameStatus){
+    const live=state==='live'&&hasGameTotals;
+    if(!live)for(const field of ['players','racks','balls'])put('game-stats-'+field,undefined,root);
+    gameStatus.textContent=live?'Live game totals · players are distinct anonymous browsers.'
+     :'Statistics unavailable · gameplay continues.';
+   }
+  },
  });
  live=client;
  void client.refresh();

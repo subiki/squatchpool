@@ -222,7 +222,7 @@ export function prepareGamePage(root=globalThis.document,gameId){
   const match=main.querySelector(':scope > .match');
   if(match){
    // Align But Wait status placement with the other four HUD layouts.
-   const stats=match.querySelector('.game-stats');
+   const stats=match.querySelector('.game-stats,.game-live-stats');
    const score=match.querySelector('.scoreboard');
    if(score)stage.prepend(score);
    if(stats)stage.insertBefore(stats,score?.nextSibling||stage.firstChild);

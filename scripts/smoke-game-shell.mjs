@@ -194,6 +194,8 @@ const probe=`<script>
       aim:styleOf('.squatch-aim-mode'),
       shot:styleOf('.squatch-shot-row #shoot, .squatch-shot-row #caroms-shoot, .squatch-shot-row #cut-shoot')
     };
+    if(main.dataset.squatchGameShell!=='arcade')
+      fingerprint.lifetimeStats=styleOf('.game-live-stats');
     document.documentElement.dataset.squatchStyleFingerprint=
       encodeURIComponent(JSON.stringify(fingerprint));
     const styles=shoot?getComputedStyle(shoot):null;
