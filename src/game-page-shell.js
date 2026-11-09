@@ -137,6 +137,12 @@ function normalizeKit(main,doc){
  const more=primary.querySelector(':scope > .kit-more');
  if(more)primary.after(more);
  const power=primary.querySelector('.kit-power');
+ const powerInput=power?.querySelector('input[type=range]');
+ if(powerInput&&!power.querySelector('output')){
+  const output=make(doc,'output','',powerInput.value+'%');
+  output.id=powerInput.id+'-value';output.setAttribute('for',powerInput.id);
+  powerInput.before(output);
+ }
  const striker=primary.querySelector('.kit-striker');
  const shoot=primary.querySelector('#shoot, #caroms-shoot, #cut-shoot');
  const aimInput=primary.querySelector('#invert-aim');

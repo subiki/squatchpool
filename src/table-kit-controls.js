@@ -1,3 +1,8 @@
+/** Keep displayed power tied to the actual slider, including bot/reset changes. */
+export function renderPowerReadout(input,output){
+ if(input&&output)output.textContent=input.value+'%';
+}
+
 export function mountTableKit(root=globalThis.document){
  const doc=root?.ownerDocument||root;
  const find=id=>root?.getElementById?.(id)||root?.querySelector?.('#'+id);

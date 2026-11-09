@@ -15,7 +15,7 @@ import {adjudicateTunaShot} from './tuna-shot-adapter.js';
 import {planBotShot,planBotCuePlacement} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {createBotShowtime} from './bot-showtime.js';
-import {mountTableKit} from './table-kit-controls.js';
+import {mountTableKit,renderPowerReadout} from './table-kit-controls.js';
 import {attachShotKeyboard} from './shot-keyboard.js';
 const mountedGames=new WeakMap();
 export function mountTunaGame(root=globalThis.document){
@@ -38,6 +38,8 @@ export function mountTunaGame(root=globalThis.document){
  }
  const $=id=>root.getElementById?.(id)||root.querySelector('#'+id),canvas=$('table'),ctx=canvas.getContext('2d');
  cleanups.push(mountTableKit(root));
+ const renderPower=()=>renderPowerReadout($('power'),$('power-value'));
+ listen($('power'),'input',renderPower);
  const invertAim=bindInvertAim($('invert-aim'));cleanups.push(()=>invertAim.dispose());
  const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
 
@@ -126,6 +128,7 @@ function draw(){
 
 const callReady=()=>Boolean($('call-ball').value&&$('call-pocket').value);
 function updateCallHint(){
+ renderPower();
  $('shoot').disabled=isBotTurn()||shot.phase!=='aim'||(!shot.breakShot&&!callReady());
  const undo=$('undo-call');
  undo.hidden=shot.phase!=='aim'||!($('call-ball').value||$('call-pocket').value);
@@ -283,7 +286,7 @@ function fire(bot=false){
  const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);
  b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;
  applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);
- $('power').value='68';$('spin-top').value='0';$('spin-side').value='0';
+ $('power').value='68';renderPower();$('spin-top').value='0';$('spin-side').value='0';
  $('shoot').disabled=true;message('Balls rolling…');
 }
 cleanups.push(attachShotKeyboard(globalThis.window,{
