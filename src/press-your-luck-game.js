@@ -15,7 +15,7 @@ import {planBotShot} from './bot-shot-planner.js';
 import {createBotTurnScheduler} from './bot-turn-scheduler.js';
 import {createBotShowtime} from './bot-showtime.js';
 import {groupOf} from './rules.js';
-import {mountTableKit} from './table-kit-controls.js';
+import {mountTableKit,renderPowerReadout} from './table-kit-controls.js';
 import {attachShotKeyboard} from './shot-keyboard.js';
 const mountedGames=new WeakMap();
 export function mountPressGame(root=globalThis.document){
@@ -38,6 +38,8 @@ export function mountPressGame(root=globalThis.document){
  }
  const $=id=>root.getElementById?.(id)||root.querySelector('#'+id),canvas=$('table'),ctx=canvas.getContext('2d');
  cleanups.push(mountTableKit(root));
+ const renderPower=()=>renderPowerReadout($('power'),$('power-value'));
+ listen($('power'),'input',renderPower);
  const invertAim=bindInvertAim($('invert-aim'));cleanups.push(()=>invertAim.dispose());
  const showtime=createBotShowtime(root);cleanups.push(()=>showtime.dispose());
 let shotCall=0,shotPocket='',shotBank=false,match,balls=[],turn=0,groups=[null,null],angle=0,events=[],firstContact=null,preBalls=[],shotElapsed=0,still=0,previous=0,acc=0;
@@ -153,6 +155,7 @@ function draw(){
 
 const callReady=()=>Boolean($('call-ball').value&&$('call-pocket').value);
 function updateCallHint(){
+ renderPower();
  const hint=$('table-call-hint');if(!hint)return;
  $('shoot').disabled=isBotTurn()||shot.phase!=='aim'||(!shot.breakShot&&!callReady());
  $('undo-call').disabled=isBotTurn()||shot.phase!=='aim'||shot.breakShot||!($('call-ball').value||$('call-pocket').value);
@@ -309,7 +312,7 @@ listen(canvas,'pointerup',e=>{
 });
 listen(canvas,'pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
 listen(canvas,'lostpointercapture',e=>{cuePlacement.pointerUp(e.pointerId);});
-function fire(fromBot=false){if(shot.phase!=='aim'||(isBotTurn()&&!fromBot))return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;cuePlacement.cancel();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';$('spin-top').value='0';$('spin-side').value='0';$('shoot').disabled=true;message('Balls rolling…');}
+function fire(fromBot=false){if(shot.phase!=='aim'||(isBotTurn()&&!fromBot))return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;cuePlacement.cancel();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';renderPower();$('spin-top').value='0';$('spin-side').value='0';$('shoot').disabled=true;message('Balls rolling…');}
 cleanups.push(attachShotKeyboard(globalThis.window,{
  getPhase:()=>shot.phase,isHumanTurn:()=>!isBotTurn(),
  shoot:()=>fire(),nudgeAim:delta=>{angle+=delta;}

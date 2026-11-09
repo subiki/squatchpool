@@ -1,3 +1,4 @@
+import {renderPowerReadout} from './table-kit-controls.js';
 import {prepareGamePage} from './game-page-shell.js';
 import {TABLE,pockets,cushions,step,stationary,shotSpeed} from './physics.js';
 import {renderPocket} from './table-geometry.js';
@@ -10,6 +11,8 @@ prepareGamePage(document,'arcade');
 const showtime=createBotShowtime(document);
 const $=id=>document.getElementById(id);
 const canvas=$('table'),ctx=canvas.getContext('2d');
+const renderPower=()=>renderPowerReadout($('power'),$('power-value'));
+$('power').addEventListener('input',renderPower);
 const invertAim=bindInvertAim($('invert-aim'));
 let storage=null;
 try{storage=globalThis.localStorage??null;}catch{}
@@ -25,6 +28,7 @@ function log(message){
  const li=document.createElement('li');li.textContent=message;$('history').prepend(li);
 }
 function renderStats(){
+ renderPower();
  $('points').textContent=state.balance.toLocaleString();
  $('pot').textContent=state.jackpot.toLocaleString();
  $('creator-points').textContent=state.creator.toLocaleString();

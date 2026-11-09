@@ -167,6 +167,10 @@ const probe=`<script>
       const r=node.getBoundingClientRect(),parent=node.parentElement.getBoundingClientRect();
       return r.left>=parent.left-1&&r.right<=parent.right+1;
     });
+    const powerControl=main.querySelector('.kit-power input[type=range]');
+    const powerOutput=main.querySelector('.kit-power output');
+    const powerReadout=!!powerControl&&!!powerOutput&&
+      powerOutput.textContent===powerControl.value+'%'&&powerOutput.getBoundingClientRect().width>0;
     const spectatorOK=!wantsBots||(
       !!main?.querySelector('#table-stage .squatch-bot-showtime')&&
       !main.querySelector('#table-stage .squatch-bot-showtime').hidden
@@ -208,7 +212,7 @@ const probe=`<script>
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=appearanceOK&&rockPageOK&&headerLayoutOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
-      !!controls&&visible&&canvasFits&&historyFits&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
+      !!controls&&visible&&canvasFits&&historyFits&&powerReadout&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
       !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&feedbackInside&&
       main?.dataset.squatchGameShell&&errors.length===0;
     if(location.search.includes('smokeScroll=table')&&stage){
@@ -225,7 +229,7 @@ const probe=`<script>
     document.documentElement.dataset.squatchSmoke=ok?'pass':'fail';
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
-      hasControls:!!controls,buttonVisible:visible,canvasFits,historyFits,navEqualHeights:dimensions,
+      hasControls:!!controls,buttonVisible:visible,canvasFits,historyFits,powerReadout,navEqualHeights:dimensions,
       setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,feedbackInside,
       duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,rockPageOK,headerLayoutOK,heroImg,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors
