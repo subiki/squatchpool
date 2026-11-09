@@ -123,7 +123,9 @@ const probe=`<script>
     const setupOrder=!!setupTitle&&!!setupGrid&&
       setupTitle.compareDocumentPosition(setupGrid)&Node.DOCUMENT_POSITION_FOLLOWING;
     const rulebook=main?.querySelector('.squatch-game-rules .squatch-rulebook');
+    const rulesBounds=main?.querySelector('.squatch-game-rules')?.getBoundingClientRect();
     const rulesUniform=!!rulebook&&!rulebook.open&&
+      rulebook.getBoundingClientRect().right<=rulesBounds.right+1&&
       rulebook.querySelector('summary')?.textContent==='Explore full house rules, examples & controls';
     const nav=[...document.querySelectorAll('.squatch-header-nav a')];
     const navRects=nav.map(x=>x.getBoundingClientRect());
@@ -186,6 +188,7 @@ const probe=`<script>
         stageRect.width,canvasRect.width],
       title:styleOf('.squatch-page-title'),
       section:styleOf('.squatch-section-title'),
+      settingLabel:styleOf('.squatch-setting-name'),
       setting:styleOf('.squatch-setting select'),
       rules:styleOf('.squatch-rulebook > summary'),
       aim:styleOf('.squatch-aim-mode'),
@@ -254,7 +257,8 @@ function assertConsistentUI(game,width,theme,html){
  if(!encoded)throw Error(game+': computed UI style fingerprint missing');
  const current=JSON.parse(decodeURIComponent(encoded));
  const controlKey=game+'-'+width;
- const controls=JSON.stringify({setting:current.setting,shot:current.shot,geometry:current.geometry});
+ const controls=JSON.stringify({setting:current.setting,shot:current.shot,geometry:current.geometry,
+   sectionType:current.section?.slice(0,4),settingLabel:current.settingLabel});
  if(theme==='classic')appearanceControlFingerprints.set(controlKey,controls);
  else if(appearanceControlFingerprints.has(controlKey)&&
    appearanceControlFingerprints.get(controlKey)!==controls)

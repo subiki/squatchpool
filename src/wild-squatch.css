@@ -903,8 +903,7 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
   url('/assets/brand/texture-cedar.svg')!important;
  background-size:auto,220px auto!important;
  color:#25110d!important;
- font:900 clamp(1.22rem,2.55vw,1.8rem)/1.12 Georgia,serif!important;
- text-transform:uppercase!important;letter-spacing:.035em!important;
+
  text-shadow:1px 1px #ffedae!important;
  box-shadow:0 3px #381c0c,0 0 12px var(--rock-game-neon)!important;
 }
@@ -916,8 +915,7 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
 }
 :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting-name{
  color:#ffe4a1!important;
- font:850 .85rem/1.25 system-ui,sans-serif!important;
- text-transform:uppercase!important;letter-spacing:.04em!important;
+
 }
 :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting :is(select,input),
 :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-setting-static{
@@ -1095,7 +1093,7 @@ body .hub-game:has(.hub-rules[open]){padding-top:clamp(95px,11vw,140px)!importan
   max-width:100%!important;font-size:.98rem!important;
  }
  :root[data-squatch-theme="rock"] body main.squatch-game-page .squatch-section-title{
-  min-height:44px!important;font-size:clamp(1.2rem,4vw,1.5rem)!important;
+  min-height:44px!important;
   margin-bottom:12px!important;padding:7px 15px!important;
  }
 }
