@@ -144,6 +144,8 @@ test('Press Your Luck: table ball/pocket call, undo and drag-to-aim on 7/8/9 ft'
    assert.equal(node('shoot').disabled,false);
    assert.equal(pressSpace('CANVAS'),true,'Space on focused felt fires called shot');
    assert.equal(node('shoot').disabled,true,'called shot begins moving');
+   assert.match(node('table-call-hint').textContent,/Shot in progress/,'call guidance must leave the aiming phase immediately');
+   assert.equal(node('undo-call').disabled,true,'Undo cannot be offered during motion');
    assert.equal(node('power').value,'68','power resets after the shot');
   }
   const staleFrame=nextFrame,staleClick=node('shoot').onclick;

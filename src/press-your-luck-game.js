@@ -161,7 +161,8 @@ function updateCallHint(){
  $('undo-call').disabled=isBotTurn()||shot.phase!=='aim'||shot.breakShot||!($('call-ball').value||$('call-pocket').value);
  const called=$('call-ball').value,pocket=pockets.find(p=>p.id===$('call-pocket').value);
  hint.textContent=shot.phase==='place'?'Place and confirm the cue ball first.':
-  shot.phase!=='aim'?'Shot in progress or rack complete.':
+  shot.phase==='moving'?'Shot in progress. Wait for the balls to stop.':
+  shot.phase!=='aim'?'Rack complete. Start the next rack or a new match.':
   shot.breakShot?'Break: aim and shoot. No call needed.':
   !called?'1. Tap a ball on the table to call it.':
   !pocket?'2. Tap a glowing pocket on the table.':
@@ -312,7 +313,7 @@ listen(canvas,'pointerup',e=>{
 });
 listen(canvas,'pointercancel',e=>{cuePlacement.pointerUp(e.pointerId);});
 listen(canvas,'lostpointercapture',e=>{cuePlacement.pointerUp(e.pointerId);});
-function fire(fromBot=false){if(shot.phase!=='aim'||(isBotTurn()&&!fromBot))return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;cuePlacement.cancel();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';renderPower();$('spin-top').value='0';$('spin-side').value='0';$('shoot').disabled=true;message('Balls rolling…');}
+function fire(fromBot=false){if(shot.phase!=='aim'||(isBotTurn()&&!fromBot))return;if(!shot.breakShot&&!callReady()){message('Tap a ball and glowing pocket on the table, or use the call drawer.');return;}shotCall=Number(callBall.value);shotPocket=callPocket.value;shotBank=$('bank').checked;preBalls=balls.map(b=>({...b}));events=[];firstContact=null;shotElapsed=still=acc=0;statsShotId=newGameStatsId();if(!shot.startShot(statsShotId))return;cuePlacement.cancel();if(shot.breakShot)telemetry.rack(statsRackId);const b=cue(),v=shotSpeed(Number($('power').value),shot.breakShot);b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);$('power').value='68';renderPower();$('spin-top').value='0';$('spin-side').value='0';$('shoot').disabled=true;message('Balls rolling…');updateCallHint();}
 cleanups.push(attachShotKeyboard(globalThis.window,{
  getPhase:()=>shot.phase,isHumanTurn:()=>!isBotTurn(),
  shoot:()=>fire(),nudgeAim:delta=>{angle+=delta;}

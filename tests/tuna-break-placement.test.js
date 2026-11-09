@@ -107,6 +107,9 @@ test('Tuna starts ready to break and supports kitchen dragging without confirmat
    node('shoot').onclick();
    assert.equal(node('shoot').disabled,true,'complete call permits the next physical shot');
    assert.equal(node('status').textContent,'Balls rolling…','moving shot replaces stale aiming guidance');
+   assert.match(node('table-call-hint').textContent,/Shot in progress/,'call guidance must leave the aiming phase immediately');
+   assert.equal(node('undo-call').disabled,true,'Undo cannot be offered during motion');
+   assert.equal(node('undo-call').hidden,true,'completed call controls hide during the shot');
    queuedFrame(time+2000/120);
 
 
