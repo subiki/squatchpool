@@ -163,6 +163,10 @@ const probe=`<script>
     );
     const wronglyVisibleHidden=[...main.querySelectorAll('[hidden]')]
       .filter(node=>getComputedStyle(node).display!=='none');
+    const historyFits=[...main.querySelectorAll('.game-history,.shot-history-section')].every(node=>{
+      const r=node.getBoundingClientRect(),parent=node.parentElement.getBoundingClientRect();
+      return r.left>=parent.left-1&&r.right<=parent.right+1;
+    });
     const spectatorOK=!wantsBots||(
       !!main?.querySelector('#table-stage .squatch-bot-showtime')&&
       !main.querySelector('#table-stage .squatch-bot-showtime').hidden
@@ -203,7 +207,7 @@ const probe=`<script>
     const styles=shoot?getComputedStyle(shoot):null;
     const visible=Boolean(shoot&&shoot.getBoundingClientRect().width>0&&styles?.visibility!=='hidden');
     const ok=appearanceOK&&rockPageOK&&headerLayoutOK&&JSON.stringify(sections)===JSON.stringify(expected)&&!!stage&&!!setup&&
-      !!controls&&visible&&canvasFits&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
+      !!controls&&visible&&canvasFits&&historyFits&&dimensions&&unique&&wronglyVisibleHidden.length===0&&
       !!setupOrder&&rulesUniform&&aimOK&&spectatorOK&&feedbackInside&&
       main?.dataset.squatchGameShell&&errors.length===0;
     if(location.search.includes('smokeScroll=table')&&stage){
@@ -220,7 +224,7 @@ const probe=`<script>
     document.documentElement.dataset.squatchSmoke=ok?'pass':'fail';
     document.documentElement.dataset.squatchSmokeDetails=JSON.stringify({
       sections,game:main?.dataset.squatchGameShell,hasStage:!!stage,hasSetup:!!setup,
-      hasControls:!!controls,buttonVisible:visible,canvasFits,navEqualHeights:dimensions,
+      hasControls:!!controls,buttonVisible:visible,canvasFits,historyFits,navEqualHeights:dimensions,
       setupHeadingBeforeFields:!!setupOrder,canonicalRules:rulesUniform,aimOK,spectatorOK,feedbackInside,
       duplicateIds:ids.filter((x,i)=>ids.indexOf(x)!==i),appearanceOK,rockPageOK,headerLayoutOK,heroImg,
       wronglyVisibleHidden:wronglyVisibleHidden.map(x=>x.id||x.className),errors

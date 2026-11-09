@@ -126,7 +126,8 @@ main.squatch-game-page .kit-rack-actions{margin-top:8px!important;width:100%!imp
 main.squatch-game-page .squatch-game-after{display:grid!important;gap:12px!important}
 main.squatch-game-page .squatch-game-after:empty{display:none!important}
 main.squatch-game-page :is(.game-history,.shot-history-section){
- width:100%!important;margin:0!important;max-width:none!important}
+ box-sizing:border-box;min-width:0;
+ width:100%!important;margin:0!important}
 main.squatch-game-page .squatch-game-play .game-stats,
 main.squatch-game-page .squatch-game-play .scoreboard{
  width:100%!important;min-width:0!important;
