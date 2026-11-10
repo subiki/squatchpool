@@ -59,3 +59,17 @@ test('Tuna session requires shot identity before publishing a ruling',()=>{
  assert.throws(()=>shots.resolve({context:{}}),/shotId/);
  assert.equal(events.length,0);
 });
+
+test('Tuna explains a correctly called early 10 without changing its ruling',()=>{
+ const context={player:0,balls:balls([9,12,13,14,15]),firstContact:1,
+  shotEvents:[pocket(10)],calledBall:10,calledPocket:'TL'};
+ const result=adjudicateTunaShot(context);
+ assert.equal(result.announcement,'Player 1: 10 spotted; clear all stripes before winning');
+ assert.deepEqual(result.actions.spotted,[10]);
+ assert.equal(result.points,0);
+ assert.equal(result.rackEnd,false);
+ assert.equal(result.nextPlayer,1);
+ assert.equal(result.foul,false);
+ assert.match(adjudicateTunaShot({...context,firstContact:10}).announcement,/Foul/);
+ assert.match(adjudicateTunaShot({...context,calledPocket:'BR'}).announcement,/Miss/);
+});

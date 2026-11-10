@@ -13,8 +13,11 @@ export function adjudicateTunaShot({player,balls,firstContact,shotEvents,calledB
   scratch:pocketed.includes(0),
  });
  const physicalPockets=[...new Set(pocketed.filter(id=>id>0))];
+ const calledTenSpotted=calledBall===10&&ruling.spotted.includes(10)&&
+  pocketEvents.some(event=>event.ballId===10&&event.pocketId===calledPocket);
  const announcement='Player '+(player+1)+': '+
   (ruling.foul?'Foul':ruling.winning?'Wins the rack':
+   calledTenSpotted?'10 spotted; clear all stripes before winning':
    ruling.credited.length?'Made '+ruling.credited.join(', '):'Miss')+
   (ruling.payout?' · $'+ruling.payout:'');
  return {
