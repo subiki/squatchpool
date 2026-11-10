@@ -328,7 +328,7 @@ function finishShot(){
  }
  if(decision.winner!==null){
   state.winner=decision.winner;state.phase='done';
-  $('#result-title').textContent=person(decision.winner)+' wins!';
+  $('#result-title').textContent=state.mode==='bot'&&decision.winner===0?'You win!':person(decision.winner)+' wins!';
   $('#result-description').textContent=decision.reason;
   $('#result-modal').hidden=false;say(decision.reason);update();return;
  }
