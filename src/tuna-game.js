@@ -136,7 +136,8 @@ function updateCallHint(){
  const hint=$('table-call-hint');if(!hint)return;
  const called=$('call-ball').value,pocket=pockets.find(p=>p.id===$('call-pocket').value);
  hint.textContent=shot.phase==='place'?'Place and confirm the cue ball first.':
-  shot.phase!=='aim'?'Shot in progress or rack complete.':
+  shot.phase==='moving'?'Shot in progress. Wait for the balls to stop.':
+  shot.phase!=='aim'?'Rack complete. Start the next rack or a new match.':
   shot.breakShot&&!called?'Break: aim and shoot. No call needed.':
   !called?'1. Tap a ball on the table to call it.':
   !pocket?'2. Tap a glowing pocket on the table.':
@@ -287,7 +288,7 @@ function fire(bot=false){
  b.vx=Math.cos(angle)*v;b.vy=Math.sin(angle)*v;
  applyCueSpin(b,Number($('spin-top').value)/100,Number($('spin-side').value)/100);
  $('power').value='68';renderPower();$('spin-top').value='0';$('spin-side').value='0';
- $('shoot').disabled=true;message('Balls rolling…');
+ $('shoot').disabled=true;message('Balls rolling…');updateCallHint();
 }
 cleanups.push(attachShotKeyboard(globalThis.window,{
  getPhase:()=>shot.phase,isHumanTurn:()=>!isBotTurn(),
