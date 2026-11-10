@@ -84,3 +84,11 @@ test('Cutthroat session rejects missing shot id before publishing',()=>{
  assert.throws(()=>shots.resolve({context:{match:startCutthroat()}}),/shotId/);
  assert.equal(received.length,0);
 });
+
+ test('Cutthroat announcements use the supplied seat label without changing the ruling',()=>{
+ const context={match:{...startCutthroat(),turn:1},shotEvents:[contact(6),pocket(6)]};
+ const local=adjudicateCutthroatShot(context);
+ const bot=adjudicateCutthroatShot({...context,playerLabel:'Squatch Bot 2'});
+ assert.equal(bot.announcement,'Squatch Bot 2: pocketed 1 yellow ball.');
+ assert.deepEqual({...bot,announcement:local.announcement},local);
+ });

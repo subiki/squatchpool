@@ -6,7 +6,7 @@ import {groupForBall} from './squatch-modes.js';
  * The original rule engine owns group choices, scratch claims, elimination
  * and reentry; the controller supplies only settled physical shot events.
  */
-export function adjudicateCutthroatShot({match,shotEvents=[],breakShot=false}){
+export function adjudicateCutthroatShot({match,shotEvents=[],breakShot=false,playerLabel}){
  const seen=new Set();
  let scratch=false,contacted=false;
  for(const event of shotEvents){
@@ -26,7 +26,7 @@ export function adjudicateCutthroatShot({match,shotEvents=[],breakShot=false}){
  for(const id of pocketed)counts[groupForBall(id)]++;
  const made=counts.map((n,i)=>n?n+' '+colors[i]+' ball'+(n===1?'':'s'):null)
   .filter(Boolean).join(', ');
- const announcement='Player '+(match.turn+1)+': '+
+ const announcement=(playerLabel||'Player '+(match.turn+1))+': '+
   (made?'pocketed '+made:'no ball pocketed')+
   (scratch?' · scratch. Third player decides a claim.':'.');
  return {
