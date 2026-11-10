@@ -141,7 +141,7 @@ function finishShot(){
  const shot=game.shot;if(!shot)return;
  game.shot=null;
  const result=session.resolveShot({shotId:shot.statsShotId,context:{
-  match:game.match,shotEvents:shot.events,breakShot:shot.breakShot,
+  match:game.match,shotEvents:shot.events,breakShot:shot.breakShot,playerLabel:seatName(game.match.turn),
  }});
  game.match=result.actions.match;
  session.settle({done:result.rackEnd,ballInHand:result.ballInHand});
