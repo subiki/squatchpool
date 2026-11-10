@@ -166,6 +166,7 @@ function update(){
  $('caroms-hud-name-1').textContent=$('caroms-mode').value==='bots'?'SQUATCH BOT 2':solo()?'SQUATCH BOT':'PLAYER 2';
  $('caroms-hud-possession').textContent=state.phase==='done'?player(state.winner)+' wins':player(state.turn)+(state.phase==='option'?' choosing foul option':' shooting');
  $('caroms-rack-actions').hidden=state.phase!=='done';
+ $('caroms-match-settings').hidden=state.phase==='done';
  $('caroms-score').textContent='Best of 3 · Racks: '+player(0)+' '+matchWins[0]+' – '+player(1)+' '+matchWins[1]+' · '+
   state.groups.map((g,i)=>player(i)+': '+(g||'open table')+
   (g?' ('+liveGroupBalls(state.balls,g).length+' left)':'')).join('   ·   ');
